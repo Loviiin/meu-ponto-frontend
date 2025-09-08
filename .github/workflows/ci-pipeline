@@ -1,36 +1,44 @@
-# This is a basic workflow to help you get started with Actions
+# Nome do workflow que aparecerá na aba "Actions" do GitHub
+name: CI Frontend Vue.js
 
-name: CI
-
-# Controls when the workflow will run
+# Gatilhos: Este workflow roda em Pull Requests para as branches develop e homologacao
 on:
-  # Triggers the workflow on push or pull request events but only for the "main" branch
-  push:
-    branches: [ "main" ]
   pull_request:
-    branches: [ "main" ]
+    branches:
+      - develop
+      - homologacao
 
-  # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
+# Permissões necessárias para a action
+permissions:
+  contents: read
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
-  build:
-    # The type of runner that the job will run on
+  # Nome do job (pode ser qualquer nome)
+  build_and_test:
+    name: Build e Teste
+    # Sistema operacional da máquina virtual que rodará o código
     runs-on: ubuntu-latest
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v4
+      # 1º Passo: Baixa o código do seu repositório para a máquina virtual
+      - name: Checkout do código
+        uses: actions/checkout@v4
 
-      # Runs a single command using the runners shell
-      - name: Run a one-line script
-        run: echo Hello, world!
+      # 2º Passo: Configura a versão correta do Node.js
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20' # Recomenda-se usar uma versão LTS (Long Term Support)
+          cache: 'npm' # Ativa o cache de dependências para acelerar execuções futuras
 
-      # Runs a set of commands using the runners shell
-      - name: Run a multi-line script
-        run: |
-          echo Add other actions to build,
-          echo test, and deploy your project.
+      # 3º Passo: Instala todas as dependências do projeto
+      - name: Instalar dependências
+        run: npm install
+
+      # 4º Passo: Executa o build para garantir que o projeto compila sem erros
+      - name: Compilar o projeto
+        run: npm run build
+
+      # 5º Passo: (Opcional) Se você configurar testes, pode adicionar o comando aqui
+      # - name: Executar testes
+      #   run: npm test
