@@ -1,0 +1,44 @@
+# Nome do workflow que aparecerá na aba "Actions" do GitHub
+name: CI Frontend Vue.js
+
+# Gatilhos: Este workflow roda em Pull Requests para as branches develop e homologacao
+on:
+  pull_request:
+    branches:
+      - develop
+      - homologacao
+
+# Permissões necessárias para a action
+permissions:
+  contents: read
+
+jobs:
+  # Nome do job (pode ser qualquer nome)
+  build_and_test:
+    name: Build e Teste
+    # Sistema operacional da máquina virtual que rodará o código
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1º Passo: Baixa o código do seu repositório para a máquina virtual
+      - name: Checkout do código
+        uses: actions/checkout@v4
+
+      # 2º Passo: Configura a versão correta do Node.js
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20' # Recomenda-se usar uma versão LTS (Long Term Support)
+          cache: 'npm' # Ativa o cache de dependências para acelerar execuções futuras
+
+      # 3º Passo: Instala todas as dependências do projeto
+      - name: Instalar dependências
+        run: npm install
+
+      # 4º Passo: Executa o build para garantir que o projeto compila sem erros
+      - name: Compilar o projeto
+        run: npm run build
+
+      # 5º Passo: (Opcional) Se você configurar testes, pode adicionar o comando aqui
+      # - name: Executar testes
+      #   run: npm test
