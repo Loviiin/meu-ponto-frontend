@@ -7,6 +7,7 @@ on:
     branches:
       - develop
       - homologacao
+      - main
 
 # Permissões necessárias para a action
 permissions:
@@ -34,11 +35,14 @@ jobs:
       # 3º Passo: Instala todas as dependências do projeto
       - name: Instalar dependências
         run: npm install
+        working-directory: frontend
 
       # 4º Passo: Executa o build para garantir que o projeto compila sem erros
       - name: Compilar o projeto
         run: npm run build
+        working-directory: frontend
 
       # 5º Passo: (Opcional) Se você configurar testes, pode adicionar o comando aqui
       # - name: Executar testes
-      #   run: npm test
+    #   run: npm test
+    #   working-directory: frontend
