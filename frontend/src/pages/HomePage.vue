@@ -13,16 +13,32 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-top: 60px;
+  margin-top: 120px;
+  padding: 40px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.08); /* glass */
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+  color: white;
 }
 
 h1 {
-  color: #2c3e50;
-  margin-bottom: 16px;
+  font-size: 2.2rem;
+  font-weight: bold;
+  margin-bottom: 12px;
+  background: linear-gradient(90deg, #d4af37, #fff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 p {
-  color: #555;
-  font-size: 18px;
+  color: rgba(255,255,255,0.8);
+  font-size: 1.2rem;
+  letter-spacing: 1px;
 }
 </style>
