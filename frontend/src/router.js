@@ -7,13 +7,13 @@ const routes = [
   { 
     path: '/login',
     component: Login ,
-    meta: { hideNavbar: true }
+    meta: { hideNavbar: true, hidePunchButton: true }
   },
 
   { 
     path: '/',
     component: Login ,
-    meta: { hideNavbar: true }
+    meta: { hideNavbar: true, hidePunchButton: true }
   },
 
   { path: '/home',

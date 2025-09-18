@@ -1,9 +1,10 @@
 import api from './axios';
 
-export async function login(username, password) {
-  const res = await api.post('/api/token/', { username, password });
+export async function login(username, password, email) {
+  const res = await api.post('/api/token/', { username, password, email });
   localStorage.setItem('access', res.data.access);
   localStorage.setItem('refresh', res.data.refresh);
+  localStorage.setItem('token', res.data.access); // Armazena o token de acesso
 }
 
 export async function refreshToken() {

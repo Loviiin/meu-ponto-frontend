@@ -12,8 +12,13 @@
         <p class="login-box-msg2">Faça seu login</p>
         <form @submit.prevent="loginUser">
   <div class="input-group">
-    <input type="text" name="username" placeholder="Usuário" v-model="username" required />
+    <input type="text" name="username" placeholder="Usuário" v-model="username"  />
     <span class="input-icon"><i class="bi bi-person-fill"></i></span>
+  </div>
+  <p>ou</p>
+    <div class="input-group">
+    <input type="email" name="email" placeholder="Email" v-model="email" />
+    <span class="input-icon"><i class="bi bi-at"></i></span>
   </div>
   <div class="input-group">
     <input type="password" name="password" placeholder="Senha" v-model="password" required />
@@ -167,13 +172,16 @@ import { useRouter } from 'vue-router'
 import axios from 'axios'
 
 const router = useRouter()
+const email = ref('')
 const username = ref('')
 const password = ref('')
 
 const loginUser = async () => {
   try {
-    const response = await axios.post('http://localhost:8000/api/v1/authentication/token/', {
+    const response = await axios.post('http://localhost:8083/api/v1/auth/login', {
+     /* http://localhost:8000/api/v1/authentication/token/ Django-api*/ 
       username: username.value,
+      email: email.value,
       password: password.value
     })
 
@@ -181,9 +189,15 @@ const loginUser = async () => {
       throw new Error('Login failed')
     }
 
-    const token = response.data.access
+/*     const token = response.data.access
     localStorage.setItem('token', response.data.access)
-    router.push('/home')          
+    console.log('Token armazenado:', token)
+    router.push('/home')  */  
+    
+    const token = response.data.token
+    localStorage.setItem('token', response.data.token)
+    console.log('Token armazenado:', token)
+    router.push('/home')
 
   } catch (error) {
     alert('Erro no login: usuário ou senha inválidos')
