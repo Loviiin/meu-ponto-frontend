@@ -11,19 +11,20 @@
         <p class="login-box-msg">Bem-vindo ao Nexora</p>
         <p class="login-box-msg2">Faça seu login</p>
         <form @submit.prevent="loginUser">
-          <div class="mb-3">
-            <input type="text" name="username" placeholder="Usuário" v-model="username" required />
-            <label><i class="bi bi-person-fill"></i></label>
-          </div>
-          <div>
-            <input type="password" name="password" placeholder="Senha" v-model="password" required />
-            <label><i class="bi bi-lock-fill"></i></label>
-          </div>
-          <button class="btn btn-primary" style="margin: 10px;" type="submit">
-            <i class="bi bi-door-open-fill"></i>
-            Acessar
-          </button>
-        </form>
+  <div class="input-group">
+    <input type="text" name="username" placeholder="Usuário" v-model="username" required />
+    <span class="input-icon"><i class="bi bi-person-fill"></i></span>
+  </div>
+  <div class="input-group">
+    <input type="password" name="password" placeholder="Senha" v-model="password" required />
+    <span class="input-icon"><i class="bi bi-lock-fill"></i></span>
+  </div>
+  <button class="btn btn-primary" style="margin: 10px;" type="submit">
+    <i class="bi bi-door-open-fill"></i>
+    Acessar
+  </button>
+</form>
+
       </div>
     </div>
   </div>
@@ -105,21 +106,42 @@ body {
     text-align: center;
     color: white;
 }
-input {
+.input-group {
+  position: relative;
   width: 100%;
-  padding: 10px;
-  margin: 8px 0;
-  border-radius: 10px;
+  margin: 10px 0;
+  display: flex;
+}
+
+.input-group input {
+  flex: 1;
+  padding: 10px 10px;
   border: none;
   outline: none;
+  border-radius: 10px 0 0 10px; /* arredondado só na esquerda */
   background: rgba(255, 255, 255, 0.15);
   color: white;
   font-size: 14px;
 }
 
-input::placeholder {
+.input-group input::placeholder {
   color: rgba(255, 255, 255, 0.6);
 }
+
+.input-group .input-icon {
+  width: 40px;
+  background: rgba(255, 255, 255, 0.15);
+  border-left: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 0 10px 10px 0; /* arredondado só na direita */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 16px;
+  pointer-events: none;
+}
+
+
 
 button.btn-primary {
   width: 150px;

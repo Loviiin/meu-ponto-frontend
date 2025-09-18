@@ -6,7 +6,7 @@
     <ul>
       <li><router-link to="/home"><i class="bi bi-house-fill"></i> Home</router-link></li>
       <li><router-link to="/employee"><i class="bi bi-person-lines-fill"></i> Funcionários</router-link></li>
-      <button class="btn btn-sm" title="Sair" @click="logoutUser">
+      <button class="btn" title="Sair" style="color: aliceblue;"  @click="logoutUser">
         <i class="bi bi-box-arrow-right"></i>
       </button>
     </ul>
@@ -71,23 +71,26 @@ a:hover {
   background: rgba(255, 255, 255, 0.15);
 }
 
-button.btn-sm {
-  margin-left: 12px;
-  background: rgba(212, 175, 55, 0.85);
-  border: none;
-  border-radius: 10px;
-  padding: 6px 10px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
 
-button.btn-sm i {
+button.btn i:hover {
   color: white;
-  font-size: 1.2rem;
+  color:rgba(212, 175, 55, 1);
+  line-height: 1;
 }
 
-button.btn-sm:hover {
-  background: rgba(212, 175, 55, 1);
+button.btn:hover {
   transform: scale(1.05);
+  color: rgba(212, 175, 55, 1);
 }
 </style>
+
+<script setup>
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
+
+const logoutUser = () => {
+  localStorage.removeItem('token')
+  router.push('/login')
+}
+</script>
