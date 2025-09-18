@@ -13,11 +13,11 @@
         <form @submit.prevent="loginUser">
           <div class="mb-3">
             <input type="text" name="username" placeholder="Usuário" v-model="username" required />
-            <label><i class="bi bi-person-fill"></i></label>
+            <!-- <label><i class="bi bi-person-fill"></i></label> -->
           </div>
           <div>
             <input type="password" name="password" placeholder="Senha" v-model="password" required />
-            <label><i class="bi bi-lock-fill"></i></label>
+            <!-- <label><i class="bi bi-lock-fill"></i></label> -->
           </div>
           <button class="btn btn-primary" style="margin: 10px;" type="submit">
             <i class="bi bi-door-open-fill"></i>
