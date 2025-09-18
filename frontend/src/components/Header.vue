@@ -4,8 +4,32 @@
       <img src="/assets/Icon_horizontal_nexora.png" alt="Logo" class="navbar-logo" />
     </div>
     <ul>
+      <!-- Todos -->
       <li><router-link to="/home"><i class="bi bi-house-fill"></i> Home</router-link></li>
-      <li><router-link to="/employee"><i class="bi bi-person-lines-fill"></i> Funcionários</router-link></li>
+
+      <!-- Admin Nexora -->
+      <li><router-link to="/employee"><i class="bi bi-briefcase-fill"></i> Clientes</router-link></li>
+      <li><router-link to="/employee"><i class="bi bi-wallet"></i> Financeiro</router-link></li>
+      <li><router-link to="/employee"><i class="bi bi-person-fill"></i> Usuários</router-link></li>
+      <li><router-link to="/employee"><i class="bi bi-gear"></i> Configurações</router-link></li>
+      
+      <!-- Admin Empresa -->
+      <li><router-link to="/employee"><i class="bi bi-building"></i> Minha empresa</router-link></li>
+      <li><router-link to="/employee"><i class="bi bi-person-lines-fill"></i> Colaboradores</router-link></li>
+      <li><router-link to="/employee"><i class="bi bi-calendar-week"></i> Escalas e Jornada</router-link></li>
+      <li><router-link to="/employee"><i class="bi bi-mailbox-flag"></i> Ausências e Solicitações</router-link></li>
+      <li><router-link to="/employee"><i class="bi bi-clock"></i> Ponto Eletrônico</router-link></li>
+      <li><router-link to="/employee"><i class="bi bi-coin"></i> Benefícios</router-link></li>
+      <li><router-link to="/employee"><i class="bi bi-file-earmark-text-fill"></i> Pagamentos/Folha</router-link></li>
+      
+      <!-- Colaborador -->
+      <li><router-link to="/employee"><i class="bi bi-clock"></i> Ponto</router-link></li>
+      <li><router-link to="/employee"><i class="bi bi-mailbox-flag"></i> Solicitações</router-link></li>
+      <li><router-link to="/employee"><i class="bi bi-coin"></i> Benefícios</router-link></li>
+      <li><router-link to="/employee"><i class="bi bi-file-earmark-text-fill"></i> Folha</router-link></li>
+      <li><router-link to="/employee"><i class="bi bi-person-vcard"></i> Meu Perfil</router-link></li>
+
+
       <button class="btn" title="Sair" style="color: aliceblue;"  @click="logoutUser">
         <i class="bi bi-box-arrow-right"></i>
       </button>
