@@ -10,7 +10,7 @@
       <!-- Admin Nexora -->
       <li><router-link to="/employee"><i class="bi bi-briefcase-fill"></i> Clientes</router-link></li>
       <li><router-link to="/employee"><i class="bi bi-wallet"></i> Financeiro</router-link></li>
-      <li><router-link to="/employee"><i class="bi bi-person-fill"></i> Usuários</router-link></li>
+      <li><router-link to="/usuario/list"><i class="bi bi-person-fill"></i> Usuários</router-link></li>
       <li><router-link to="/employee"><i class="bi bi-gear"></i> Configurações</router-link></li>
       
       <!-- Admin Empresa -->
