@@ -3,7 +3,11 @@ import Login from './pages/LoginPage.vue'
 import Home from './pages/HomePage.vue'
 import EmployeeList from './pages/EmployeeList.vue'
 import EmployeeNew from './pages/EmployeeNew.vue'
-// import EmployeeEdit from './pages/EmployeeEdit.vue'
+import EmployeeEdit from './pages/EmployeeEdit.vue'
+import CargoList from './pages/CargoList.vue'
+import EmpresaNew from './pages/EmpresaNew.vue'
+import EmpresaList from './pages/EmpresaList.vue'
+import CargoNew from './pages/CargoNew.vue'
 
 const routes = [
 
@@ -33,11 +37,31 @@ const routes = [
     component: EmployeeNew,
     meta: { requiresAuth: true }
   },
-    /* {
-    path: '/usuarios/edit/:id',
-    component: EmployeeList,
+   {
+    path: '/usuario/edit/:id',
+    component: EmployeeEdit,
     meta: { requiresAuth: true }
-  },  */
+  },  
+  {
+    path: '/empresa/list',
+    component: EmpresaList,
+    meta: { requiresAuth: true }
+  },
+      {
+    path: '/empresa/new',
+    component: EmpresaNew,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/cargo/list',
+    component: CargoList,
+    meta: { requiresAuth: true }
+  },
+      {
+    path: '/cargo/new',
+    component: CargoNew,
+    meta: { requiresAuth: true }
+  },
   
 ] 
 

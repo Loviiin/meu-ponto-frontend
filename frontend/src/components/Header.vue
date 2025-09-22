@@ -8,14 +8,14 @@
       <li><router-link to="/home"><i class="bi bi-house-fill"></i> Home</router-link></li>
 
       <!-- Admin Nexora -->
-      <li><router-link to="/employee"><i class="bi bi-briefcase-fill"></i> Clientes</router-link></li>
-      <li><router-link to="/employee"><i class="bi bi-wallet"></i> Financeiro</router-link></li>
+      <li><router-link to="/Empresa/List"><i class="bi bi-briefcase-fill"></i> Clientes</router-link></li>
+      <li><router-link to="/home"><i class="bi bi-wallet"></i> Financeiro</router-link></li>
       <li><router-link to="/usuario/list"><i class="bi bi-person-fill"></i> Usuários</router-link></li>
-      <li><router-link to="/employee"><i class="bi bi-gear"></i> Configurações</router-link></li>
+      <li><router-link to="/home"><i class="bi bi-gear"></i> Configurações</router-link></li>
       
       <!-- Admin Empresa -->
-      <li><router-link to="/employee"><i class="bi bi-building"></i> Minha empresa</router-link></li>
-      <li><router-link to="/employee"><i class="bi bi-person-lines-fill"></i> Colaboradores</router-link></li>
+      <li><router-link to="/Cargo/List"><i class="bi bi-building"></i> Minha empresa</router-link></li>
+      <li><router-link to="/usuario/list"><i class="bi bi-person-lines-fill"></i> Colaboradores</router-link></li>
       <li><router-link to="/employee"><i class="bi bi-calendar-week"></i> Escalas e Jornada</router-link></li>
       <li><router-link to="/employee"><i class="bi bi-mailbox-flag"></i> Ausências e Solicitações</router-link></li>
       <li><router-link to="/employee"><i class="bi bi-clock"></i> Ponto Eletrônico</router-link></li>
