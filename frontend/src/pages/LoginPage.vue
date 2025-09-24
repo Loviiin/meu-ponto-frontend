@@ -179,7 +179,6 @@ const password = ref('')
 const loginUser = async () => {
   try {
     const response = await axios.post('http://localhost:8083/api/v1/auth/login', {
-     /* http://localhost:8000/api/v1/authentication/token/ Django-api*/ 
       username: username.value,
       email: email.value,
       password: password.value
@@ -189,14 +188,18 @@ const loginUser = async () => {
       throw new Error('Login failed')
     }
 
-/*     const token = response.data.access
-    localStorage.setItem('token', response.data.access)
-    console.log('Token armazenado:', token)
-    router.push('/home')  */  
-    
     const token = response.data.token
-    localStorage.setItem('token', response.data.token)
-    console.log('Token armazenado:', token)
+    localStorage.setItem('token', token)
+
+    // 👇 Salvar cargo corretamente
+    // se a API retorna o cargo no login:
+    if (response.data.usuario && response.data.usuario.cargo) {
+      localStorage.setItem('cargo', response.data.usuario.cargo.toLowerCase())
+    } else {
+      // hardcoded só pra teste
+      localStorage.setItem('cargo', 'admin') // pode trocar por dono/gerente/colaborador
+    }
+
     router.push('/home')
 
   } catch (error) {

@@ -3,84 +3,111 @@
     <div class="navbar-header">
       <img src="/assets/Icon_horizontal_nexora.png" alt="Logo" class="navbar-logo" />
     </div>
-        <ul>
+    <ul>
       <!-- Todos -->
-      <li><router-link to="/home"><i class="bi bi-house-fill"></i> Home</router-link></li>
+      <li>
+        <router-link to="/home"><i class="bi bi-house-fill"></i> Home</router-link>
+      </li>
 
       <!-- Admin Nexora -->
-      <li class="dropdown">
-        <a href="#"><i class="bi bi-briefcase-fill"></i> Clientes</a>
-        <ul class="dropdown-menu">
-          <li><router-link to="/empresa/list">Listar Empresas</router-link></li>
-          <li><router-link to="/empresa/new">Cadastrar Nova</router-link></li>
-        </ul>
-      </li>
+      <template v-if="cargo === 'admin'">
+        <li class="dropdown">
+          <a href="#"><i class="bi bi-briefcase-fill"></i> Clientes</a>
+          <ul class="dropdown-menu">
+            <li><router-link to="/empresa/list">Listar Empresas</router-link></li>
+            <li><router-link to="/empresa/new">Cadastrar Nova</router-link></li>
+          </ul>
+        </li>
 
-      <li class="dropdown">
-        <a href="#"><i class="bi bi-wallet"></i> Financeiro</a>
-        <ul class="dropdown-menu">
-          <li><router-link to="/planos">Planos e Assinaturas</router-link></li>
-          <li><router-link to="/faturas">Faturas / Cobranças</router-link></li>
-          <li><router-link to="/relatorios">Relatórios de Receita</router-link></li>
-        </ul>
-      </li>
+        <li class="dropdown">
+          <a href="#"><i class="bi bi-wallet"></i> Financeiro</a>
+          <ul class="dropdown-menu">
+            <li><router-link to="/planos">Planos e Assinaturas</router-link></li>
+            <li><router-link to="/faturas">Faturas / Cobranças</router-link></li>
+            <li><router-link to="/relatorios">Relatórios de Receita</router-link></li>
+          </ul>
+        </li>
 
-      <li><router-link to="/usuario/list"><i class="bi bi-person-fill"></i> Usuários</router-link></li>
+        <li>
+          <router-link to="/usuario/list"><i class="bi bi-person-fill"></i> Usuários</router-link>
+        </li>
 
-      <li class="dropdown">
-        <a href="#"><i class="bi bi-gear"></i> Configurações</a>
-        <ul class="dropdown-menu">
-          <li><router-link to="/parametros">Parametrizações Globais</router-link></li>
-          <li><router-link to="/logs">Logs / Auditoria</router-link></li>
-          <li><router-link to="/permissoes"><i class="bi bi-shield-lock"></i> Gerenciar Permissões</router-link>
-    </li>
-        </ul>
-      </li>
+        <li class="dropdown">
+          <a href="#"><i class="bi bi-gear"></i> Configurações</a>
+          <ul class="dropdown-menu">
+            <li><router-link to="/parametros">Parametrizações Globais</router-link></li>
+            <li><router-link to="/logs">Logs / Auditoria</router-link></li>
+            <li>
+              <router-link to="/permissoes"><i class="bi bi-shield-lock"></i> Gerenciar Permissões</router-link>
+            </li>
+          </ul>
+        </li>
+      </template>
 
       <!-- Admin Empresa -->
-      <li class="dropdown">
-        <a href="#"><i class="bi bi-building"></i> Minha Empresa</a>
-        <ul class="dropdown-menu">
-          <li><router-link to="/empresa/detail">Dados da Empresa</router-link></li>
-          <li><router-link to="/cargo/list">Cargos</router-link></li>
-          <li><router-link to="/usuario/list">Colaboradores</router-link></li>
-        </ul>
-      </li>
+      <template v-if="cargo === 'dono' || cargo === 'gerente'">
+        <li class="dropdown">
+          <a href="#"><i class="bi bi-building"></i> Minha Empresa</a>
+          <ul class="dropdown-menu">
+            <li><router-link to="/empresa/detail">Dados da Empresa</router-link></li>
+            <li><router-link to="/cargo/list">Cargos</router-link></li>
+            <li><router-link to="/usuario/list">Colaboradores</router-link></li>
+          </ul>
+        </li>
 
-      <li class="dropdown">
-        <a href="#"><i class="bi bi-calendar-week"></i> Escalas e Jornada</a>
-        <ul class="dropdown-menu">
-          <li><router-link to="/escalas">Escalas de Trabalho</router-link></li>
-          <li><router-link to="/ajustes">Ajuste de Jornada</router-link></li>
-        </ul>
-      </li>
+        <li class="dropdown">
+          <a href="#"><i class="bi bi-calendar-week"></i> Escalas e Jornada</a>
+          <ul class="dropdown-menu">
+            <li><router-link to="/escalas">Escalas de Trabalho</router-link></li>
+            <li><router-link to="/ajustes">Ajuste de Jornada</router-link></li>
+          </ul>
+        </li>
 
-      <li class="dropdown">
-        <a href="#"><i class="bi bi-mailbox-flag"></i> Ausências</a>
-        <ul class="dropdown-menu">
-          <li><router-link to="/ferias">Férias</router-link></li>
-          <li><router-link to="/licencas">Licenças Médicas</router-link></li>
-          <li><router-link to="/justificativas">Justificativas</router-link></li>
-        </ul>
-      </li>
+        <li class="dropdown">
+          <a href="#"><i class="bi bi-mailbox-flag"></i> Ausências</a>
+          <ul class="dropdown-menu">
+            <li><router-link to="/ferias">Férias</router-link></li>
+            <li><router-link to="/licencas">Licenças Médicas</router-link></li>
+            <li><router-link to="/justificativas">Justificativas</router-link></li>
+          </ul>
+        </li>
 
-      <li><router-link to="/ponto"><i class="bi bi-clock"></i> Ponto Eletrônico</router-link></li>
-      <li><router-link to="/beneficios"><i class="bi bi-coin"></i> Benefícios</router-link></li>
-      <li><router-link to="/folha"><i class="bi bi-file-earmark-text-fill"></i> Pagamentos/Folha</router-link></li>
+        <li><router-link to="/ponto"><i class="bi bi-clock"></i> Ponto Eletrônico</router-link></li>
+        <li><router-link to="/beneficios"><i class="bi bi-coin"></i> Benefícios</router-link></li>
+        <li><router-link to="/folha"><i class="bi bi-file-earmark-text-fill"></i> Pagamentos/Folha</router-link></li>
+      </template>
 
       <!-- Colaborador -->
-      <li><router-link to="/meu-ponto"><i class="bi bi-clock"></i> Ponto</router-link></li>
-      <li><router-link to="/solicitacoes"><i class="bi bi-mailbox-flag"></i> Solicitações</router-link></li>
-      <li><router-link to="/meus-beneficios"><i class="bi bi-coin"></i> Benefícios</router-link></li>
-      <li><router-link to="/minha-folha"><i class="bi bi-file-earmark-text-fill"></i> Folha</router-link></li>
-      <li><router-link to="/perfil"><i class="bi bi-person-vcard"></i> Meu Perfil</router-link></li>
+      <template v-if="cargo === 'colaborador'">
+        <li><router-link to="/meu-ponto"><i class="bi bi-clock"></i> Ponto</router-link></li>
+        <li><router-link to="/solicitacoes"><i class="bi bi-mailbox-flag"></i> Solicitações</router-link></li>
+        <li><router-link to="/meus-beneficios"><i class="bi bi-coin"></i> Benefícios</router-link></li>
+        <li><router-link to="/minha-folha"><i class="bi bi-file-earmark-text-fill"></i> Folha</router-link></li>
+        <li><router-link to="/perfil"><i class="bi bi-person-vcard"></i> Meu Perfil</router-link></li>
+      </template>
 
+      <!-- Botão logout -->
       <button class="btn" title="Sair" style="color: aliceblue;" @click="logoutUser">
         <i class="bi bi-box-arrow-right"></i>
       </button>
     </ul>
   </header>
 </template>
+
+<script setup>
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
+const cargo = ref(localStorage.getItem('cargo') || 'admin')
+
+const logoutUser = () => {
+  localStorage.removeItem('token')
+  localStorage.removeItem('cargo')
+  router.push('/login')
+}
+</script>
+
 
 
 <style scoped>
@@ -198,19 +225,7 @@ button.btn:hover {
 
 </style>
 
-<script setup>
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
 
-const router = useRouter()
-const role = ref(localStorage.getItem('role') || 'colaborador') 
-// 👆 pode ser: superadmin | admin | colaborador
-
-const logoutUser = () => {
-  localStorage.removeItem('token')
-  router.push('/login')
-}
-</script>
 
 
 
