@@ -45,7 +45,7 @@
               <a
                 class="btn btn-primary btn-sm"
                 title="Consultar"
-                @click="$router.push(`/cargo/${cargo.id}`)"
+                @click="$router.push(`/cargo/detail/${cargo.id}`)"
               >
                 <i class="bi bi-eye"></i>
               </a>

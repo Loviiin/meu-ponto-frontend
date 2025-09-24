@@ -8,6 +8,7 @@ import CargoList from './pages/CargoList.vue'
 import EmpresaNew from './pages/EmpresaNew.vue'
 import EmpresaList from './pages/EmpresaList.vue'
 import CargoNew from './pages/CargoNew.vue'
+import Permissoes from './pages/Permissoes.vue'
 
 const routes = [
 
@@ -62,6 +63,18 @@ const routes = [
     component: CargoNew,
     meta: { requiresAuth: true }
   },
+{
+  path: '/cargo/detail/:id',
+  name: 'CargoDetail',
+  component: () => import('../src/pages/CargoDetail.vue'),
+  meta: { requiresAuth: true }
+},
+  {
+    path: '/permissoes',
+    component: Permissoes,
+    meta: { requiresAuth: true }
+  },
+
   
 ] 
 
