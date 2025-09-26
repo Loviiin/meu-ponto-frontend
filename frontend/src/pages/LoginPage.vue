@@ -11,11 +11,6 @@
         <p class="login-box-msg">Bem-vindo ao Nexora</p>
         <p class="login-box-msg2">Faça seu login</p>
         <form @submit.prevent="loginUser">
-  <div class="input-group">
-    <input type="text" name="username" placeholder="Usuário" v-model="username"  />
-    <span class="input-icon"><i class="bi bi-person-fill"></i></span>
-  </div>
-  <p>ou</p>
     <div class="input-group">
     <input type="email" name="email" placeholder="Email" v-model="email" />
     <span class="input-icon"><i class="bi bi-at"></i></span>
@@ -173,39 +168,44 @@ import axios from 'axios'
 
 const router = useRouter()
 const email = ref('')
-const username = ref('')
 const password = ref('')
 
 const loginUser = async () => {
   try {
-    const response = await axios.post('http://localhost:8083/api/v1/auth/login', {
-      username: username.value,
-      email: email.value,
-      password: password.value
-    })
+    const response = await axios.post(
+      "http://localhost:8083/api/v1/auth/login",
+      {
+        email: email.value,
+        password: password.value
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json"
+        }
+      }
+    );
 
-    if (response.status !== 200) {
-      throw new Error('Login failed')
-    }
+    const token = response.data.token;
+    localStorage.setItem("token", token);
 
-    const token = response.data.token
-    localStorage.setItem('token', token)
+    // Buscar dados do usuário logado
+    const userResponse = await axios.get(
+      "http://localhost:8083/api/v1/usuarios/me",
+      {
+        headers: { Authorization: `Bearer ${token}` }
+      }
+    );
 
-    // 👇 Salvar cargo corretamente
-    // se a API retorna o cargo no login:
-    if (response.data.usuario && response.data.usuario.cargo) {
-      localStorage.setItem('cargo', response.data.usuario.cargo.toLowerCase())
-    } else {
-      // hardcoded só pra teste
-      localStorage.setItem('cargo', 'admin') // pode trocar por dono/gerente/colaborador
-    }
+    localStorage.setItem("cargo_id", userResponse.data.cargo_id);
+    localStorage.setItem("empresa_id", userResponse.data.empresa_id);
 
-    router.push('/home')
-
+    router.push("/home");
   } catch (error) {
-    alert('Erro no login: usuário ou senha inválidos')
-    console.error(error)
+    console.error("Erro no login:", error.response?.data || error.message);
+    alert(error.response?.data?.message || "Não foi possível fazer login");
   }
-}
+};
+
 
 </script>

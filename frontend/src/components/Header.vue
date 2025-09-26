@@ -99,7 +99,8 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
-const cargo = ref(localStorage.getItem('cargo') || 'admin')
+const cargo = ref(localStorage.getItem('cargo') || 'dono')
+  // 'admin', 'dono', 'gerente', 'colaborador'
 
 const logoutUser = () => {
   localStorage.removeItem('token')
