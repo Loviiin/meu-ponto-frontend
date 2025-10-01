@@ -125,23 +125,25 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from "vue";
+import api from "../axios";
 
 const expanded = ref(false);
 const currentTime = ref("");
 const currentDate = ref("");
+const userId = localStorage.getItem("userId");
+
+// Localização fixa (para testes)
+const latitude = ref(-23.55052);   // Exemplo: São Paulo
+const longitude = ref(-46.633308); // Exemplo: São Paulo
 
 // Atualiza relógio
 function updateClock() {
   const now = new Date();
-
-  // Hora
   currentTime.value = now.toLocaleTimeString("pt-BR", {
     hour: "2-digit",
     minute: "2-digit",
     second: "2-digit",
   });
-
-  // Data
   currentDate.value = now.toLocaleDateString("pt-BR", {
     weekday: "long",
     day: "2-digit",
@@ -162,9 +164,36 @@ function toggleExpand() {
   expanded.value = !expanded.value;
 }
 
-function baterPonto() {
-  alert("Ponto registrado com sucesso!");
+async function baterPonto() {
+  try {
+    const payload = {
+      usuario_id: Number(userId),
+      latitude: latitude.value,
+      longitude: longitude.value,
+      data_hora: new Date().toISOString(),
+    };
+
+    await api.post("/api/v1/pontos", payload);
+
+    alert("Ponto registrado com sucesso!");
+  } catch (error) {
+    console.error("Erro ao bater ponto", error.response?.data || error);
+    alert("Erro ao registrar ponto.");
+  }
 }
+
+/* 
+// Código original que pega localização real do navegador
+navigator.geolocation.getCurrentPosition(
+  (pos) => {
+    latitude.value = pos.coords.latitude;
+    longitude.value = pos.coords.longitude;
+  },
+  (err) => {
+    console.error("Erro ao obter localização:", err);
+  }
+);
+*/
 
 let interval = null;
 onMounted(() => {
@@ -175,11 +204,4 @@ onMounted(() => {
 onUnmounted(() => {
   if (interval) clearInterval(interval);
 });
-
-
-</script>
-<script>
-export default {
-  name: 'FloatingPunch'
-}
 </script>

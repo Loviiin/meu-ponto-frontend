@@ -8,6 +8,7 @@
           <label class="col-sm-3 text-left">Nome:</label>
           <input v-model="cargo.nome" required class="form-control" />
         </div>
+
         <div class="d-flex mb-3">
           <label class="col-sm-3 text-left">Empresa:</label>
           <select v-model="cargo.empresa_id" required class="form-control">
@@ -17,6 +18,7 @@
             </option>
           </select>
         </div>
+
         <input class="btn btn-success form-control" type="submit" value="Salvar">
       </form>
     </div>
@@ -38,21 +40,36 @@ export default {
     }
   },
   async mounted() {
-    try {
-      const res = await api.get('/api/v1/empresas');
-      this.empresas = res.data;
-    } catch (error) {
-      console.error('Erro ao carregar empresas', error);
-    }
+    await this.fetchEmpresas();
   },
   methods: {
+    async fetchEmpresas() {
+      try {
+        const response = await api.get('/api/v1/empresas');
+        console.log("Empresas retornadas:", response.data);
+
+        // Normaliza os campos para { id, nome }
+        this.empresas = (response.data || []).map(e => ({
+          id: e.ID || e.id,
+          nome: e.Nome || e.nome
+        }));
+      } catch (error) {
+        console.error('Erro ao carregar empresas', error);
+      }
+    },
+
     async createCargo() {
       try {
-        await api.post('/api/v1/cargos', this.cargo);
+        const payload = {
+          nome: this.cargo.nome,
+          empresa_id: Number(this.cargo.empresa_id)
+        };
+
+        await api.post('/api/v1/cargos', payload);
         alert('Cargo criado com sucesso!');
         this.$router.push('/cargo/list');
       } catch (error) {
-        console.error('Erro ao criar cargo', error);
+        console.error('Erro ao criar cargo', error.response?.data || error);
         alert('Erro ao criar cargo.');
       }
     }

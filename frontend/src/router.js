@@ -9,6 +9,8 @@ import EmpresaNew from './pages/EmpresaNew.vue'
 import EmpresaList from './pages/EmpresaList.vue'
 import CargoNew from './pages/CargoNew.vue'
 import Permissoes from './pages/Permissoes.vue'
+import PontoUserList from './pages/PontoUserList.vue'
+import AjustePonto from './pages/AjustePonto.vue'
 
 const routes = [
 
@@ -72,6 +74,17 @@ const routes = [
   {
     path: '/permissoes',
     component: Permissoes,
+    meta: { requiresAuth: true }
+  },
+    {
+    path: '/Meus-Pontos',
+    component: PontoUserList,
+    meta: { requiresAuth: true }
+  },
+
+  {
+    path: '/Ajuste-Ponto',
+    component: AjustePonto,
     meta: { requiresAuth: true }
   },
 

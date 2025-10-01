@@ -3,8 +3,7 @@
     <div class="card-body">
       <h2 class="card-title">Cadastrar Nova Empresa</h2>
       <p class="card-text">Preencha os dados da nova empresa.</p>
-
-      <form @submit.prevent="createEmpresa">
+        <form @submit.prevent="createEmpresa">
         <!-- Dados da Empresa -->
         <div class="mb-3">
           <label class="form-label">Nome da Empresa:</label>
@@ -22,10 +21,7 @@
     class="form-control"
   />
 </div>
-
-
-
-        <div class="mb-3">
+  <div class="mb-3">
   <label class="form-label">Latitude:</label>
   <input
     v-model.number="empresa.sedeLatitude"
@@ -63,10 +59,10 @@ export default {
   data() {
   return {
     empresa: {
-      Nome: '',
-      RaioGeofenceMetros: 0.0, // float64 no Go
-      SedeLatitude: 0.0,
-      SedeLongitude: 0.0
+      nome: '',
+      raioGeofenceMetros: 0.0,
+      sedeLatitude: 0.0,
+      sedeLongitude: 0.0
     }
   }
 },
@@ -74,7 +70,7 @@ export default {
 async createEmpresa() {
   try {
     const payload = {
-      Nome: this.empresa.Nome,
+      Nome: this.empresa.nome,
       RaioGeofenceMetros: this.empresa.RaioGeofenceMetros
         ? parseFloat(this.empresa.RaioGeofenceMetros)
         : 0.0,

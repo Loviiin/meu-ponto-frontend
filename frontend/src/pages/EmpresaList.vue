@@ -76,10 +76,19 @@ export default {
     async fetchEmpresas() {
       try {
         const res = await api.get('/api/v1/empresas')
-        this.empresas = res.data
+        // 🔥 Normaliza os campos vindos do backend
+        this.empresas = (res.data || []).map(e => ({
+          id: e.id || e.ID,
+          nome: e.nome || e.Nome,
+          raioGeofenceMetros: e.raioGeofenceMetros || e.RaioGeofenceMetros,
+          sedeLatitude: e.sedeLatitude || e.SedeLatitude,
+          sedeLongitude: e.sedeLongitude || e.SedeLongitude
+        }))
       } catch (error) {
         if (error.response && error.response.status === 401) {
           this.$router.push('/login')
+        } else {
+          console.error('Erro ao carregar empresas', error)
         }
       }
     },

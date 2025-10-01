@@ -19,26 +19,25 @@
           <input type="password" v-model="usuarios.senha" required class="vTextField" style="width: 100%;" />
         </div>
 
-          <div class="d-flex mb-3">
-            <label class="col-sm-3 text-left">Empresa:</label>
-            <select v-model="usuarios.empresa_id" class="form-control" required>
-              <option value="" disabled>Selecione uma empresa</option>
-              <option v-for="empresa in empresas" :key="empresa.ID" :value="empresa.ID">
-                {{ empresa.Nome }}
-              </option>
-            </select>
-          </div>
+        <div class="d-flex mb-3">
+          <label class="col-sm-3 text-left">Empresa:</label>
+          <select v-model="usuarios.empresa_id" class="form-control" required>
+            <option value="" disabled>Selecione uma empresa</option>
+            <option v-for="empresa in empresas" :key="empresa.id" :value="empresa.id">
+              {{ empresa.nome }}
+            </option>
+          </select>
+        </div>
 
-          <div class="d-flex mb-3">
-            <label class="col-sm-3 text-left">Cargo:</label>
-            <select v-model="usuarios.cargo_id" class="form-control" required>
-              <option value="" disabled>Selecione um cargo</option>
-              <option v-for="cargo in cargos" :key="cargo.ID" :value="cargo.ID">
-                {{ cargo.Nome }}
-              </option>
-            </select>
-          </div>
-
+        <div class="d-flex mb-3">
+          <label class="col-sm-3 text-left">Cargo:</label>
+          <select v-model="usuarios.cargo_id" class="form-control" required>
+            <option value="" disabled>Selecione um cargo</option>
+            <option v-for="cargo in cargos" :key="cargo.id" :value="cargo.id">
+              {{ cargo.nome }}
+            </option>
+          </select>
+        </div>
 
         <input class="btn btn-success form-control" style="margin: 10px;" type="submit" value="Salvar" />
         <input class="btn btn-primary form-control" style="margin: 10px;" type="submit" value="Salvar e adicionar outro(a)" name="saveAndAddAnother" />
@@ -63,9 +62,7 @@ export default {
         senha: ''
       },
       empresas: [],
-      cargos: [],
-      cargoUsuarioLogado: localStorage.getItem('cargo') || 'colaborador',
-      userId: localStorage.getItem('userId') || null
+      cargos: []
     };
   },
   async mounted() {
@@ -75,34 +72,32 @@ export default {
   methods: {
     async fetchEmpresas() {
       try {
-        if (this.cargoUsuarioLogado === 'admin') {
-          // 👑 Admin Nexora → todas empresas
-          const response = await api.get('/api/v1/empresas/');
-          this.empresas = response.data;
-        } else {
-          // Dono ou Gerente → apenas empresas vinculadas ao usuário
-          const response = await api.get(`/api/v1/usuarios/${this.userId}/empresas`);
-          this.empresas = response.data;
-        }
+        const response = await api.get('/api/v1/empresas');
+        console.log('Empresas retornadas:', response.data);
+
+        this.empresas = (response.data || []).map(e => ({
+          id: e.id || e.ID,
+          nome: e.nome || e.Nome
+        })).filter(e => e.id && e.nome);
       } catch (error) {
         console.error('Erro ao carregar empresas', error);
       }
     },
+
     async fetchCargos() {
       try {
-        if (this.cargoUsuarioLogado === 'admin') {
-          // 👑 Admin → todos cargos
-          const response = await api.get('/api/v1/cargos/');
-          this.cargos = response.data;
-        } else {
-          // Dono/Gerente → apenas cargos da(s) empresa(s) dele
-          const response = await api.get(`/api/v1/usuarios/${this.userId}/cargos`);
-          this.cargos = response.data;
-        }
+        const response = await api.get('/api/v1/cargos');
+        console.log('Cargos retornados:', response.data);
+
+        this.cargos = (response.data || []).map(c => ({
+          id: c.id || c.ID,
+          nome: c.nome || c.Nome
+        })).filter(c => c.id && c.nome);
       } catch (error) {
         console.error('Erro ao carregar cargos', error);
       }
     },
+
     async createEmployee() {
       try {
         const payload = {

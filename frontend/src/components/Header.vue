@@ -79,7 +79,7 @@
 
       <!-- Colaborador -->
       <template v-if="cargo === 'colaborador'">
-        <li><router-link to="/meu-ponto"><i class="bi bi-clock"></i> Ponto</router-link></li>
+        <li><router-link to="/Meus-Pontos"><i class="bi bi-clock"></i> Ponto</router-link></li>
         <li><router-link to="/solicitacoes"><i class="bi bi-mailbox-flag"></i> Solicitações</router-link></li>
         <li><router-link to="/meus-beneficios"><i class="bi bi-coin"></i> Benefícios</router-link></li>
         <li><router-link to="/minha-folha"><i class="bi bi-file-earmark-text-fill"></i> Folha</router-link></li>
@@ -95,12 +95,16 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
-const cargo = ref(localStorage.getItem('cargo') || 'dono')
-  // 'admin', 'dono', 'gerente', 'colaborador'
+
+// Sempre lê o cargo do localStorage
+const cargo = computed(() => {
+  const stored = localStorage.getItem('cargo')
+  return stored ? stored.toLowerCase() : 'colaborador'
+})
 
 const logoutUser = () => {
   localStorage.removeItem('token')
@@ -108,6 +112,7 @@ const logoutUser = () => {
   router.push('/login')
 }
 </script>
+
 
 
 
