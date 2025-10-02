@@ -132,9 +132,8 @@ const currentTime = ref("");
 const currentDate = ref("");
 const userId = localStorage.getItem("userId");
 
-// Localização fixa (para testes)
-const latitude = ref(-23.55052);   // Exemplo: São Paulo
-const longitude = ref(-46.633308); // Exemplo: São Paulo
+const latitude = ref(null);
+const longitude = ref(null);
 
 // Atualiza relógio
 function updateClock() {
@@ -165,6 +164,14 @@ function toggleExpand() {
 }
 
 async function baterPonto() {
+  // Garante que a localização foi obtida
+  if (latitude.value === null || longitude.value === null) {
+    alert("Não foi possível obter sua localização. Verifique as permissões do navegador e tente novamente.");
+    // Tenta obter a localização de novo, caso o usuário libere a permissão
+    getGeolocation(); 
+    return;
+  }
+
   try {
     const payload = {
       usuario_id: Number(userId),
@@ -173,7 +180,7 @@ async function baterPonto() {
       data_hora: new Date().toISOString(),
     };
 
-    await api.post("/api/v1/pontos", payload);
+    await api.post("/pontos", payload);
 
     alert("Ponto registrado com sucesso!");
   } catch (error) {
@@ -182,23 +189,30 @@ async function baterPonto() {
   }
 }
 
-/* 
-// Código original que pega localização real do navegador
-navigator.geolocation.getCurrentPosition(
-  (pos) => {
-    latitude.value = pos.coords.latitude;
-    longitude.value = pos.coords.longitude;
-  },
-  (err) => {
-    console.error("Erro ao obter localização:", err);
+// Função para obter a localização
+function getGeolocation() {
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        latitude.value = pos.coords.latitude;
+        longitude.value = pos.coords.longitude;
+        console.log("Localização obtida:", latitude.value, longitude.value);
+      },
+      (err) => {
+        console.error("Erro ao obter localização:", err);
+        alert("Erro ao obter localização. Verifique as permissões do seu navegador.");
+      }
+    );
+  } else {
+    alert("Geolocalização não é suportada por este navegador.");
   }
-);
-*/
+}
 
 let interval = null;
 onMounted(() => {
   updateClock();
   interval = setInterval(updateClock, 1000);
+  getGeolocation(); // Pede a localização ao montar o componente
 });
 
 onUnmounted(() => {
