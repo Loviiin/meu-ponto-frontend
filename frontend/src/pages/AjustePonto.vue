@@ -2,7 +2,7 @@
   <div class="card mt-4">
     <div class="card-body">
       <h3>🛠 Ajuste de Ponto</h3>
-      <p class="text-muted">Selecione o ponto que deseja justificar/ajustar.</p>
+      <p class="">Selecione o ponto que deseja justificar/ajustar.</p>
 
       <!-- Selecionar data -->
       <div class="d-flex align-items-center gap-2 mb-3">
@@ -17,65 +17,70 @@
 
       <!-- Lista de pontos -->
       <div class="table-wrapper">
-  <table class="table table-dark table-hover text-center align-middle">
-    <thead>
-      <tr>
-        <th>#</th>
-        <th>Hora</th>
-        <th>Método</th>
-        <th>Ação</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr v-for="(ponto, index) in pontos" :key="ponto.id">
-        <td>{{ index + 1 }}</td>
-        <td>{{ formatarHora(ponto.timestamp) }}</td>
-        <td>{{ ponto.metodo }}</td>
-        <td>
-          <button class="btn btn-warning btn-sm" @click="selecionarPonto(ponto)">
-            Justificar
-          </button>
-        </td>
-      </tr>
-      <tr v-if="pontos.length === 0">
-        <td colspan="4">Nenhum ponto registrado nesse dia.</td>
-      </tr>
-    </tbody>
-  </table>
-</div>
-
+        <table class="table table-dark table-hover text-center align-middle">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Hora</th>
+              <th>Modelo</th>
+              <th>Ação</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(ponto, index) in pontos" :key="ponto.id">
+              <td>{{ index + 1 }}</td>
+              <td>{{ formatarHora(ponto.timestamp) }}</td>
+              <td>{{ ponto.metodo }}</td>
+              <td>
+                <button class="btn btn-warning btn-sm" @click="selecionarPonto(ponto)">
+                  Justificar
+                </button>
+              </td>
+            </tr>
+            <tr v-if="pontos.length === 0">
+              <td colspan="4">Nenhum ponto registrado nesse dia.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
 
       <!-- Formulário de justificativa -->
       <div v-if="pontoSelecionado" class="mt-4">
-        <h5>📄 Justificar ponto das {{ formatarHora(pontoSelecionado.timestamp) }}</h5>
+        <h5>    
+          📄 Justificar ponto das {{ formatarHora(pontoSelecionado.timestamp) }} 
+          <span class="">- {{ pontoSelecionado.metodo }}</span>
+        </h5>
         <form @submit.prevent="enviarJustificativa">
           <div class="mb-3">
             <label class="form-label">Novo horário</label>
             <input 
-              type="time" 
-              v-model="form.novoHorario" 
-              class="form-control" 
-              required 
-            />
+  type="time" 
+  v-model="form.novoHorario" 
+  class="form-control"
+  required
+/>
           </div>
 
           <div class="mb-3">
             <label class="form-label">Motivo</label>
-            <select v-model="form.motivo" class="form-select" required>
+            <select v-model="form.tipo" class="form-select" required>
               <option value="">Selecione...</option>
-              <option value="esqueci">Esqueci de bater ponto</option>
-              <option value="erro">Erro no sistema</option>
-              <option value="outro">Outro</option>
+              <option value="ENTRADA_ESQUECIDA">Saída antecipada</option>
+              <option value="SAIDA_ESQUECIDA">Atraso</option>
+              <option value="INTERVALO_ESQUECIDO">Esqueci de bater ponto</option>
+              <option value="INTERVALO_ESQUECIDO">Problemas técnicos</option>
+              <option value="OUTRO">Outro</option>
             </select>
           </div>
 
           <div class="mb-3">
-            <label class="form-label">Observações</label>
+            <label class="form-label">Descrição</label>
             <textarea 
-              v-model="form.observacao" 
+              v-model="form.descricao" 
               class="form-control" 
               rows="3" 
-              placeholder="Descreva o motivo do ajuste..."
+              placeholder="Explique o motivo do ajuste..."
+              required
             ></textarea>
           </div>
 
@@ -101,8 +106,8 @@ export default {
       pontoSelecionado: null,
       form: {
         novoHorario: "",
-        motivo: "",
-        observacao: ""
+        tipo: "",
+        descricao: ""
       }
     };
   },
@@ -140,21 +145,22 @@ export default {
       this.pontoSelecionado = ponto;
       this.form = {
         novoHorario: this.formatarHora(ponto.timestamp),
-        motivo: "",
-        observacao: ""
+        tipo: "",
+        descricao: ""
       };
     },
     cancelarJustificativa() {
       this.pontoSelecionado = null;
-      this.form = { novoHorario: "", motivo: "", observacao: "" };
+      this.form = { novoHorario: "", tipo: "", descricao: "" };
     },
     async enviarJustificativa() {
       try {
+        const dataISO = this.dataSelecionadaStr + "T" + this.form.novoHorario + ":00Z";
+
         const payload = {
-          ponto_id: this.pontoSelecionado.id,
-          novo_horario: this.form.novoHorario,
-          motivo: this.form.motivo,
-          observacao: this.form.observacao
+          data_ocorrencia: dataISO,
+          descricao: this.form.descricao,
+          tipo: this.form.tipo
         };
 
         await api.post("/api/v1/justificativas", payload);
@@ -171,8 +177,7 @@ export default {
       const d = new Date(datetime);
       return d.toLocaleTimeString("pt-BR", {
         hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit"
+        minute: "2-digit"
       });
     }
   }
@@ -190,30 +195,21 @@ export default {
   color: white;
   backdrop-filter: blur(8px);
 }
-
-/* deixa a tabela ocupar toda a largura */
 .table {
   width: 100%;
-  min-width: 800px; /* evita ficar espremida */
+  min-width: 800px;
   table-layout: auto;
 }
-
-/* cabeçalho fixo e destacado */
 .table thead {
   background: rgba(255, 255, 255, 0.1);
   font-weight: bold;
 }
-
-/* células mais espaçosas */
 .table td, 
 .table th {
   padding: 14px;
   vertical-align: middle;
 }
-
-/* para evitar que fique colada na borda do card */
 .table-wrapper {
   overflow-x: auto;
 }
 </style>
-

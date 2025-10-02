@@ -9,6 +9,7 @@ npm install axios
 npm install vue-router
 npm i bootstrap-icons
 npm install bootstrap
+npm install vue3-timepicker
 
 
 Start app:

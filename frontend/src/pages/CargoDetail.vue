@@ -47,7 +47,7 @@
               >
                 {{ perm.nome }}
               </li>
-              <li v-if="cargo.permissoes.length === 0" class="list-group-item text-muted">
+              <li v-if="cargo.permissoes.length === 0" class="list-group-item">
                 Nenhuma permissão atribuída
               </li>
             </ul>
@@ -55,7 +55,7 @@
             <!-- Gerenciamento de permissões -->
             <div v-if="showPermissions" class="text-start mt-4">
               <h4>Adicionar Permissões</h4>
-              <div v-if="permissoes.length === 0" class="text-muted">Carregando permissões...</div>
+              <div v-if="permissoes.length === 0" class="">Carregando permissões...</div>
               <ul class="list-group">
                 <li
                   v-for="perm in permissoes"

@@ -27,7 +27,7 @@
         >
           <div class="card-body">
             <h5 class="card-title">{{ role.nome }}</h5>
-            <p class="text-muted">{{ role.descricao || 'Sem descrição' }}</p>
+            <p class="">{{ role.descricao || 'Sem descrição' }}</p>
           </div>
         </div>
       </div>
@@ -54,7 +54,7 @@
             >
               {{ perm.nome }}
             </li>
-            <li v-if="permissoesDisponiveis.length === 0" class="list-group-item text-muted">
+            <li v-if="permissoesDisponiveis.length === 0" class="list-group-item">
               Nenhuma permissão disponível
             </li>
           </ul>
@@ -96,7 +96,7 @@
             >
               {{ perm.nome }}
             </li>
-            <li v-if="permissoesAtribuidas.length === 0" class="list-group-item text-muted">
+            <li v-if="permissoesAtribuidas.length === 0" class="list-group-item">
               Nenhuma permissão atribuída
             </li>
           </ul>

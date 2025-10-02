@@ -11,6 +11,7 @@ import CargoNew from './pages/CargoNew.vue'
 import Permissoes from './pages/Permissoes.vue'
 import PontoUserList from './pages/PontoUserList.vue'
 import AjustePonto from './pages/AjustePonto.vue'
+import JustificativasPendentes from './pages/JustificativasPendentes.vue'
 
 const routes = [
 
@@ -87,6 +88,12 @@ const routes = [
     component: AjustePonto,
     meta: { requiresAuth: true }
   },
+  {
+    path: '/Solicitacoes/Ajuste-Ponto',
+    component: JustificativasPendentes,
+    meta: { requiresAuth: true }
+  },
+
 
   
 ] 

@@ -55,6 +55,8 @@
           </ul>
         </li>
 
+        <!-- Dono/Gerente -->
+
         <li class="dropdown">
           <a href="#"><i class="bi bi-calendar-week"></i> Escalas e Jornada</a>
           <ul class="dropdown-menu">
@@ -71,8 +73,14 @@
             <li><router-link to="/justificativas">Justificativas</router-link></li>
           </ul>
         </li>
+          <li class="dropdown">
+            <a href="#"><i class="bi bi-mailbox-flag"></i>Ponto Eletrônico</a>
+            <ul class="dropdown-menu">
+              <li><router-link to="/Solicitacoes/Ajuste-Ponto">Pedidos</router-link></li>
+              <li><router-link to="/Pontos/Funcionarios">Controle de ponto</router-link></li>
+            </ul>
+          </li>
 
-        <li><router-link to="/ponto"><i class="bi bi-clock"></i> Ponto Eletrônico</router-link></li>
         <li><router-link to="/beneficios"><i class="bi bi-coin"></i> Benefícios</router-link></li>
         <li><router-link to="/folha"><i class="bi bi-file-earmark-text-fill"></i> Pagamentos/Folha</router-link></li>
       </template>
