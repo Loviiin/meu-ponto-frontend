@@ -87,7 +87,7 @@ export default {
   methods: {
     async fetchCargos() {
       try {
-        const res = await api.get('/api/v1/cargos')
+        const res = await api.get('/cargos')
         this.cargos = res.data
       } catch (error) {
         if (error.response && error.response.status === 401) {
@@ -98,7 +98,7 @@ export default {
     async deleteCargo(id) {
       if (confirm('Tem certeza que deseja excluir este cargo?')) {
         try {
-          await api.delete(`/api/v1/cargos/${id}`)
+          await api.delete(`/cargos/${id}`)
           this.cargos = this.cargos.filter(c => c.id !== id)
         } catch (error) {
           console.error('Erro ao excluir cargo', error)

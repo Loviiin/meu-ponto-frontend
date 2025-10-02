@@ -128,7 +128,7 @@ export default {
     async fetchPontos() {
       try {
         const dia = this.dataSelecionadaStr;
-        const response = await api.get(`/api/v1/pontos/meus-registros`, {
+        const response = await api.get(`/pontos/meus-registros`, {
           params: { dia }
         });
         this.pontos = response.data || [];
@@ -163,7 +163,7 @@ export default {
           tipo: this.form.tipo
         };
 
-        await api.post("/api/v1/justificativas", payload);
+        await api.post("/justificativas", payload);
 
         alert("Justificativa enviada com sucesso!");
         this.cancelarJustificativa();

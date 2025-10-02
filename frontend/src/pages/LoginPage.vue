@@ -164,7 +164,7 @@ button.btn-primary:hover {
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import axios from 'axios'
+import api from '../axios'
 
 const router = useRouter()
 const email = ref('')
@@ -172,8 +172,8 @@ const password = ref('')
 
 const loginUser = async () => {
   try {
-    const response = await axios.post(
-      "http://localhost:8083/api/v1/auth/login",
+    const response = await api.post(
+      "/auth/login",
       {
         email: email.value,
         password: password.value
@@ -190,8 +190,8 @@ const loginUser = async () => {
     localStorage.setItem("token", token);
 
     // Buscar dados do usuário logado
-    const userResponse = await axios.get(
-      "http://localhost:8083/api/v1/usuarios/me",
+    const userResponse = await api.get(
+      "/usuarios/me",
       {
         headers: { Authorization: `Bearer ${token}` }
       }

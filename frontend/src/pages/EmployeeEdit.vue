@@ -39,7 +39,7 @@ export default {
   async mounted() {
     const id = this.$route.params.id;
     try {
-      const res = await api.get(`/api/v1/usuarios/${id}`);
+      const res = await api.get(`/usuarios/${id}`);
       this.usuario = {
         nome: res.data.nome,
         email: res.data.email,
@@ -63,7 +63,7 @@ export default {
       }
 
       try {
-        await api.put(`/api/v1/usuarios/${id}`, payload);
+        await api.put(`/usuarios/${id}`, payload);
         alert('Funcionário atualizado com sucesso!');
         this.$router.push('/usuario/list');
       } catch (error) {

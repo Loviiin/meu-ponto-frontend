@@ -75,7 +75,7 @@ export default {
   methods: {
     async fetchEmpresas() {
       try {
-        const res = await api.get('/api/v1/empresas')
+        const res = await api.get('/empresas')
         // 🔥 Normaliza os campos vindos do backend
         this.empresas = (res.data || []).map(e => ({
           id: e.id || e.ID,
@@ -95,7 +95,7 @@ export default {
     async deleteEmpresa(id) {
       if (confirm('Tem certeza que deseja excluir esta Empresa?')) {
         try {
-          await api.delete(`/api/v1/empresas/${id}`)
+          await api.delete(`/empresas/${id}`)
           this.empresas = this.empresas.filter(e => e.id !== id)
         } catch (error) {
           console.error('Erro ao excluir Empresa', error)

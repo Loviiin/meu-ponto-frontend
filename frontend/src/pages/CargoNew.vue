@@ -45,7 +45,7 @@ export default {
   methods: {
     async fetchEmpresas() {
       try {
-        const response = await api.get('/api/v1/empresas');
+        const response = await api.get('/empresas');
         console.log("Empresas retornadas:", response.data);
 
         // Normaliza os campos para { id, nome }
@@ -65,7 +65,7 @@ export default {
           empresa_id: Number(this.cargo.empresa_id)
         };
 
-        await api.post('/api/v1/cargos', payload);
+        await api.post('/cargos', payload);
         alert('Cargo criado com sucesso!');
         this.$router.push('/cargo/list');
       } catch (error) {

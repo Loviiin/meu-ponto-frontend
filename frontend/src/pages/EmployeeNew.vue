@@ -72,7 +72,7 @@ export default {
   methods: {
     async fetchEmpresas() {
       try {
-        const response = await api.get('/api/v1/empresas');
+        const response = await api.get('/empresas');
         console.log('Empresas retornadas:', response.data);
 
         this.empresas = (response.data || []).map(e => ({
@@ -86,7 +86,7 @@ export default {
 
     async fetchCargos() {
       try {
-        const response = await api.get('/api/v1/cargos');
+        const response = await api.get('/cargos');
         console.log('Cargos retornados:', response.data);
 
         this.cargos = (response.data || []).map(c => ({
@@ -108,7 +108,7 @@ export default {
           senha: this.usuarios.senha
         };
 
-        await api.post('/api/v1/usuarios', payload);
+        await api.post('/usuarios', payload);
         alert('Funcionário criado com sucesso!');
         this.$router.push('/usuario/list');
       } catch (error) {

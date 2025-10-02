@@ -138,7 +138,7 @@ export default {
     async fetchPontos() {
       try {
         const dia = this.dataSelecionadaStr;
-        const response = await api.get(`/api/v1/pontos/meus-registros`, {
+        const response = await api.get(`/pontos/meus-registros`, {
           params: { dia }
         });
 

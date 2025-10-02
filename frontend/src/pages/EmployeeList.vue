@@ -65,7 +65,7 @@ export default {
   methods: {
     async fetchUsuarios() {
       try {
-        const res = await api.get('/api/v1/usuarios')
+        const res = await api.get('/usuarios')
         this.usuarios = res.data
       } catch (error) {
         if (error.response && error.response.status === 401) {
@@ -76,7 +76,7 @@ export default {
     async deleteUsuario(id) {
       if (confirm('Tem certeza que deseja excluir este funcionário?')) {
         try {
-          await api.delete(`/api/v1/usuarios/${id}`)
+          await api.delete(`/usuarios/${id}`)
           this.usuarios = this.usuarios.filter(u => u.id !== id)
         } catch (error) {
           console.error('Erro ao excluir funcionário', error)

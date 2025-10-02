@@ -84,7 +84,7 @@ async createEmpresa() {
 
     console.log("Payload enviado:", payload)
 
-    const resEmpresa = await api.post('/api/v1/empresas', payload)
+    const resEmpresa = await api.post('/empresas', payload)
     const empresaId = resEmpresa.data.id
 
     alert('Empresa criada com sucesso! Agora cadastre o administrador.')

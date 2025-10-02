@@ -101,7 +101,7 @@ export default {
   methods: {
     async fetchCargo(id) {
       try {
-        const res = await api.get(`/api/v1/cargos/${id}`)
+        const res = await api.get(`/cargos/${id}`)
         this.cargo = res.data
       } catch (error) {
         console.error('Erro ao carregar cargo', error)
@@ -109,7 +109,7 @@ export default {
     },
     async loadPermissions() {
       try {
-        const res = await api.get('/api/v1/permissoes')
+        const res = await api.get('/permissoes')
         this.permissoes = res.data
       } catch (error) {
         console.error('Erro ao carregar permissões', error)
@@ -117,7 +117,7 @@ export default {
     },
     async assignPermission(permId) {
       try {
-        await api.post(`/api/v1/cargos/${this.cargo.id}/permissoes/${permId}`)
+        await api.post(`/cargos/${this.cargo.id}/permissoes/${permId}`)
         alert('Permissão atribuída com sucesso!')
         await this.fetchCargo(this.cargo.id) // recarrega cargo
       } catch (error) {
