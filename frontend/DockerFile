@@ -1,0 +1,18 @@
+# build stage
+FROM node:lts-alpine as build-stage
+#22.2.0-alpine
+
+RUN npm install -g http-server
+
+WORKDIR /frontend
+
+COPY package*.json ./
+RUN npm install
+COPY . .
+
+RUN npm run build
+
+EXPOSE 5173
+
+# Build de produção
+CMD [ "http-server", "dist" ]
