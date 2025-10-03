@@ -2,7 +2,7 @@ import axios from 'axios'
 
 const api = axios.create({
 
-  baseURL: 'https://ponto-api-go-service-666877171588.southamerica-east1.run.app/api/v1',
+  baseURL: 'http://localhost:8083',
   //http://localhost:8000 - Django api
 })
 
