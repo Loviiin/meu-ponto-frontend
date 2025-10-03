@@ -189,68 +189,35 @@ async function baterPonto() {
   }
 }
 
-// Função para obter a localização
-// Função para obter a localização com alta precisão (apenas watchPosition)
-function getGeolocation(desiredAccuracy = 25, minWaitMs = 3000, maxWaitMs = 20000) {
+// Função para obter a localização (simples, com alta precisão)
+function getGeolocation() {
   if (!navigator.geolocation) {
     alert("Geolocalização não é suportada por este navegador.");
     return;
   }
 
-  let best = null; // melhor posição encontrada (menor accuracy)
-  const start = Date.now();
-
-  const watchId = navigator.geolocation.watchPosition(
-    (p) => {
-      const elapsed = Date.now() - start;
-      console.log(`Atualização de posição (accuracy=${p.coords.accuracy}m)`);
-
-      if (!best || p.coords.accuracy < best.coords.accuracy) {
-        best = p;
-      }
-
-      // Aguarda pelo menos minWaitMs para permitir refino da precisão
-      if (elapsed < minWaitMs) return;
-
-      // Se atingiu a precisão desejada, finaliza imediatamente
-      if (p.coords.accuracy <= desiredAccuracy) {
-        setBestAndClear(p);
-      }
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      // Atualiza coordenadas e registra precisão
+      latitude.value = pos.coords.latitude;
+      longitude.value = pos.coords.longitude;
+      console.log(
+        "Localização obtida:",
+        latitude.value,
+        longitude.value,
+        `accuracy=${pos.coords.accuracy}m`
+      );
     },
     (err) => {
-      console.error("Erro no watchPosition:", err);
-      if (best) {
-        // Usa a melhor posição coletada até o erro
-        setBestAndClear(best);
-      } else {
-        alert("Erro ao obter localização. Verifique as permissões do seu navegador.");
-      }
+      console.error("Erro ao obter localização:", err);
+      alert(`Erro ao obter localização: ${err.message}. Verifique as permissões do seu navegador.`);
     },
     {
       enableHighAccuracy: true,
-      maximumAge: 0,
-      timeout: maxWaitMs
+      timeout: 15000,
+      maximumAge: 0
     }
   );
-
-  const stopTimer = setTimeout(() => {
-    if (best) {
-      console.log(`Tempo limite atingido. Usando melhor posição encontrada (accuracy=${best.coords.accuracy}m)`);
-      setBestAndClear(best);
-    } else {
-      console.warn("Tempo limite atingido sem leituras de localização.");
-      alert("Não foi possível obter sua localização dentro do tempo limite. Verifique as permissões e sua conexão.");
-      navigator.geolocation.clearWatch(watchId);
-    }
-  }, maxWaitMs);
-
-  function setBestAndClear(p) {
-    latitude.value = p.coords.latitude;
-    longitude.value = p.coords.longitude;
-    console.log("Localização definida:", latitude.value, longitude.value, `accuracy=${p.coords.accuracy}m`);
-    navigator.geolocation.clearWatch(watchId);
-    clearTimeout(stopTimer);
-  }
 }
 
 let interval = null;
