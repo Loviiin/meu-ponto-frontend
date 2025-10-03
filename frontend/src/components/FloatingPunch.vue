@@ -190,22 +190,73 @@ async function baterPonto() {
 }
 
 // Função para obter a localização
-function getGeolocation() {
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
+// Função para obter a localização com alta precisão
+function getGeolocation(desiredAccuracy = 25, maxWatchTimeMs = 10000) {
+  if (!navigator.geolocation) {
+    alert("Geolocalização não é suportada por este navegador.");
+    return;
+  }
+
+  // Primeira tentativa rápida com alta precisão
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      console.log(`Posição inicial obtida (accuracy=${pos.coords.accuracy}m)`);
+      // Aceita se já estiver dentro da precisão desejada
+      if (pos.coords.accuracy <= desiredAccuracy) {
         latitude.value = pos.coords.latitude;
         longitude.value = pos.coords.longitude;
-        console.log("Localização obtida:", latitude.value, longitude.value);
-      },
-      (err) => {
-        console.error("Erro ao obter localização:", err);
-        alert("Erro ao obter localização. Verifique as permissões do seu navegador.");
+        console.log("Localização precisa obtida:", latitude.value, longitude.value, `accuracy=${pos.coords.accuracy}m`);
+        return;
       }
-    );
-  } else {
-    alert("Geolocalização não é suportada por este navegador.");
-  }
+
+      // Caso contrário, usamos watchPosition por um curto período para melhorar a precisão
+      let best = pos; // guarda a melhor posição (menor accuracy)
+      const start = Date.now();
+      const watchId = navigator.geolocation.watchPosition(
+        (p) => {
+          console.log(`Atualização de posição (accuracy=${p.coords.accuracy}m)`);
+          if (p.coords.accuracy < best.coords.accuracy) best = p;
+
+          // Se alcançamos a precisão desejada, aceitamos imediatamente
+          if (p.coords.accuracy <= desiredAccuracy) {
+            latitude.value = p.coords.latitude;
+            longitude.value = p.coords.longitude;
+            console.log("Localização precisa obtida via watch:", latitude.value, longitude.value, `accuracy=${p.coords.accuracy}m`);
+            navigator.geolocation.clearWatch(watchId);
+            return;
+          }
+
+          // Se passou tempo demais, aceitamos a melhor posição encontrada
+          if (Date.now() - start >= maxWatchTimeMs) {
+            latitude.value = best.coords.latitude;
+            longitude.value = best.coords.longitude;
+            console.log("Tempo limite atingido. Usando melhor posição encontrada:", latitude.value, longitude.value, `accuracy=${best.coords.accuracy}m`);
+            navigator.geolocation.clearWatch(watchId);
+            return;
+          }
+        },
+        (err) => {
+          console.error("Erro no watchPosition:", err);
+          navigator.geolocation.clearWatch(watchId);
+          alert("Erro ao obter localização. Verifique as permissões do seu navegador.");
+        },
+        {
+          enableHighAccuracy: true,
+          maximumAge: 0,
+          timeout: maxWatchTimeMs
+        }
+      );
+    },
+    (err) => {
+      console.error("Erro ao obter localização inicial:", err);
+      alert("Erro ao obter localização. Verifique as permissões do seu navegador.");
+    },
+    {
+      enableHighAccuracy: true,
+      maximumAge: 0,
+      timeout: 8000
+    }
+  );
 }
 
 let interval = null;
