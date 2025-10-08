@@ -2,8 +2,10 @@ import axios from 'axios'
 
 const api = axios.create({
 
+
+  baseUR2L: 'https://ponto-api-go-service-666877171588.southamerica-east1.run.app/api/v1',
+  //http://localhost:8083 - Django api
   baseURL: 'https://silver-doodle-rr6x77p5wg42557-8083.app.github.dev/api/v1',
-  //http://localhost:8000 - Django api
 })
 
 // Adiciona o token JWT em todas as requisições

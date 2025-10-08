@@ -10,7 +10,7 @@
       </li>
 
       <!-- Admin Nexora -->
-      <template v-if="cargo === 'admin'">
+      <template v-if="cargo === 'colaborador'">
         <li class="dropdown">
           <a href="#"><i class="bi bi-briefcase-fill"></i> Clientes</a>
           <ul class="dropdown-menu">
@@ -45,7 +45,7 @@
       </template>
 
       <!-- Admin Empresa -->
-      <template v-if="cargo === 'dono' || cargo === 'gerente'">
+      <template v-if="cargo === 'dono' || cargo === 'gerente' || cargo === 'colaborador' "  >
         <li class="dropdown">
           <a href="#"><i class="bi bi-building"></i> Minha Empresa</a>
           <ul class="dropdown-menu">
