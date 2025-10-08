@@ -12,6 +12,7 @@ import Permissoes from './pages/Permissoes.vue'
 import PontoUserList from './pages/PontoUserList.vue'
 import AjustePonto from './pages/AjustePonto.vue'
 import JustificativasPendentes from './pages/JustificativasPendentes.vue'
+import SignUp from './pages/SignUpPage.vue'
 
 const routes = [
 
@@ -24,6 +25,12 @@ const routes = [
   { 
     path: '/',
     component: Login ,
+    meta: { hideNavbar: true, hidePunchButton: true }
+  },
+
+  { 
+    path: '/signup',
+    component: SignUp ,
     meta: { hideNavbar: true, hidePunchButton: true }
   },
 

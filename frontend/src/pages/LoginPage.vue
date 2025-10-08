@@ -23,6 +23,10 @@
     <i class="bi bi-door-open-fill"></i>
     Acessar
   </button>
+  <div class="signup-redirect">
+    <span>Não tem conta?</span>
+    <a href="#" @click.prevent="goToSignUp">Cadastre-se</a>
+  </div>
 </form>
 
       </div>
@@ -159,6 +163,9 @@ button.btn-primary:hover {
   background: rgba(105, 96, 0, 1);
   transform: scale(1.05);
 }
+  .signup-redirect { margin-top: 10px; font-size: 13px; }
+  .signup-redirect a { color: #ffe27a; text-decoration: underline; cursor: pointer; margin-left: 4px; }
+  .signup-redirect a:hover { color: #fff2b3; }
   </style>
 
 <script setup>
@@ -205,6 +212,10 @@ const loginUser = async () => {
     console.error("Erro no login:", error.response?.data || error.message);
     alert(error.response?.data?.message || "Não foi possível fazer login");
   }
+};
+
+const goToSignUp = () => {
+  router.push('/signup');
 };
 
 
