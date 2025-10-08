@@ -31,7 +31,10 @@
       </div>
 
       <!-- Navegação -->
-      <div class="d-flex justify-content-center align-items-center mb-3 gap-2">
+      <div class="d-flex justify-content-center align-items-center mb-3 gap-2 flex-wrap">
+        <button class="btn btn-primary me-3" @click="irParaRelatorio">
+          <i class="bi bi-download me-1"></i> Exportar Relatório
+        </button>
         <button class="btn btn-light" @click="alterarDia(-1)">⬅️ Dia anterior</button>
         
         <!-- Date Picker -->
@@ -83,7 +86,8 @@ export default {
     return {
       pontos: [],
       dataSelecionada: new Date(),
-      usarAlmoco: true // toggle almoço ativado por padrão
+      usarAlmoco: true, // toggle almoço ativado por padrão
+      
     };
   },
   computed: {
@@ -165,6 +169,10 @@ export default {
         minute: "2-digit",
         second: "2-digit"
       });
+    },
+    irParaRelatorio() {
+      const dia = this.dataSelecionadaStr
+      this.$router.push({ name: 'RelatorioProprio', query: { dia } })
     }
   },
 };
@@ -198,4 +206,5 @@ export default {
   padding: 14px;
   vertical-align: middle;
 }
+/* export button now simplified */
 </style>

@@ -40,6 +40,9 @@
         <a @click="deleteUsuario(usuario.id)" class="btn btn-danger btn-sm" title="Excluir">
           <i class="bi bi-trash"></i>
         </a>
+        <a @click="$router.push(`/ponto/relatorios/usuario/${usuario.id}`)" class="btn btn-success btn-sm" title="Exportar Relatório">
+          <i class="bi bi-file-earmark-arrow-down"></i>
+        </a>
       </div>
     </td>
   </tr>

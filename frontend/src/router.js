@@ -94,6 +94,20 @@ const routes = [
     meta: { requiresAuth: true }
   },
 
+  // Relatórios de Ponto
+  {
+    path: '/ponto/relatorios/me',
+    name: 'RelatorioProprio',
+    component: () => import('./pages/RelatorioPonto.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/ponto/relatorios/usuario/:id',
+    name: 'RelatorioFuncionario',
+    component: () => import('./pages/RelatorioPonto.vue'),
+    meta: { requiresAuth: true, permission: 'VISUALIZAR_PONTO_FUNCIONARIOS' }
+  },
+
 
   
 ] 
