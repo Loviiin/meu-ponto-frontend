@@ -204,8 +204,20 @@ const loginUser = async () => {
       }
     );
 
-    localStorage.setItem("cargo_id", userResponse.data.cargo_id);
-    localStorage.setItem("empresa_id", userResponse.data.empresa_id);
+    // userResponse.data é o objeto Usuario, que contém o objeto contrato
+    const userData = userResponse.data;
+
+    // CORREÇÃO: Acessar os IDs via userData.contrato.* (desaninhamento correto)
+    const contrato = userData?.contrato;
+    if (contrato) {
+      if (contrato.cargo_id != null) localStorage.setItem("cargo_id", String(contrato.cargo_id));
+      if (contrato.empresa_id != null) localStorage.setItem("empresa_id", String(contrato.empresa_id));
+    } else {
+      // limpar valores antigos para evitar estado inconsistente
+      localStorage.removeItem("cargo_id");
+      localStorage.removeItem("empresa_id");
+      console.warn("Contrato não encontrado no payload de /usuarios/me. Verifique o backend ou o vínculo do usuário.");
+    }
 
     router.push("/home");
   } catch (error) {

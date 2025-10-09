@@ -14,8 +14,9 @@
         <p class="date">{{ currentDate }}</p>
       </div>
 
-      <button class="punch-btn" @click="baterPonto">
-        BATER PONTO
+      <button class="punch-btn" @click="baterPonto" :disabled="posting">
+        <span v-if="!posting">BATER PONTO</span>
+        <span v-else>Registrando...</span>
       </button>
 
       <button class="close-btn" @click="toggleExpand"><i class="bi bi-x-circle"></i></button>
@@ -126,6 +127,7 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from "vue";
 import api from "../axios";
+import { toast } from "../toast";
 
 const expanded = ref(false);
 const currentTime = ref("");
@@ -134,6 +136,7 @@ const userId = localStorage.getItem("userId");
 
 const latitude = ref(null);
 const longitude = ref(null);
+const posting = ref(false);
 
 // Atualiza relógio
 function updateClock() {
@@ -164,12 +167,20 @@ function toggleExpand() {
 }
 
 async function baterPonto() {
-  // Garante que a localização foi obtida
+  // UI otimista: feedback imediato
+  if (posting.value) return;
+  posting.value = true;
+  const start = performance.now();
+
+  // Se não temos localização ainda, tentar obter sem bloquear a UI
   if (latitude.value === null || longitude.value === null) {
-    alert("Não foi possível obter sua localização. Verifique as permissões do navegador e tente novamente.");
-    // Tenta obter a localização de novo, caso o usuário libere a permissão
-    getGeolocation(); 
-    return;
+    toast.info('Obtendo localização...');
+    await new Promise((resolve) => {
+      // tenta uma coleta rápida com precisão média
+      getGeolocation({ enableHighAccuracy: false, timeout: 5000, maximumAge: 15000 }, resolve);
+      // timeout de segurança
+      setTimeout(resolve, 3000);
+    });
   }
 
   try {
@@ -180,21 +191,28 @@ async function baterPonto() {
       data_hora: new Date().toISOString(),
     };
 
-    await api.post("/pontos", payload);
-
-    alert("Ponto registrado com sucesso!");
+    const resp = await api.post("/pontos", payload, { timeout: 8000 });
+    const duration = Math.round(performance.now() - start);
+    toast.success(`Ponto registrado (${duration}ms)`);
   } catch (error) {
     console.error("Erro ao bater ponto", error.response?.data || error);
-    alert("Erro ao registrar ponto.");
+    const msg = error.response?.data?.message || 'Erro ao registrar ponto.';
+    toast.error(msg);
+  } finally {
+    posting.value = false;
   }
 }
 
 // Função para obter a localização (simples, com alta precisão)
-function getGeolocation() {
+function getGeolocation(options, onDone) {
   if (!navigator.geolocation) {
-    alert("Geolocalização não é suportada por este navegador.");
+    toast.error("Geolocalização não é suportada por este navegador.");
+    if (onDone) onDone();
     return;
   }
+
+  // Defaults pensados para rapidez; caller pode sobrescrever em chamadas específicas
+  const opts = Object.assign({ enableHighAccuracy: true, timeout: 15000, maximumAge: 20000 }, options);
 
   navigator.geolocation.getCurrentPosition(
     (pos) => {
@@ -207,16 +225,14 @@ function getGeolocation() {
         longitude.value,
         `accuracy=${pos.coords.accuracy}m`
       );
+      if (onDone) onDone();
     },
     (err) => {
       console.error("Erro ao obter localização:", err);
-      alert(`Erro ao obter localização: ${err.message}. Verifique as permissões do seu navegador.`);
+      toast.error(`Erro ao obter localização: ${err.message}. Verifique as permissões do seu navegador.`);
+      if (onDone) onDone();
     },
-    {
-      enableHighAccuracy: true,
-      timeout: 15000,
-      maximumAge: 0
-    }
+    opts
   );
 }
 
@@ -224,7 +240,8 @@ let interval = null;
 onMounted(() => {
   updateClock();
   interval = setInterval(updateClock, 1000);
-  getGeolocation(); // Pede a localização ao montar o componente
+  // Pré-aquecer geolocalização com cache recente (melhora TTFP)
+  getGeolocation({ enableHighAccuracy: false, timeout: 7000, maximumAge: 30000 });
 });
 
 onUnmounted(() => {
