@@ -13,6 +13,7 @@ import PontoUserList from './pages/PontoUserList.vue'
 import AjustePonto from './pages/AjustePonto.vue'
 import JustificativasPendentes from './pages/JustificativasPendentes.vue'
 import SignUp from './pages/SignUpPage.vue'
+import BancoHoras from './pages/BancoHoras.vue';
 
 const routes = [
 
@@ -113,6 +114,13 @@ const routes = [
     name: 'RelatorioFuncionario',
     component: () => import('./pages/RelatorioPonto.vue'),
     meta: { requiresAuth: true, permission: 'VISUALIZAR_PONTO_FUNCIONARIOS' }
+  },
+
+  // Banco de Horas
+  {
+    path: '/meu-banco-horas',
+    component: BancoHoras,
+    meta: { requiresAuth: true }
   },
 
 
