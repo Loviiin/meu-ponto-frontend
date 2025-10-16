@@ -18,4 +18,5 @@ import ToastContainer from './components/ToastContainer.vue';
 
 <style>
 @import './style.css';
+@import './theme.css';
 </style>

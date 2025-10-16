@@ -17,7 +17,7 @@
 
       <!-- Lista de pontos -->
       <div class="table-wrapper">
-        <table class="table table-dark table-hover text-center align-middle">
+  <table class="table table-dark table-hover text-center align-middle table-mobile">
           <thead>
             <tr>
               <th>#</th>
@@ -28,10 +28,10 @@
           </thead>
           <tbody>
             <tr v-for="(ponto, index) in pontos" :key="ponto.id">
-              <td>{{ index + 1 }}</td>
-              <td>{{ formatarHora(ponto.timestamp) }}</td>
-              <td>{{ ponto.metodo }}</td>
-              <td>
+              <td :data-label="'#'">{{ index + 1 }}</td>
+              <td :data-label="'Hora'">{{ formatarHora(ponto.timestamp) }}</td>
+              <td :data-label="'Modelo'">{{ ponto.metodo }}</td>
+              <td :data-label="'Ação'">
                 <button class="btn btn-warning btn-sm" @click="selecionarPonto(ponto)">
                   Justificar
                 </button>
@@ -186,9 +186,6 @@ export default {
 
 <style scoped>
 .card {
-  margin-left: -300px;
-  width: 100%;
-  min-width: 1900px;
   background: rgba(255, 255, 255, 0.05);
   border-radius: 12px;
   padding: 20px;
@@ -197,7 +194,6 @@ export default {
 }
 .table {
   width: 100%;
-  min-width: 800px;
   table-layout: auto;
 }
 .table thead {

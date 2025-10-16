@@ -5,7 +5,7 @@
       <i class="bi bi-person-add"></i>
     </button>
 
-    <table class="table table-striped table-dark">
+  <table class="table table-striped table-dark table-mobile">
       <thead>
   <tr>
     <th>ID</th>
@@ -21,15 +21,15 @@
 </thead>
 <tbody>
   <tr v-for="usuario in usuarios" :key="usuario.id">
-    <td>{{ usuario.id }}</td>
-    <td>{{ usuario.nome }}</td>
-    <td>{{ usuario.email }}</td>
-    <td>{{ usuario.empresa_id }}</td>
-    <td>{{ usuario.cargo_id }}</td>
-    <td>{{ usuario.data_criacao ? usuario.data_criacao.substring(0, 10) : '' }}</td>
-    <td>{{ usuario.data_atualizacao ? usuario.data_atualizacao.substring(0, 10) : '' }}</td>
-    <td>{{ usuario.saldo_banco_horas_minutos }}</td>
-    <td class="text-nowrap">
+    <td :data-label="'ID'">{{ usuario.id }}</td>
+    <td :data-label="'Nome'">{{ usuario.nome }}</td>
+    <td :data-label="'Email'">{{ usuario.email }}</td>
+    <td :data-label="'Empresa'">{{ usuario.empresa_id }}</td>
+    <td :data-label="'Cargo'">{{ usuario.cargo_id }}</td>
+    <td :data-label="'Data de Criação'">{{ usuario.data_criacao ? usuario.data_criacao.substring(0, 10) : '' }}</td>
+    <td :data-label="'Última Atualização'">{{ usuario.data_atualizacao ? usuario.data_atualizacao.substring(0, 10) : '' }}</td>
+    <td :data-label="'Saldo Banco de Horas (min)'">{{ usuario.saldo_banco_horas_minutos }}</td>
+    <td class="text-nowrap" :data-label="'Ações'">
       <div class="btn-group" role="group">
         <a class="btn btn-primary btn-sm" title="Consultar" @click="$router.push(`/usuario/${usuario.id}`)">
           <i class="bi bi-eye"></i>

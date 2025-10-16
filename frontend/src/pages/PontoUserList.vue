@@ -49,8 +49,8 @@
         <button class="btn btn-dark ms-2" @click="resetarHoje">Hoje</button>
       </div>
 
-      <!-- Tabela -->
-      <table class="table table-dark table-hover text-center align-middle">
+  <!-- Tabela -->
+  <table class="table table-dark table-hover text-center align-middle table-mobile">
         <thead>
           <tr>
             <th>#</th>
@@ -62,11 +62,11 @@
         </thead>
         <tbody>
           <tr v-for="(ponto, index) in pontos" :key="ponto.id">
-            <td>{{ index + 1 }}</td>
-            <td>{{ formatarHora(ponto.timestamp) }}</td>
-            <td>{{ ponto.metodo }}</td>
-            <td>{{ ponto.latitude }}</td>
-            <td>{{ ponto.longitude }}</td>
+            <td :data-label="'#'">{{ index + 1 }}</td>
+            <td :data-label="'Hora'">{{ formatarHora(ponto.timestamp) }}</td>
+            <td :data-label="'Método'">{{ ponto.metodo }}</td>
+            <td :data-label="'Latitude'">{{ ponto.latitude }}</td>
+            <td :data-label="'Longitude'">{{ ponto.longitude }}</td>
           </tr>
           <tr v-if="pontos.length === 0">
             <td colspan="5">Nenhum ponto registrado nesse dia.</td>
@@ -180,9 +180,6 @@ export default {
 
 <style scoped>
 .card {
-  margin-left: -300px;
-  width: 100%;
-  min-width: 1900px;
   background: rgba(255, 255, 255, 0.05);
   border-radius: 12px;
   padding: 20px;
@@ -190,11 +187,9 @@ export default {
   backdrop-filter: blur(8px);
 }
 
-/* Wrapper para scroll horizontal em telas pequenas */
 .table-wrapper {
   overflow-x: auto;
 }
-
 
 .table thead {
   background: rgba(255, 255, 255, 0.1);
@@ -206,5 +201,4 @@ export default {
   padding: 14px;
   vertical-align: middle;
 }
-/* export button now simplified */
 </style>

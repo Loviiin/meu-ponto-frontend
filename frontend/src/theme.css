@@ -1,0 +1,58 @@
+/* Global theme tokens */
+:root {
+  /* Brand palette */
+  --color-primary: rgba(105, 96, 0, 1); /* gold-ish */
+  --color-primary-80: rgba(105, 96, 0, 0.8);
+  --color-surface: #1a242d;
+  --color-navy: rgba(0, 0, 36, 1);
+  --color-white: #ffffff;
+
+  /* Bootstrap brand hooks */
+  --bs-primary: #696000;            /* matches --color-primary */
+  --bs-primary-rgb: 105, 96, 0;
+  --bs-link-color: var(--bs-primary);
+  --bs-link-hover-color: #8a821a;
+}
+
+/* Enable animatable custom properties used in login gradient */
+@property --stop1 {
+  syntax: '<percentage>';
+  inherits: false;
+  initial-value: 30%;
+}
+@property --stop2 {
+  syntax: '<percentage>';
+  inherits: false;
+  initial-value: 80%;
+}
+
+/* Global app theme: apply the animated gradient everywhere */
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: linear-gradient(
+    30deg,
+    var(--color-primary) 0%,
+    var(--color-navy) var(--stop1),
+    var(--color-navy) var(--stop2),
+    var(--color-primary) 100%
+  );
+  color: rgba(255, 255, 255, 0.87);
+  animation: login-breathe 3s ease-in-out infinite alternate;
+}
+
+/* keep login pages without navbar offset */
+body.theme-login {
+  padding-top: 0 !important;
+}
+
+@keyframes login-breathe {
+  from {
+    --stop1: 30%;
+    --stop2: 80%;
+  }
+  to {
+    --stop1: 20%;
+    --stop2: 90%;
+  }
+}

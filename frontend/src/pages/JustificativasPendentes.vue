@@ -6,7 +6,7 @@
 
       <!-- Lista -->
       <div class="table-wrapper">
-        <table class="table table-dark table-hover text-center align-middle">
+  <table class="table table-dark table-hover text-center align-middle table-mobile">
           <thead>
             <tr>
               <th>#</th>
@@ -20,17 +20,17 @@
           </thead>
           <tbody>
             <tr v-for="(just, index) in justificativas" :key="just.id">
-              <td>{{ index + 1 }}</td>
-              <td>{{ just.usuario?.nome || "Usuário #" + just.usuario_id }}</td>
-              <td>{{ formatarData(just.data_ocorrencia) }}</td>
-              <td>{{ traduzTipo(just.tipo) }}</td>
-              <td>{{ just.descricao }}</td>
-              <td>
+              <td :data-label="'#'">{{ index + 1 }}</td>
+              <td :data-label="'Colaborador'">{{ just.usuario?.nome || "Usuário #" + just.usuario_id }}</td>
+              <td :data-label="'Data Ocorrência'">{{ formatarData(just.data_ocorrencia) }}</td>
+              <td :data-label="'Tipo'">{{ traduzTipo(just.tipo) }}</td>
+              <td :data-label="'Descrição'">{{ just.descricao }}</td>
+              <td :data-label="'Status'">
                 <span :class="statusClass(just.status)">
                   {{ just.status }}
                 </span>
               </td>
-              <td>
+              <td :data-label="'Ações'">
                 <button 
                   class="btn btn-success btn-sm me-2"
                   @click="atualizarStatus(just.id, 'APROVADO')"
@@ -120,9 +120,6 @@ export default {
 
 <style scoped>
 .card {
-  margin-left: -300px;
-  width: 100%;
-  min-width: 1600px;
   background: rgba(255, 255, 255, 0.05);
   border-radius: 12px;
   padding: 20px;
@@ -131,7 +128,6 @@ export default {
 }
 .table {
   width: 100%;
-  min-width: 1000px;
   table-layout: auto;
 }
 .table thead {

@@ -10,7 +10,7 @@
       <i class="bi bi-briefcase"></i>
     </button>
 
-    <table class="table table-striped table-dark">
+  <table class="table table-striped table-dark table-mobile">
       <thead>
         <tr>
           <th>ID</th>
@@ -26,21 +26,21 @@
       </thead>
       <tbody>
         <tr v-for="cargo in cargos" :key="cargo.id">
-          <td>{{ cargo.id }}</td>
-          <td>{{ cargo.nome }}</td>
-          <td>{{ cargo.empresa_id }}</td>
-          <td>{{ cargo.carga_horaria_diaria_minutos }}</td>
-          <td>{{ cargo.entrada_esperada_minutos }}</td>
-          <td>{{ cargo.saida_esperada_minutos }}</td>
-          <td>{{ cargo.minutos_almoco_esperado }}</td>
-          <td>
+          <td :data-label="'ID'">{{ cargo.id }}</td>
+          <td :data-label="'Nome'">{{ cargo.nome }}</td>
+          <td :data-label="'Empresa'">{{ cargo.empresa_id }}</td>
+          <td :data-label="'Carga Horária (min)'">{{ cargo.carga_horaria_diaria_minutos }}</td>
+          <td :data-label="'Entrada Esperada (min)'">{{ cargo.entrada_esperada_minutos }}</td>
+          <td :data-label="'Saída Esperada (min)'">{{ cargo.saida_esperada_minutos }}</td>
+          <td :data-label="'Almoço (min)'">{{ cargo.minutos_almoco_esperado }}</td>
+          <td :data-label="'Permissões'">
             <ul class="mb-0">
               <li v-for="perm in cargo.permissoes" :key="perm.id">
                 {{ perm.nome }}
               </li>
             </ul>
           </td>
-          <td class="text-nowrap">
+          <td class="text-nowrap" :data-label="'Ações'">
             <div class="btn-group" role="group">
               <a
                 class="btn btn-primary btn-sm"

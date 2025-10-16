@@ -132,5 +132,13 @@ const router = createRouter({
   routes
 })
 
+// Toggle login theme class on body based on current route
+router.afterEach((to) => {
+  const isAuthPage = to.path === '/login' || to.path === '/' || to.path === '/signup'
+  if (typeof document !== 'undefined') {
+    document.body.classList.toggle('theme-login', isAuthPage)
+  }
+})
+
 
 export default router

@@ -10,7 +10,7 @@
       <i class="bi bi-building"></i>
     </button>
 
-    <table class="table table-striped table-dark">
+  <table class="table table-striped table-dark table-mobile">
       <thead>
         <tr>
           <th>ID</th>
@@ -23,12 +23,12 @@
       </thead>
       <tbody>
         <tr v-for="empresa in empresas" :key="empresa.id">
-          <td>{{ empresa.id }}</td>
-          <td>{{ empresa.nome }}</td>
-          <td>{{ empresa.raioGeofenceMetros }}</td>
-          <td>{{ empresa.sedeLatitude }}</td>
-          <td>{{ empresa.sedeLongitude }}</td>
-          <td class="text-nowrap">
+          <td :data-label="'ID'">{{ empresa.id }}</td>
+          <td :data-label="'Nome'">{{ empresa.nome }}</td>
+          <td :data-label="'Raio Geofence (m)'">{{ empresa.raioGeofenceMetros }}</td>
+          <td :data-label="'Latitude'">{{ empresa.sedeLatitude }}</td>
+          <td :data-label="'Longitude'">{{ empresa.sedeLongitude }}</td>
+          <td class="text-nowrap" :data-label="'Ações'">
             <div class="btn-group" role="group">
               <a
                 class="btn btn-primary btn-sm"

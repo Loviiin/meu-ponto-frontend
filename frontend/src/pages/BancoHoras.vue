@@ -1,14 +1,13 @@
 <template>
   <div>
-    <Header />
-    <div class="container-fluid mt-4">
+  <div class="container-fluid py-3">
       <div class="content-narrow mx-auto">
         <h1 class="mb-4 text-center">Meu Banco de Horas</h1>
 
         <!-- Resumo + Gráfico: responsivo -->
         <div class="row g-3 mb-4">
         <div class="col-12 col-md-6">
-          <div class="card shadow-lg h-100">
+          <div class="card glass-card shadow-lg h-100">
             <div class="card-body text-center">
               <h5 class="card-title mb-3">Saldo Total Acumulado</h5>
               <div class="d-flex justify-content-center align-items-center mb-2">
@@ -21,7 +20,7 @@
           </div>
         </div>
         <div class="col-12 col-md-6">
-          <div class="card h-100">
+          <div class="card glass-card h-100">
             <div class="card-body">
               <h5 class="card-title mb-3"><i class="bi bi-bar-chart-line me-2"></i>Evolução do Saldo Diário</h5>
               <apexchart type="bar" width="100%" height="300" :options="chartOptions" :series="chartSeries" />
@@ -32,7 +31,7 @@
 
         <!-- Histórico de Lançamentos em Card (melhor tipografia e responsividade) -->
         <div class="mt-5">
-          <div class="card shadow-sm">
+          <div class="card glass-card shadow-sm">
             <div class="card-header">
               <h2 class="h4 mb-0 d-flex align-items-center">
                 <i class="bi bi-journal-check me-2"></i>
@@ -50,17 +49,17 @@
             </div>
 
             <!-- Filtros de Período -->
-            <div class="row g-3 align-items-end">
-              <div class="col-12 col-md-3">
+            <div class="row g-2 g-md-3 align-items-end">
+              <div class="col-12 col-sm-6 col-md-3">
                 <label class="form-label mb-1"><i class="bi bi-calendar2 me-1"></i>Data de Início</label>
                 <input type="date" v-model="dataInicio" class="form-control" />
               </div>
-              <div class="col-12 col-md-3">
+              <div class="col-12 col-sm-6 col-md-3">
                 <label class="form-label mb-1"><i class="bi bi-calendar2-week me-1"></i>Data de Fim</label>
                 <input type="date" v-model="dataFim" class="form-control" />
               </div>
-              <div class="col-12 col-md-3">
-                <div class="d-grid gap-2 d-md-flex">
+              <div class="col-12 col-sm-6 col-md-3">
+                <div class="d-grid gap-2 d-sm-flex">
                   <button class="btn btn-primary" @click="aplicarFiltro">
                     <i class="bi bi-funnel me-1"></i>Filtrar
                   </button>
@@ -69,7 +68,7 @@
                   </button>
                 </div>
               </div>
-              <div class="col-12 col-md-3">
+              <div class="col-12 col-sm-6 col-md-3">
                 <label class="form-label mb-1"><i class="bi bi-diagram-3 me-1"></i>Agrupar por</label>
                 <select v-model="modoAgrupamento" class="form-select">
                   <option value="semana">Semana</option>
@@ -87,7 +86,7 @@
               <button class="btn btn-outline-dark" @click="quickMesAnterior">
                 <i class="bi bi-calendar2-minus me-1"></i>Mês Anterior
               </button>
-              <button class="btn btn-outline-warning ms-auto" @click="toggleDemo">
+              <button class="btn btn-outline-warning ms-sm-auto" @click="toggleDemo">
                 <i class="bi" :class="isMock ? 'bi-toggle-on' : 'bi-toggle-off'"></i>
                 <span class="ms-1">Modo demonstração</span>
               </button>
@@ -96,7 +95,7 @@
             <hr class="my-4" />
 
             <div class="table-responsive">
-              <table class="table table-dark table-hover align-middle table-mobile">
+              <table class="table table-hover align-middle table-mobile">
                 <thead>
                   <tr>
                     <th><i class="bi bi-calendar-range me-1"></i>Data</th>
@@ -143,9 +142,8 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import Header from '../components/Header.vue';
 import { getDashboardData } from '../services/BancoHorasService';
 
 // Estado principal
@@ -386,6 +384,36 @@ async function toggleDemo() {
 </script>
 
 <style scoped>
+/* Dark theme + glassmorphism to match Home */
+.glass-card {
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.glass-card .card-header {
+  background: rgba(255, 255, 255, 0.04);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: rgba(255, 255, 255, 0.95);
+  border-top-left-radius: 16px;
+  border-top-right-radius: 16px;
+}
+
+/* Gradient title echoing Home */
+h1 {
+  font-weight: 800;
+  background: linear-gradient(90deg, #d4af37, #ffffff);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
 .card-title {
   font-size: 1.2rem;
   font-weight: 600;
@@ -396,6 +424,7 @@ async function toggleDemo() {
   max-width: 1200px;
   padding-left: 12px;
   padding-right: 12px;
+  color: rgba(255, 255, 255, 0.9);
 }
 
 /* Desktop: melhorar legibilidade da tabela */
@@ -405,6 +434,7 @@ async function toggleDemo() {
   }
   .table-mobile thead th {
     font-weight: 600;
+    color: rgba(255, 255, 255, 0.85);
   }
   .table-mobile td, .table-mobile th {
     padding-top: 0.75rem;
@@ -412,41 +442,88 @@ async function toggleDemo() {
   }
 }
 
-/* Mobile-first: transformar tabela em cards em telas pequenas */
+/* Botões outline escuros ficam claros sobre fundo escuro */
+.glass-card .btn-outline-dark {
+  color: rgba(255, 255, 255, 0.9);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+.glass-card .btn-outline-dark:hover,
+.glass-card .btn-outline-dark:focus {
+  color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.7);
+}
+
+/* Alertas com melhor contraste no tema escuro */
+.glass-card .alert {
+  background: rgba(0, 0, 0, 0.35);
+  /* Ensure Bootstrap table uses transparent background inside glass card */
+  --bs-table-bg: transparent;
+  --bs-table-color: rgba(255, 255, 255, 0.9);
+  --bs-table-border-color: rgba(255, 255, 255, 0.15);
+  background-color: transparent !important;
+  border-color: rgba(255, 255, 255, 0.18);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* Table contrast inside glass card */
+.glass-card .table {
+  color: rgba(255, 255, 255, 0.9);
+  background: transparent;
+}
+.glass-card .table thead th {
+
+/* Stronger background reset for all table cells and sections */
+.glass-card .table > :not(caption) > * > * {
+  background-color: transparent !important;
+  box-shadow: none !important;
+}
+.glass-card .table thead,
+.glass-card .table tbody,
+.glass-card .table tfoot,
+.glass-card .table tr,
+.glass-card .table td,
+.glass-card .table th {
+  background-color: transparent !important;
+}
+
+/* Hover and active states adapted to dark glass */
+.glass-card .table-hover > tbody > tr:hover > * {
+  background-color: rgba(255, 255, 255, 0.06) !important;
+}
+.glass-card .table .table-active > * {
+  background-color: rgba(255, 255, 255, 0.06) !important;
+}
+  color: rgba(255, 255, 255, 0.85);
+    background: transparent;
+}
+.glass-card .table tbody td {
+  color: rgba(255, 255, 255, 0.92);
+    background: transparent;
+  
+}
+.glass-card .table .group-row {
+  background-color: rgba(255, 255, 255, 0.06);
+    background: transparent;
+}
+
+/* Responsive table styles moved to global src/style.css (.table-mobile) */
+
+/* Mobile refinements for BancoHoras */
 @media (max-width: 576px) {
-  .table-mobile thead {
-    display: none;
+  h1 { font-size: 1.6rem; }
+  .row.g-3 > [class^='col-'] {
+    margin-bottom: 0.5rem;
   }
-  .table-mobile tbody tr {
-    display: block;
-    margin-bottom: 0.75rem;
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    border-radius: 0.5rem;
-    overflow: hidden;
-    background-color: rgba(0, 0, 0, 0.2);
+  .card-body {
+    padding: 0.75rem;
+  }
+  .d-flex.flex-wrap.gap-2.mt-3 {
+    gap: 0.5rem !important;
   }
   .table-mobile tbody tr td {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.75rem 1rem;
-    border: 0 !important;
-  }
-  .table-mobile tbody tr td::before {
-    content: attr(data-label);
-    font-weight: 600;
-    color: var(--bs-secondary-color, #adb5bd);
-    margin-right: 1rem;
-  }
-  .table-mobile tbody tr + tr td {
-    border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
-  }
-  .table-mobile .group-row {
-    display: block;
-    padding: 0.5rem 1rem;
-    border-radius: 0.5rem;
-    margin: 0.5rem 0;
-    background-color: rgba(255, 255, 255, 0.06);
+    padding: 0.6rem 0.75rem;
+    color: white;
   }
 }
 </style>

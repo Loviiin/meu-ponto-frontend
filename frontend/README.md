@@ -15,3 +15,12 @@ npm install vue3-timepicker
 Start app:
 npm run dev
 npm run build
+
+## Theming and Login Page
+
+- Global base styles live in `src/style.css`.
+- Theme tokens and the animated login gradient live in `src/theme.css` and are imported by `App.vue`.
+- The login (and signup) routes automatically add the class `theme-login` to the `<body>` via a router hook in `src/router.js`. This enables the special background only on those pages and prevents affecting others.
+- `LoginPage.vue` layout is centered and constrained with `max-width: 420px` to avoid stretching on desktop. All its styles are scoped.
+
+To tweak shared colors, edit CSS variables in `src/theme.css` (e.g., `--color-primary`). For login-only tweaks, target `body.theme-login` in `src/theme.css` or adjust the scoped styles inside `LoginPage.vue`.

@@ -1,118 +1,94 @@
 <template>
-  <header>
-    <div class="navbar-header">
-      <img src="/assets/Icon_horizontal_nexora.png" alt="Logo" class="navbar-logo" />
-    </div>
-    <ul>
-      <!-- Todos -->
-      <li>
-        <router-link to="/home"><i class="bi bi-house-fill"></i> Home</router-link>
-      </li>
+  <nav class="navbar navbar-expand-lg navbar-dark fixed-top custom-navbar shadow-sm">
+    <div class="container-fluid">
+      <router-link to="/home" class="navbar-brand d-flex align-items-center">
+  <img src="/assets/Icon_horizontal_nexora.png" alt="Nexora" class="navbar-logo me-2" />
+      </router-link>
 
-      <!-- Admin Nexora -->
-      <template v-if="cargo === 'colaborador'">
-        <li class="dropdown">
-          <a href="#"><i class="bi bi-briefcase-fill"></i> Clientes</a>
-          <ul class="dropdown-menu">
-            <li><router-link to="/empresa/list">Listar Empresas</router-link></li>
-            <li><router-link to="/empresa/new">Cadastrar Nova</router-link></li>
-          </ul>
-        </li>
+      <!-- Hamburger (mobile only) -->
+      <button
+        class="navbar-toggler d-lg-none"
+        type="button"
+        data-bs-toggle="collapse"
+        data-bs-target="#mainNavbar"
+        aria-controls="mainNavbar"
+        aria-expanded="false"
+        aria-label="Toggle navigation"
+      >
+        <span class="navbar-toggler-icon"></span>
+      </button>
 
-        <li class="dropdown">
-          <a href="#"><i class="bi bi-wallet"></i> Financeiro</a>
-          <ul class="dropdown-menu">
-            <li><router-link to="/planos">Planos e Assinaturas</router-link></li>
-            <li><router-link to="/faturas">Faturas / Cobranças</router-link></li>
-            <li><router-link to="/relatorios">Relatórios de Receita</router-link></li>
-          </ul>
-        </li>
+      <div class="collapse navbar-collapse" id="mainNavbar">
+        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+          <!-- Direct links -->
+          <li class="nav-item">
+            <router-link class="nav-link" to="/home"><i class="bi bi-house-fill me-1"></i>Home</router-link>
+          </li>
+          <li class="nav-item">
+            <router-link class="nav-link" to="/meu-banco-horas"><i class="bi bi-clock-history me-1"></i>Meu Banco de Horas</router-link>
+          </li>
 
-        <li>
-          <router-link to="/usuario/list"><i class="bi bi-person-fill"></i> Usuários</router-link>
-        </li>
-
-        <li class="dropdown">
-          <a href="#"><i class="bi bi-gear"></i> Configurações</a>
-          <ul class="dropdown-menu">
-            <li><router-link to="/parametros">Parametrizações Globais</router-link></li>
-            <li><router-link to="/logs">Logs / Auditoria</router-link></li>
-            <li>
-              <router-link to="/permissoes"><i class="bi bi-shield-lock"></i> Gerenciar Permissões</router-link>
-            </li>
-          </ul>
-        </li>
-      </template>
-
-      <!-- Admin Empresa -->
-      <template v-if="cargo === 'dono' || cargo === 'gerente' || cargo === 'colaborador' "  >
-        <li class="dropdown">
-          <a href="#"><i class="bi bi-building"></i> Minha Empresa</a>
-          <ul class="dropdown-menu">
-            <li><router-link to="/empresa/detail">Dados da Empresa</router-link></li>
-            <li><router-link to="/cargo/list">Cargos</router-link></li>
-            <li><router-link to="/usuario/list">Colaboradores</router-link></li>
-          </ul>
-        </li>
-
-        <!-- Dono/Gerente -->
-
-        <li class="dropdown">
-          <a href="#"><i class="bi bi-calendar-week"></i> Escalas e Jornada</a>
-          <ul class="dropdown-menu">
-            <li><router-link to="/escalas">Escalas de Trabalho</router-link></li>
-            <li><router-link to="/ajustes">Ajuste de Jornada</router-link></li>
-          </ul>
-        </li>
-
-        <li class="dropdown">
-          <a href="#"><i class="bi bi-mailbox-flag"></i> Ausências</a>
-          <ul class="dropdown-menu">
-            <li><router-link to="/ferias">Férias</router-link></li>
-            <li><router-link to="/licencas">Licenças Médicas</router-link></li>
-            <li><router-link to="/justificativas">Justificativas</router-link></li>
-          </ul>
-        </li>
-          <li class="dropdown">
-            <a href="#"><i class="bi bi-mailbox-flag"></i>Ponto Eletrônico</a>
+          <!-- Cadastros -->
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              <i class="bi bi-ui-checks-grid me-1"></i>Cadastros
+            </a>
             <ul class="dropdown-menu">
-              <li><router-link to="/Solicitacoes/Ajuste-Ponto">Pedidos</router-link></li>
-              <li><router-link to="/Pontos/Funcionarios">Controle de ponto</router-link></li>
+              <li><router-link class="dropdown-item" to="/usuario/list">Listar Funcionários</router-link></li>
+              <li><router-link class="dropdown-item" to="/usuario/new">Novo Funcionário</router-link></li>
+              <li><hr class="dropdown-divider" /></li>
+              <li><router-link class="dropdown-item" to="/cargo/list">Listar Cargos</router-link></li>
+              <li><router-link class="dropdown-item" to="/cargo/new">Novo Cargo</router-link></li>
             </ul>
           </li>
 
-        <li><router-link to="/beneficios"><i class="bi bi-coin"></i> Benefícios</router-link></li>
-        <li><router-link to="/folha"><i class="bi bi-file-earmark-text-fill"></i> Pagamentos/Folha</router-link></li>
-      </template>
+          <!-- Administrativo -->
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              <i class="bi bi-building-gear me-1"></i>Administrativo
+            </a>
+            <ul class="dropdown-menu">
+              <li><router-link class="dropdown-item" to="/empresa/list">Listar Empresas</router-link></li>
+              <li><router-link class="dropdown-item" to="/empresa/new">Nova Empresa</router-link></li>
+              <li><hr class="dropdown-divider" /></li>
+              <li><router-link class="dropdown-item" to="/permissoes">Gerenciar Permissões</router-link></li>
+              <li><router-link class="dropdown-item" to="/Solicitacoes/Ajuste-Ponto">Justificativas Pendentes</router-link></li>
+            </ul>
+          </li>
 
-      <!-- Colaborador -->
-      <template v-if="cargo === 'colaborador'">
-        <li><router-link to="/Meus-Pontos"><i class="bi bi-clock"></i> Ponto</router-link></li>
-        <li><router-link to="/solicitacoes"><i class="bi bi-mailbox-flag"></i> Solicitações</router-link></li>
-        <li><router-link to="/meus-beneficios"><i class="bi bi-coin"></i> Benefícios</router-link></li>
-        <li><router-link to="/minha-folha"><i class="bi bi-file-earmark-text-fill"></i> Folha</router-link></li>
-        <li><router-link to="/perfil"><i class="bi bi-person-vcard"></i> Meu Perfil</router-link></li>
-      </template>
+          <!-- Relatórios -->
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              <i class="bi bi-bar-chart-line me-1"></i>Relatórios
+            </a>
+            <ul class="dropdown-menu">
+              <li><router-link class="dropdown-item" :to="{ name: 'RelatorioProprio' }">Exportar Relatório de Ponto</router-link></li>
+            </ul>
+          </li>
 
-      <!-- Botão logout -->
-      <button class="btn" title="Sair" style="color: aliceblue;" @click="logoutUser">
-        <i class="bi bi-box-arrow-right"></i>
-      </button>
-    </ul>
-  </header>
+          <!-- Ponto (colaborador) -->
+          <li class="nav-item">
+            <router-link class="nav-link" to="/Meus-Pontos"><i class="bi bi-clock me-1"></i>Ponto</router-link>
+          </li>
+          <li class="nav-item">
+            <router-link class="nav-link" to="/Ajuste-Ponto"><i class="bi bi-pencil-square me-1"></i>Ajuste de Ponto</router-link>
+          </li>
+        </ul>
+
+        <!-- Right side: account actions -->
+        <div class="d-flex align-items-center gap-2">
+          <button class="btn btn-outline-light btn-sm" title="Sair" @click="logoutUser">
+            <i class="bi bi-box-arrow-right me-1"></i> Sair
+          </button>
+        </div>
+      </div>
+    </div>
+  </nav>
 </template>
 
 <script setup>
-import { computed } from 'vue'
 import { useRouter } from 'vue-router'
-
 const router = useRouter()
-
-// Sempre lê o cargo do localStorage
-const cargo = computed(() => {
-  const stored = localStorage.getItem('cargo')
-  return stored ? stored.toLowerCase() : 'colaborador'
-})
 
 const logoutUser = () => {
   localStorage.removeItem('token')
@@ -121,122 +97,43 @@ const logoutUser = () => {
 }
 </script>
 
-
-
-
 <style scoped>
-header {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 60px;
-  background: rgba(26, 36, 45, 0.6); /* translúcido */
+/* Restore previous look: translucent dark with blur and subtle border */
+.custom-navbar {
+  background: rgba(26, 36, 45, 0.6);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 20px;
-  z-index: 100;
-  border-bottom: 1px solid rgba(255,255,255,0.15);
-  box-shadow: 0 4px 16px rgba(0,0,0,0.3);
-}
-
-.navbar-header {
-  display: flex;
-  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 .navbar-logo {
-  width: 125px;
-  height: 40px;
-  object-fit: cover;
+  height: 52px; /* slightly larger per request */
+  width: auto;
+  object-fit: contain;
 }
 
-ul {
-  display: flex;
-  gap: 20px;
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  align-items: center;
+/* Increase toggler icon visual size a touch */
+.navbar-toggler {
+  padding: 0.4rem 0.6rem;
+}
+.navbar-toggler .navbar-toggler-icon {
+  width: 1.6em;
+  height: 1.6em;
 }
 
-li {
-  margin: 0;
-}
-
-a.router-link-active,
-a {
-  color: #fff;
-  text-decoration: none;
-  padding: 8px 16px;
-  border-radius: 12px;
-  transition: all 0.3s ease;
-  font-weight: 500;
-}
-
-a.router-link-active,
-a:hover {
-  background: rgba(255, 255, 255, 0.15);
-}
-
-
-button.btn i:hover {
-  color: white;
-  color:rgba(212, 175, 55, 1);
-  line-height: 1;
-}
-
-button.btn:hover {
-  transform: scale(1.05);
-  color: rgba(212, 175, 55, 1);
-}
-.dropdown {
-  position: relative;
-}
-
-.dropdown > a {
-  cursor: pointer;
-}
-
+/* Dropdown menu styling to match theme */
 .dropdown-menu {
-  display: none;
-  position: absolute;
-  top: 100%;
-  left: 0;
   background: rgba(26, 36, 45, 0.95);
-  list-style: none;
-  padding: 10px 0;
-  margin: 0;
-  border-radius: 12px;
-  min-width: 200px;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.3);
-  z-index: 200;
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
-
-.dropdown-menu li {
-  margin: 0;
-}
-
-.dropdown-menu a {
-  display: block;
-  padding: 8px 16px;
+.dropdown-item {
   color: #fff;
-  text-decoration: none;
-  transition: background 0.3s ease;
 }
-
-.dropdown-menu a:hover {
-  background: rgba(255, 255, 255, 0.15);
+.dropdown-item:hover,
+.dropdown-item:focus {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
 }
-
-/* Exibir submenu ao passar mouse */
-.dropdown:hover .dropdown-menu {
-  display: block;
-}
-
 </style>
 
 
