@@ -351,13 +351,26 @@ function parseError(err) {
   const data = err.response?.data;
   if (!data) return 'Erro inesperado. Tente novamente.';
   // Possíveis formatos: {message: '...'} ou {errors: {...}}
-  if (typeof data === 'string') return data;
-  if (data.message) return data.message;
-  if (data.error) return data.error;
-  if (data.errors && typeof data.errors === 'object') {
-    return Object.values(data.errors).flat().join(' | ');
+  // Normaliza mensagem principal
+  let rawMsg = '';
+  if (typeof data === 'string') rawMsg = data;
+  else if (data.message) rawMsg = data.message;
+  else if (data.error) rawMsg = data.error;
+  else if (data.errors && typeof data.errors === 'object') {
+    rawMsg = Object.values(data.errors).flat().join(' | ');
   }
-  return 'Falha ao realizar cadastro.';
+
+  // Tratamento específico para erro do CEP vindo do backend (quando serviço externo retorna HTML)
+  if (
+    typeof rawMsg === 'string' && (
+      rawMsg.toLowerCase().includes('falha ao obter dados do cep') ||
+      rawMsg.toLowerCase().includes("invalid character '<' looking for beginning of value")
+    )
+  ) {
+    return 'Falha ao consultar o CEP. Verifique o número informado ou tente novamente mais tarde.';
+  }
+
+  return rawMsg || 'Falha ao realizar cadastro.';
 }
 
 function goToLogin() { router.push('/login'); }

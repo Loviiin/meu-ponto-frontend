@@ -73,7 +73,7 @@ export default {
   methods: {
     async fetchJustificativas() {
       try {
-        const res = await api.get("/justificativas");
+        const res = await api.get("/justificativas/pendentes");
         this.justificativas = res.data || [];
       } catch (error) {
         console.error("Erro ao carregar justificativas:", error.response?.data || error);
@@ -82,7 +82,7 @@ export default {
     },
     async atualizarStatus(id, status) {
       try {
-        await api.put(`/justificativas/${id}`, { status });
+        await api.put(`/justificativas/${id}/processar`, { status });
         alert(`Solicitação ${status.toLowerCase()} com sucesso!`);
         this.fetchJustificativas();
       } catch (error) {
