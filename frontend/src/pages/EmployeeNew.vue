@@ -1,8 +1,14 @@
 <template>
-  <div class="employee-new card">
-    <div class="card-body">
-      <h2>Novo Funcionário</h2>
-      <p class="subtitle">Preencha os dados do novo colaborador</p>
+  <div class="employee-page">
+    <div class="card glass-card">
+      <div class="card-header">
+        <h2 class="h4 mb-0 d-flex align-items-center">
+          <i class="bi bi-person-plus-fill me-2"></i>
+          Novo Funcionário
+        </h2>
+      </div>
+      <div class="card-body">
+        <p class="subtitle">Preencha os dados do novo colaborador</p>
 
       <div v-if="loadingSupport" class="overlay">
         <div class="spinner"></div>
@@ -85,6 +91,7 @@
         </div>
         <div class="sr-only" aria-live="polite">{{ liveMessage }}</div>
       </form>
+      </div>
     </div>
   </div>
 </template>
@@ -109,7 +116,7 @@ const form = reactive({
   cpf: '',          // armazenado somente dígitos
   email: '',
   senha: '',
-  empresa_id: empresaId,
+  empresa_id: empresaId, // usado apenas para contexto local (carregar localidades); backend ignora no POST
   localidade_id: '',
   cargo_id: '',
   salario: null,
@@ -259,7 +266,6 @@ async function handleSubmit(){
       cpf: form.cpf,
       email: normalizeEmail(form.email),
       senha: form.senha,
-      empresa_id: form.empresa_id,
       localidade_id: Number(form.localidade_id),
       cargo_id: Number(form.cargo_id),
       salario: Number(form.salario),
@@ -301,22 +307,29 @@ const FieldError = { name:'FieldError', props:{ error:{ type:String, default:'' 
 </script>
 
 <style scoped>
-.employee-new { max-width: 720px; margin: 20px auto; }
-.subtitle { margin-top:-4px; color:#bbb; font-size:14px; }
+/* Layout com o mesmo glass do BancoHoras */
+.employee-page { min-height: 100vh; display:flex; align-items:center; justify-content:center; padding: 20px; color:white; }
+.glass-card { background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.18); border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.3); color: rgba(255,255,255,0.92); }
+.glass-card .card-header { background: rgba(255, 255, 255, 0.04); border-bottom: 1px solid rgba(255, 255, 255, 0.12); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); color: rgba(255, 255, 255, 0.95); border-top-left-radius: 16px; border-top-right-radius: 16px; }
+.card { padding:30px; max-width:720px; width:100%; }
+.title { text-align:center; margin: 0 0 6px 0; }
+.subtitle { margin-top:-4px; color:#ddd; font-size:14px; text-align:center; margin-bottom: 16px; }
+
 form { display:grid; grid-template-columns: 1fr 1fr; gap:16px 28px; }
 .form-row { display:flex; flex-direction:column; grid-column: span 1; }
-.form-row label { font-weight:600; font-size:13px; margin-bottom:4px; }
-.form-row input, .form-row select { background:rgba(255,255,255,0.15); border:1px solid rgba(255,255,255,0.25); border-radius:8px; padding:8px 10px; color:#fff; font-size:14px; }
+.form-row label { font-weight:600; font-size:13px; margin-bottom:6px; color:#f5f5f5; }
+.form-row input, .form-row select { background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.25); border-radius:10px; padding:10px 12px; color:#fff; font-size:14px; }
+.form-row input::placeholder { color: rgba(255,255,255,0.7); }
 .form-row.has-error input, .form-row.has-error select { box-shadow:0 0 0 2px rgba(255,80,80,0.6); }
 .form-row.is-valid input, .form-row.is-valid select { box-shadow:0 0 0 2px rgba(80,200,120,0.6); }
 .form-row input:focus, .form-row select:focus { outline:none; border-color:rgba(255,255,255,0.5); }
 .actions { grid-column: 1 / -1; display:flex; justify-content:flex-end; gap:12px; margin-top:8px; }
-.btn { border:none; border-radius:8px; padding:10px 18px; font-weight:600; cursor:pointer; transition:.25s; }
-.btn.primary { background:rgba(105,96,0,0.85); color:#fff; }
-.btn.primary:hover { background:rgba(105,96,0,1); }
-.btn.secondary { background:rgba(255,255,255,0.18); color:#fff; }
+.btn { border:none; border-radius:10px; padding:10px 18px; font-weight:700; letter-spacing:0.5px; cursor:pointer; transition:.25s; }
+.btn.primary { background:rgba(105,96,0,0.9); color:#fff; }
+.btn.primary:hover { background:rgba(105,96,0,1); transform: translateY(-1px); }
+.btn.secondary { background:rgba(255,255,255,0.2); color:#fff; }
 .btn.secondary:hover { background:rgba(255,255,255,0.3); }
 .btn:disabled { opacity:.55; cursor:not-allowed; }
-.field-error { color:#ff9b9b; font-size:11px; margin-top:4px; }
+.field-error { color:#ff9b9b; font-size:12px; margin-top:4px; }
 @media (max-width: 780px){ form { grid-template-columns:1fr; } }
 </style>
