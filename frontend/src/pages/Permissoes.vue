@@ -137,7 +137,7 @@ export default {
   methods: {
     async fetchRoles() {
       try {
-        const res = await api.get('/api/v1/roles')
+        const res = await api.get('/roles')
         this.roles = res.data
       } catch (error) {
         console.error('Erro ao carregar roles', error)
@@ -145,7 +145,7 @@ export default {
     },
     async fetchPermissoes() {
       try {
-        const res = await api.get('/api/v1/permissoes')
+        const res = await api.get('/permissoes')
         this.permissoes = res.data
       } catch (error) {
         console.error('Erro ao carregar permissões', error)
@@ -157,7 +157,7 @@ export default {
     },
     async fetchPermissoesRole(id) {
       try {
-        const res = await api.get(`/api/v1/roles/${id}`)
+        const res = await api.get(`/roles/${id}`)
         this.permissoesAtribuidas = res.data.permissoes || []
       } catch (error) {
         console.error('Erro ao carregar permissões da role', error)
@@ -166,7 +166,7 @@ export default {
     async atribuirPermissao() {
       if (!this.selectedDisponivel || !this.roleSelecionada) return
       try {
-        await api.post(`/api/v1/roles/${this.roleSelecionada.id}/permissoes/${this.selectedDisponivel}`)
+        await api.post(`/roles/${this.roleSelecionada.id}/permissoes/${this.selectedDisponivel}`)
         await this.fetchPermissoesRole(this.roleSelecionada.id)
         this.selectedDisponivel = null
       } catch (error) {
@@ -176,7 +176,7 @@ export default {
     async removerPermissao() {
       if (!this.selectedAtribuida || !this.roleSelecionada) return
       try {
-        await api.delete(`/api/v1/roles/${this.roleSelecionada.id}/permissoes/${this.selectedAtribuida}`)
+        await api.delete(`/roles/${this.roleSelecionada.id}/permissoes/${this.selectedAtribuida}`)
         await this.fetchPermissoesRole(this.roleSelecionada.id)
         this.selectedAtribuida = null
       } catch (error) {
