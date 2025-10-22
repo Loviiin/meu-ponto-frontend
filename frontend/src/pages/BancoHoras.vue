@@ -13,7 +13,7 @@
               <div class="d-flex justify-content-center align-items-center mb-2">
                 <i class="bi bi-clock-history me-2" style="font-size: 2rem;"></i>
                 <span :class="saldoTotalClass" style="font-size: 2.5rem; font-weight: bold; color: #d4af37; text-shadow: 0 0 10px rgba(212, 175, 55, 0.5);">
-                  {{ formatarMinutosParaHoras(dashboardData?.saldo_total_minutos ?? 0) }}
+                  {{ formatarMinutosParaHoras(saldoAtualFiltrado) }}
                 </span>
               </div>
             </div>
@@ -276,6 +276,16 @@ const grupos = computed(() => {
   return Array.from(mapa.values());
 });
 
+// Calcular saldo atual baseado no período filtrado
+const saldoAtualFiltrado = computed(() => {
+  if (historicoFiltrado.value.length === 0) {
+    return dashboardData.value?.saldo_total_minutos ?? 0;
+  }
+  // Retorna o saldo_resultante_minutos do último item (mais recente)
+  const ultimoItem = historicoFiltrado.value[0];
+  return ultimoItem?.saldo_resultante_minutos ?? 0;
+});
+
 // Gráfico: baseado diretamente nos minutos do histórico filtrado
 const chartLabels = computed(() => historicoFiltrado.value.map(i => formatarDataISO(i.data)));
 const chartData = computed(() => historicoFiltrado.value.map(i => i.valor_alterado_minutos));
@@ -341,7 +351,7 @@ onMounted(async () => {
 });
 
 // Classes e derivados do saldo total
-const saldoTotalClass = computed(() => ( (dashboardData.value?.saldo_total_minutos ?? 0) >= 0 ? 'text-success' : 'text-danger'));
+const saldoTotalClass = computed(() => ( (saldoAtualFiltrado.value ?? 0) >= 0 ? 'text-success' : 'text-danger'));
 
 // Alternar modo demonstração
 async function toggleDemo() {
