@@ -21,6 +21,26 @@
 
       <button class="close-btn" @click="toggleExpand"><i class="bi bi-x-circle"></i></button>
     </div>
+
+    <!-- Modal de Ajuste no Mapa -->
+    <div v-if="showAdjustModal" class="modal-overlay">
+      <div class="modal-card">
+        <h3>Ajuste sua localização</h3>
+        <p class="modal-subtitle">A precisão atual é de {{ displayAccuracy }}. Arraste o marcador para a sua posição exata e confirme.</p>
+        <LocationPickerMap
+          v-if="selectedLocation"
+          :initialPosition="selectedLocation"
+          @position-changed="onMapPositionChanged"
+        />
+        <div class="modal-actions">
+          <button class="btn-secondary" @click="cancelarAjuste" :disabled="posting">Cancelar</button>
+          <button class="btn-primary" @click="confirmarAjuste" :disabled="posting">
+            <span v-if="!posting">Confirmar</span>
+            <span v-else>Enviando...</span>
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -122,12 +142,63 @@
   from {opacity: 0; transform: translateY(10px);}
   to {opacity: 1; transform: translateY(0);}
 }
+
+/* Modal */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.modal-card {
+  width: min(92vw, 720px);
+  background: #0b1320cc;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(212, 175, 55, 0.6);
+  border-radius: 12px;
+  padding: 16px;
+  color: #fff;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+}
+.modal-subtitle {
+  font-size: 0.9rem;
+  color: #e5e7eb;
+  margin-bottom: 8px;
+}
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 12px;
+}
+.btn-secondary {
+  background: transparent;
+  color: #e5e7eb;
+  border: 1px solid #9ca3af;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.btn-primary {
+  background: rgba(212, 175, 55, 1);
+  color: #0b1320;
+  border: 1px solid rgba(212, 175, 55, 1);
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+}
 </style>
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from "vue";
 import api from "../axios";
 import { toast } from "../toast";
+import LocationPickerMap from "./LocationPickerMap.vue";
 
 const expanded = ref(false);
 const currentTime = ref("");
@@ -137,6 +208,18 @@ const userId = localStorage.getItem("userId");
 const latitude = ref(null);
 const longitude = ref(null);
 const posting = ref(false);
+const accuracy = ref(null); // em metros
+
+// Estado para ajuste manual no mapa
+const showAdjustModal = ref(false);
+const impreciseLocation = ref(null); // { lat, lng, accuracy }
+const selectedLocation = ref(null); // { lat, lng }
+
+const displayAccuracy = computed(() => {
+  if (accuracy.value == null) return '—';
+  const v = Math.round(accuracy.value);
+  return `${v} m`;
+});
 
 // Atualiza relógio
 function updateClock() {
@@ -172,34 +255,54 @@ async function baterPonto() {
   posting.value = true;
   const start = performance.now();
 
-  // Se não temos localização ainda, tentar obter sem bloquear a UI
-  if (latitude.value === null || longitude.value === null) {
-    toast.info('Obtendo localização...');
-    await new Promise((resolve) => {
-      // tenta uma coleta rápida com precisão média
-      getGeolocation({ enableHighAccuracy: false, timeout: 5000, maximumAge: 15000 }, resolve);
-      // timeout de segurança
-      setTimeout(resolve, 3000);
-    });
+  // Solicitar geolocalização com alta precisão antes de registrar o ponto
+  toast.info('Obtendo localização de alta precisão...');
+  await new Promise((resolve) => {
+    getGeolocation({ enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }, resolve);
+  });
+
+  // Se falhou completamente em obter coordenadas, encerrar (erro já foi exibido)
+  if (latitude.value == null || longitude.value == null) {
+    posting.value = false;
+    return;
   }
 
-  try {
-    const payload = {
-      usuario_id: Number(userId),
-      latitude: latitude.value,
-      longitude: longitude.value,
-      data_hora: new Date().toISOString(),
-    };
+  // Caminho híbrido: usar automático se precisão <= 30m, caso contrário abrir mapa
+  const acc = typeof accuracy.value === 'number' ? accuracy.value : Number.POSITIVE_INFINITY;
+  if (acc <= 30) {
+    try {
+      const payload = {
+        usuario_id: Number(userId),
+        latitude: latitude.value,
+        longitude: longitude.value,
+        data_hora: new Date().toISOString(),
+        metodo: 'AUTOMATICO',
+        original_accuracy: accuracy.value,
+      };
 
-    const resp = await api.post("/pontos", payload, { timeout: 8000 });
-    const duration = Math.round(performance.now() - start);
-    toast.success(`Ponto registrado (${duration}ms)`);
-  } catch (error) {
-    console.error("Erro ao bater ponto", error.response?.data || error);
-    const msg = error.response?.data?.message || 'Erro ao registrar ponto.';
-    toast.error(msg);
-  } finally {
-    posting.value = false;
+      const resp = await api.post("/pontos", payload, { timeout: 8000 });
+      const duration = Math.round(performance.now() - start);
+      toast.success(`Ponto registrado automaticamente (${duration}ms)`);
+    } catch (error) {
+      console.error("Erro ao bater ponto", error.response?.data || error);
+      const msg = error.response?.data?.message || 'Erro ao registrar ponto.';
+      toast.error(msg);
+    } finally {
+      posting.value = false;
+    }
+  } else {
+    // Abrir modal com mapa para ajuste fino
+    impreciseLocation.value = {
+      lat: latitude.value,
+      lng: longitude.value,
+      accuracy: accuracy.value,
+    };
+    selectedLocation.value = {
+      lat: latitude.value,
+      lng: longitude.value,
+    };
+    showAdjustModal.value = true;
+    posting.value = false; // liberar UI enquanto usuário ajusta
   }
 }
 
@@ -212,13 +315,14 @@ function getGeolocation(options, onDone) {
   }
 
   // Defaults pensados para rapidez; caller pode sobrescrever em chamadas específicas
-  const opts = Object.assign({ enableHighAccuracy: true, timeout: 15000, maximumAge: 20000 }, options);
+  const opts = Object.assign({ enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }, options);
 
   navigator.geolocation.getCurrentPosition(
     (pos) => {
       // Atualiza coordenadas e registra precisão
       latitude.value = pos.coords.latitude;
       longitude.value = pos.coords.longitude;
+      accuracy.value = typeof pos.coords.accuracy === 'number' ? pos.coords.accuracy : null;
       console.log(
         "Localização obtida:",
         latitude.value,
@@ -230,6 +334,7 @@ function getGeolocation(options, onDone) {
     (err) => {
       console.error("Erro ao obter localização:", err);
       toast.error(`Erro ao obter localização: ${err.message}. Verifique as permissões do seu navegador.`);
+      accuracy.value = null;
       if (onDone) onDone();
     },
     opts
@@ -247,4 +352,40 @@ onMounted(() => {
 onUnmounted(() => {
   if (interval) clearInterval(interval);
 });
+
+// Handlers do modal de ajuste no mapa
+function onMapPositionChanged(pos) {
+  selectedLocation.value = { lat: pos.lat, lng: pos.lng };
+}
+
+function cancelarAjuste() {
+  showAdjustModal.value = false;
+}
+
+async function confirmarAjuste() {
+  if (!selectedLocation.value) return;
+  if (posting.value) return;
+  posting.value = true;
+  try {
+    const payload = {
+      usuario_id: Number(userId),
+      latitude: selectedLocation.value.lat,
+      longitude: selectedLocation.value.lng,
+      data_hora: new Date().toISOString(),
+      metodo: 'AJUSTE_PELO_MAPA',
+      original_latitude: impreciseLocation.value?.lat ?? null,
+      original_longitude: impreciseLocation.value?.lng ?? null,
+      original_accuracy: impreciseLocation.value?.accuracy ?? null,
+    };
+    await api.post('/pontos', payload, { timeout: 8000 });
+    toast.success('Ponto registrado com ajuste pelo mapa');
+    showAdjustModal.value = false;
+  } catch (error) {
+    console.error('Erro ao registrar ajuste', error.response?.data || error);
+    const msg = error.response?.data?.message || 'Erro ao registrar ponto ajustado.';
+    toast.error(msg);
+  } finally {
+    posting.value = false;
+  }
+}
 </script>

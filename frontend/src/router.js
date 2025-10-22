@@ -115,6 +115,12 @@ const routes = [
     component: () => import('./pages/RelatorioPonto.vue'),
     meta: { requiresAuth: true, permission: 'VISUALIZAR_PONTO_FUNCIONARIOS' }
   },
+  {
+    path: '/relatorio-geral',
+    name: 'RelatorioGeral',
+    component: () => import('./pages/RelatorioGeral.vue'),
+    meta: { requiresAuth: true, roles: ['ADMIN', 'MANAGER'] }
+  },
 
   // Banco de Horas
   {

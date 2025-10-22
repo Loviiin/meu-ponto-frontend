@@ -12,7 +12,7 @@
               <h5 class="card-title mb-3">Saldo Total Acumulado</h5>
               <div class="d-flex justify-content-center align-items-center mb-2">
                 <i class="bi bi-clock-history me-2" style="font-size: 2rem;"></i>
-                <span :class="saldoTotalClass" style="font-size: 2.5rem; font-weight: bold;">
+                <span :class="saldoTotalClass" style="font-size: 2.5rem; font-weight: bold; color: #d4af37; text-shadow: 0 0 10px rgba(212, 175, 55, 0.5);">
                   {{ formatarMinutosParaHoras(dashboardData?.saldo_total_minutos ?? 0) }}
                 </span>
               </div>

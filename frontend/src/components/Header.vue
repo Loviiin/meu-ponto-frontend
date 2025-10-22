@@ -63,6 +63,7 @@
             </a>
             <ul class="dropdown-menu">
               <li><router-link class="dropdown-item" :to="{ name: 'RelatorioProprio' }">Exportar Relatório de Ponto</router-link></li>
+              <li><router-link class="dropdown-item" :to="{ name: 'RelatorioGeral' }">Relatório Geral de Ponto</router-link></li>
             </ul>
           </li>
 

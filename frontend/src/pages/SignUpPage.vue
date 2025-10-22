@@ -59,6 +59,28 @@
               <span class="input-icon"><i class="bi bi-broadcast"></i></span>
             </div>
             <FieldError :error="errors['localidade.raio_geofence_metros']" />
+
+            <!-- Mapa para selecionar localização exata -->
+            <div class="map-section">
+              <p class="map-hint">Use o mapa abaixo para ajustar a localização exata da localidade. Arraste o marcador para o ponto correto.</p>
+              <LocationPickerMap
+                :initialPosition="localidadeMapCenter"
+                :circleRadiusMeters="Number(formData.localidade.raio_geofence_metros || 0)"
+                @position-changed="onLocalidadePositionChanged"
+              />
+            </div>
+
+            <!-- Coordenadas selecionadas (somente leitura) -->
+            <div class="input-row">
+              <div class="input-group small">
+                <input type="number" step="0.000001" :value="formData.localidade.latitude ?? ''" placeholder="Latitude" readonly />
+                <span class="input-icon"><i class="bi bi-compass"></i></span>
+              </div>
+              <div class="input-group small">
+                <input type="number" step="0.000001" :value="formData.localidade.longitude ?? ''" placeholder="Longitude" readonly />
+                <span class="input-icon"><i class="bi bi-compass-fill"></i></span>
+              </div>
+            </div>
           </div>
 
           <!-- Passo 3 Usuário -->
@@ -111,9 +133,20 @@
             <button v-if="currentStep < steps.length - 1" type="submit" class="btn btn-primary" :disabled="loading">Próximo</button>
             <button v-else type="submit" class="btn btn-primary" :disabled="loading">
               <span v-if="!loading">Concluir Cadastro</span>
-              <span v-else>Enviando...</span>
+              <span v-else>
+                <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                Enviando...
+              </span>
             </button>
           </div>
+          
+          <!-- Mensagem de cold start -->
+          <transition name="fade">
+            <div v-if="loading" class="cold-start-info">
+              <i class="bi bi-hourglass-split me-1"></i>
+              <span>Aguarde, processando cadastro...</span>
+            </div>
+          </transition>
         </form>
 
   <div class="sr-only" aria-live="polite">{{ liveMessage }}</div>
@@ -125,11 +158,13 @@
 </template>
 
 <script setup>
-import { reactive, ref, watch, computed, onMounted } from 'vue';
+import { reactive, ref, watch, computed, onMounted, onUnmounted } from 'vue';
 import { REGEX, onlyDigits as digitsOnlyExternal, normalizeEmail, isFutureDate } from '../utils/validators.js';
 import { toast } from '../toast.js';
 import { useRouter } from 'vue-router';
 import api from '../axios';
+import { getAddressByCEP } from '../services/locationService.js';
+import LocationPickerMap from '../components/LocationPickerMap.vue';
 
 const router = useRouter();
 
@@ -142,12 +177,25 @@ const steps = [
 const DRAFT_KEY = 'signup_draft_v1';
 const formData = reactive({
   empresa: { nome_fantasia: '', razao_social: '', cnpj: '' },
-  localidade: { nome: '', cep: '', raio_geofence_metros: null },
+  localidade: {
+    nome: '',
+    cep: '',
+    raio_geofence_metros: null,
+    latitude: null,
+    longitude: null,
+    // Campos de endereço preenchidos via consulta de CEP
+    logradouro: '',
+    bairro: '',
+    cidade: '',
+    estado: ''
+  },
   usuario: { nome: '', email: '', password: '', cpf: '', salario: null, data_admissao: '' }
 });
 const passwordConfirm = ref('');
 const masked = reactive({ cnpj: '', cpf: '', cep: '' });
 const liveMessage = ref('');
+const isCepLoading = ref(false);
+let cepSearchTimeout;
 
 const usuarioDataAdmissao = ref('');
 watch(usuarioDataAdmissao, (val) => {
@@ -189,8 +237,24 @@ function syncMasked(){
 }
 function handleBlurCnpj(){ formData.empresa.cnpj = onlyDigits(masked.cnpj).slice(0,14); touch('empresa.cnpj'); validateStep(0); }
 function handleBlurCpf(){ formData.usuario.cpf = onlyDigits(masked.cpf).slice(0,11); touch('usuario.cpf'); validateStep(2); }
-function handleBlurCep(){ formData.localidade.cep = onlyDigits(masked.cep).slice(0,8); touch('localidade.cep'); validateStep(1); }
+function handleBlurCep(){
+  formData.localidade.cep = onlyDigits(masked.cep).slice(0,8);
+  touch('localidade.cep');
+  validateStep(1);
+}
 onMounted(syncMasked);
+onUnmounted(() => { try { clearTimeout(cepSearchTimeout); } catch(_){} });
+
+// Centro do mapa da localidade (default: Brasil)
+const localidadeMapCenter = ref({ lat: -14.235004, lng: -51.92528 });
+
+// Debounce: observa alterações no CEP mascarado e dispara busca automática após 500ms sem digitar
+watch(() => masked.cep, () => {
+  clearTimeout(cepSearchTimeout);
+  cepSearchTimeout = setTimeout(() => {
+    searchCEP();
+  }, 500);
+});
 
 function fieldValid(field){
   // run validation for its step silently
@@ -373,6 +437,39 @@ function parseError(err) {
   return rawMsg || 'Falha ao realizar cadastro.';
 }
 
+// Consulta CEP usando o serviço centralizado e preenche os campos de endereço
+async function searchCEP(){
+  // Normaliza e valida o CEP a partir do campo mascarado
+  const cleanedCep = onlyDigits(masked.cep).slice(0,8);
+  formData.localidade.cep = cleanedCep;
+  if (cleanedCep.length !== 8) return; // não consulta se não tiver 8 dígitos
+
+  isCepLoading.value = true;
+  try {
+    const address = await getAddressByCEP(cleanedCep);
+    if (address) {
+      formData.localidade.logradouro = address.Street || '';
+      formData.localidade.bairro = address.Neighborhood || '';
+      formData.localidade.cidade = address.City || '';
+      formData.localidade.estado = address.State || '';
+
+      // Se o backend fornecer coordenadas aproximadas para o CEP, centralizar o mapa
+      const lat = address.latitude ?? address.lat ?? address.Latitude ?? address.Lat;
+      const lng = address.longitude ?? address.lon ?? address.lng ?? address.Longitude ?? address.Lng ?? address.Lon;
+      if (typeof lat === 'number' && typeof lng === 'number' && !Number.isNaN(lat) && !Number.isNaN(lng)) {
+        localidadeMapCenter.value = { lat, lng };
+      }
+    } else {
+      toast.error('CEP não encontrado.');
+    }
+  } catch (err) {
+    const msg = parseError(err);
+    toast.error(msg || 'Falha ao consultar o CEP');
+  } finally {
+    isCepLoading.value = false;
+  }
+}
+
 function goToLogin() { router.push('/login'); }
 
 // Componente de erro de campo (registrado automaticamente pelo <script setup>)
@@ -381,6 +478,12 @@ const FieldError = {
   props: { error: { type: String, default: '' } },
   template: `<div v-if="error" class='field-error'>{{ error }}</div>`
 };
+
+// Quando o usuário ajusta o marcador no mapa, atualiza as coordenadas no formulário
+function onLocalidadePositionChanged(pos) {
+  formData.localidade.latitude = pos.lat;
+  formData.localidade.longitude = pos.lng;
+}
 
 </script>
 
@@ -402,6 +505,8 @@ const FieldError = {
 .input-group .input-icon { width:40px; background:rgba(255,255,255,0.15); border-left:1px solid rgba(255,255,255,0.3); border-radius:0 10px 10px 0; display:flex; align-items:center; justify-content:center; color:white; font-size:16px; }
 .input-group.has-error input { box-shadow:0 0 0 2px rgba(255,80,80,0.6); }
 .input-group.is-valid input { box-shadow:0 0 0 2px rgba(80,200,120,0.6); }
+.input-row { display:flex; gap:8px; }
+.input-group.small input { font-size:12px; }
 .progress-text { text-align:center; font-size:13px; margin:-4px 0 8px; color:#ddd; }
 .cancel-btn { background:none; border:none; color:#ffe27a; text-decoration:underline; padding:4px 0; cursor:pointer; font-size:12px; }
 .cancel-btn:hover { color:#fff2b3; }
@@ -418,4 +523,26 @@ button { cursor:pointer; }
 .login-switch { margin-top:20px; text-align:center; font-size:14px; }
 .login-switch a { color:#ffe27a; cursor:pointer; text-decoration:underline; }
 .field-error { color:#ff9b9b; font-size:12px; margin-top:-6px; margin-bottom:6px; }
+.map-section { margin-top: 8px; }
+.map-hint { font-size: 12px; color: #e5e7eb; margin: 6px 0; }
+
+.cold-start-info {
+  background: rgba(255, 206, 84, 0.15);
+  border: 1px solid rgba(255, 206, 84, 0.3);
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin-top: 12px;
+  font-size: 0.85rem;
+  color: #ffce54;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fade-enter-active, .fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+.fade-enter-from, .fade-leave-to {
+  opacity: 0;
+}
 </style>
