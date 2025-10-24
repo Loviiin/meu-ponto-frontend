@@ -44,16 +44,21 @@ const routes = [
     component: EmployeeList,
     meta: { requiresAuth: true }
   },
-    {
+  {
     path: '/usuario/new',
     component: EmployeeNew,
     meta: { requiresAuth: true }
   },
-   {
+  {
     path: '/usuario/edit/:id',
     component: EmployeeEdit,
     meta: { requiresAuth: true }
-  },  
+  },
+  {
+    path: '/funcionarios/:id/editar',
+    component: EmployeeEdit,
+    meta: { requiresAuth: true }
+  },
   {
     path: '/empresa/list',
     component: EmpresaList,
@@ -69,17 +74,23 @@ const routes = [
     component: CargoList,
     meta: { requiresAuth: true }
   },
-      {
+  {
     path: '/cargo/new',
     component: CargoNew,
     meta: { requiresAuth: true }
   },
-{
-  path: '/cargo/detail/:id',
-  name: 'CargoDetail',
-  component: () => import('../src/pages/CargoDetail.vue'),
-  meta: { requiresAuth: true }
-},
+  {
+    path: '/cargo/detail/:id',
+    name: 'CargoDetail',
+    component: () => import('../src/pages/CargoDetail.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/cargo/edit/:id',
+    name: 'CargoEdit',
+    component: () => import('../src/pages/CargoEdit.vue'),
+    meta: { requiresAuth: true }
+  },
   {
     path: '/permissoes',
     component: Permissoes,
