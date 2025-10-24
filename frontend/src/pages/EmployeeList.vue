@@ -7,10 +7,23 @@
             <i class="bi bi-people-fill me-2"></i>
             Funcionários
           </span>
-          <button class="btn btn-new" @click="$router.push('/usuario/new')" :disabled="loading">
-            <i class="bi bi-person-plus-fill me-2"></i>
-            Novo Funcionário
-          </button>
+          <div class="d-flex gap-2 align-items-center">
+            <!-- Toggle para mostrar saldo de banco de horas -->
+            <button 
+              class="btn btn-toggle" 
+              @click="toggleMostrarSaldo" 
+              :class="{ 'active': mostrarSaldo }"
+              :disabled="loading"
+              title="Mostrar/Ocultar Banco de Horas"
+            >
+              <i class="bi" :class="mostrarSaldo ? 'bi-eye-fill' : 'bi-eye-slash-fill'"></i>
+              <span class="ms-2 d-none d-md-inline">Banco de Horas</span>
+            </button>
+            <button class="btn btn-new" @click="$router.push('/usuario/new')" :disabled="loading">
+              <i class="bi bi-person-plus-fill me-2"></i>
+              Novo Funcionário
+            </button>
+          </div>
         </h2>
       </div>
 
@@ -52,7 +65,7 @@
                   <th>Nome</th>
                   <th>Email</th>
                   <th>Cargo</th>
-                  <th>Banco de Horas</th>
+                  <th v-if="mostrarSaldo">Banco de Horas</th>
                   <th>Ações</th>
                 </tr>
               </thead>
@@ -75,7 +88,7 @@
                       {{ getCargo(usuario) }}
                     </span>
                   </td>
-                  <td data-label="Banco de Horas">
+                  <td v-if="mostrarSaldo" data-label="Banco de Horas">
                     <span class="badge-hours" :class="getSaldoBancoHorasClass(usuario)">
                       {{ getSaldoBancoHoras(usuario) }}
                     </span>
@@ -117,10 +130,16 @@ export default {
       usuarios: [],
       loading: false,
       error: null,
+      mostrarSaldo: true, // Toggle para mostrar/ocultar banco de horas
       saldosBancoHoras: {} // Mapa: { userId: saldoMinutos }
     }
   },
   async mounted() {
+    // Carregar preferência do localStorage
+    const preferencia = localStorage.getItem('mostrarSaldoBancoHoras')
+    if (preferencia !== null) {
+      this.mostrarSaldo = preferencia === 'true'
+    }
     await this.fetchUsuarios()
   },
   methods: {
@@ -128,13 +147,14 @@ export default {
       this.loading = true
       this.error = null
       try {
-        // ✅ Adiciona query parameter para incluir saldo de banco de horas
-        const res = await api.get('/usuarios', {
-          params: {
-            include_saldo: true
-          }
-        })
-        console.log('Resposta da API /usuarios?include_saldo=true:', res.data)
+        // ✅ Só busca saldos se o toggle estiver ativo
+        const params = {}
+        if (this.mostrarSaldo) {
+          params.include_saldo = true
+        }
+        
+        const res = await api.get('/usuarios', { params })
+        console.log('Resposta da API /usuarios:', res.data)
         
         // A API retorna um objeto com paginação: { usuarios: [...], total, page, ... }
         const usuariosArray = res.data.usuarios || res.data || []
@@ -147,7 +167,7 @@ export default {
             nome: u.nome || u.Nome || 'Sem nome',
             email: u.email || u.Email || 'Sem email',
             cpf: u.cpf || u.CPF,
-            // ✅ NOVO: Saldo vem direto do endpoint agora (uma requisição só!)
+            // ✅ Saldo vem direto do endpoint (se include_saldo=true)
             saldo_banco_horas_minutos: u.saldo_banco_horas_minutos ?? u.SaldoBancoHorasMinutos ?? 0,
             // Estrutura nova do backend
             cargo: u.cargo || null,
@@ -163,14 +183,16 @@ export default {
         console.log('Usuários processados:', this.usuarios)
         console.log('Total de usuários:', res.data.total)
         
-        // ✅ Popular o mapa de saldos direto da resposta (sem requisições extras!)
-        this.saldosBancoHoras = this.usuarios.reduce((map, u) => {
-          if (u.saldo_banco_horas_minutos !== undefined) {
-            map[u.id] = u.saldo_banco_horas_minutos
-          }
-          return map
-        }, {})
-        console.log('Saldos extraídos da resposta:', this.saldosBancoHoras)
+        // ✅ Popular o mapa de saldos direto da resposta (se tiver)
+        if (this.mostrarSaldo) {
+          this.saldosBancoHoras = this.usuarios.reduce((map, u) => {
+            if (u.saldo_banco_horas_minutos !== undefined) {
+              map[u.id] = u.saldo_banco_horas_minutos
+            }
+            return map
+          }, {})
+          console.log('Saldos extraídos da resposta:', this.saldosBancoHoras)
+        }
       } catch (error) {
         console.error('Erro ao carregar funcionários:', error)
         
@@ -368,6 +390,15 @@ export default {
         return
       }
       this.$router.push(`/ponto/relatorios/usuario/${id}`)
+    },
+    toggleMostrarSaldo() {
+      this.mostrarSaldo = !this.mostrarSaldo
+      // Salva a preferência no localStorage
+      localStorage.setItem('mostrarSaldoBancoHoras', this.mostrarSaldo)
+      // Recarrega os dados se ativou o saldo (para buscar do backend)
+      if (this.mostrarSaldo && Object.keys(this.saldosBancoHoras).length === 0) {
+        this.fetchUsuarios()
+      }
     }
   }
 }
@@ -426,6 +457,42 @@ export default {
 }
 
 .btn-new:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Toggle Button */
+.btn-toggle {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  padding: 10px 18px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.btn-toggle:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.9);
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+}
+
+.btn-toggle.active {
+  background: rgba(105, 96, 0, 0.3);
+  color: #d4af37;
+  border-color: rgba(105, 96, 0, 0.5);
+}
+
+.btn-toggle.active:hover:not(:disabled) {
+  background: rgba(105, 96, 0, 0.4);
+  border-color: rgba(105, 96, 0, 0.6);
+}
+
+.btn-toggle:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
