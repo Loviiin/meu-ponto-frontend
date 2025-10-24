@@ -130,6 +130,13 @@ const form = reactive({
   cargoId: ''
 });
 
+// ✨ NOVO: Rastrear valores originais para saber o que mudou
+const formOriginal = ref({
+  nome: '',
+  email: '',
+  cargoId: ''
+});
+
 const cargos = ref([]);
 const loading = ref(false);
 const loadingCargos = ref(false);
@@ -235,7 +242,15 @@ async function loadEmployee() {
     form.email = usuario.email || usuario.Email || '';
     form.cargoId = usuario.contrato?.cargo?.id || usuario.contrato?.cargo?.ID || '';
     
+    // ✨ NOVO: Guardar valores originais
+    formOriginal.value = {
+      nome: form.nome,
+      email: form.email,
+      cargoId: form.cargoId
+    };
+    
     console.log('Formulário preenchido:', { ...form });
+    console.log('Valores originais salvos:', formOriginal.value);
     
   } catch (err) {
     const status = err.response?.status;
@@ -278,15 +293,21 @@ async function handleSubmit() {
   
   submitting.value = true;
   try {
-    const payload = {
-      nome: form.nome.trim(),
-      email: form.email.toLowerCase().trim(),
-      cargoId: Number(form.cargoId)
-    };
+    // ✅ Obter apenas os campos que foram modificados
+    const payload = getModificadosPayload();
     
-    console.log(`Atualizando usuário ${userId.value} com payload:`, payload);
+    // Se nada foi modificado, avisa o usuário
+    if (Object.keys(payload).length === 0) {
+      toast.info('Nenhuma alteração foi feita.');
+      liveMessage.value = 'Nenhuma alteração foi feita.';
+      submitting.value = false;
+      return;
+    }
     
-    await api.put(`/usuarios/${userId.value}`, payload, { 
+    console.log(`Atualizando usuário ${userId.value} com PATCH (apenas campos modificados):`, payload);
+    
+    // ✅ Usar PATCH para enviar apenas as mudanças
+    await api.patch(`/usuarios/${userId.value}`, payload, { 
       headers: { 'Content-Type': 'application/json' }
     });
     
@@ -333,6 +354,30 @@ function handleSubmitError(err) {
   toast.error(msg);
   liveMessage.value = msg;
   console.error('Erro ao atualizar funcionário:', err);
+}
+
+// ✨ NOVO: Função para detectar quais campos foram modificados
+function getModificadosPayload() {
+  const payload = {};
+
+  // Comparar cada campo com o original
+  if (form.nome.trim() !== formOriginal.value.nome) {
+    payload.nome = form.nome.trim();
+    console.log('Campo MODIFICADO - nome:', formOriginal.value.nome, '→', payload.nome);
+  }
+
+  if (form.email.toLowerCase().trim() !== formOriginal.value.email) {
+    payload.email = form.email.toLowerCase().trim();
+    console.log('Campo MODIFICADO - email:', formOriginal.value.email, '→', payload.email);
+  }
+
+  if (Number(form.cargoId) !== Number(formOriginal.value.cargoId)) {
+    payload.cargoId = Number(form.cargoId);
+    console.log('Campo MODIFICADO - cargoId:', formOriginal.value.cargoId, '→', payload.cargoId);
+  }
+
+  console.log('Payload com campos modificados:', payload);
+  return payload;
 }
 
 function goBack() { 
