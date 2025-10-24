@@ -72,23 +72,23 @@
                   </td>
                   <td data-label="Cargo">
                     <span class="badge-cargo">
-                      {{ usuario.contrato?.cargo?.nome || 'Sem cargo' }}
+                      {{ getCargo(usuario) }}
                     </span>
                   </td>
                   <td data-label="Banco de Horas">
-                    <span class="badge-hours" :class="hoursClass(usuario.saldo_banco_horas_minutos)">
-                      {{ formatMinutes(usuario.saldo_banco_horas_minutos) }}
+                    <span class="badge-hours" :class="hoursClassISO(usuario.banco_horas_saldo)">
+                      {{ formatarDuracaoISO8601(usuario.banco_horas_saldo) }}
                     </span>
                   </td>
                   <td data-label="Ações">
                     <div class="action-buttons">
-                      <button class="btn-action btn-view" title="Visualizar" @click="$router.push(`/usuario/${usuario.id}`)">
+                      <button class="btn-action btn-view" title="Visualizar" @click="viewUsuario(usuario.id)">
                         <i class="bi bi-eye-fill"></i>
                       </button>
-                      <button class="btn-action btn-edit" title="Editar" @click="$router.push(`/funcionarios/${usuario.id}/editar`)">
+                      <button class="btn-action btn-edit" title="Editar" @click="editUsuario(usuario.id)">
                         <i class="bi bi-pencil-square"></i>
                       </button>
-                      <button class="btn-action btn-report" title="Relatório" @click="$router.push(`/ponto/relatorios/usuario/${usuario.id}`)">
+                      <button class="btn-action btn-report" title="Relatório" @click="viewReport(usuario.id)">
                         <i class="bi bi-file-earmark-text-fill"></i>
                       </button>
                       <button class="btn-action btn-delete" title="Excluir" @click="deleteUsuario(usuario.id)">
@@ -128,7 +128,28 @@ export default {
       this.error = null
       try {
         const res = await api.get('/usuarios')
-        this.usuarios = res.data
+        console.log('Resposta da API /usuarios:', res.data)
+        
+        // Normalizar dados da API
+        this.usuarios = (res.data || []).map(u => {
+          console.log('Processando usuário:', u)
+          return {
+            id: u.id || u.ID,
+            nome: u.nome || u.Nome || 'Sem nome',
+            email: u.email || u.Email || 'Sem email',
+            // Estrutura nova do backend
+            cargo: u.cargo || null,
+            banco_horas_saldo: u.banco_horas_saldo || 'PT0H',
+            // Estrutura antiga (fallback)
+            cargo_id: u.cargo_id || u.CargoId,
+            empresa_id: u.empresa_id || u.EmpresaId,
+            created_at: u.created_at || u.CreatedAt,
+            updated_at: u.updated_at || u.UpdatedAt,
+            contrato: u.contrato,
+            saldo_banco_horas_minutos: u.saldo_banco_horas_minutos ?? u.SaldoBancoHorasMinutos ?? 0
+          }
+        })
+        console.log('Usuários processados:', this.usuarios)
       } catch (error) {
         console.error('Erro ao carregar funcionários:', error)
         
@@ -187,6 +208,65 @@ export default {
         return 'N/A'
       }
     },
+    getCargo(usuario) {
+      // Primeira prioridade: dados novos do backend (cargo.nome)
+      if (usuario.cargo?.nome) {
+        return usuario.cargo.nome
+      }
+      // Segunda prioridade: estrutura contrato.cargo.nome (compatibilidade)
+      if (usuario.contrato?.cargo?.nome) {
+        return usuario.contrato.cargo.nome
+      }
+      // Terceira prioridade: mapa de cargos (compatibilidade)
+      if (usuario.cargo_id && this.cargos[usuario.cargo_id]) {
+        return this.cargos[usuario.cargo_id]
+      }
+      // Fallback
+      if (usuario.cargo_id) {
+        return `Cargo #${usuario.cargo_id}`
+      }
+      return 'Sem cargo'
+    },
+    formatarDuracaoISO8601(duracao) {
+      /**
+       * Converte duração ISO 8601 para formato legível em português
+       * Exemplos: "PT8H30M" -> "+8h 30min", "-PT1H15M" -> "-1h 15min"
+       * @param {string} duracao - Duração em formato ISO 8601
+       * @returns {string} - Duração formatada
+       */
+      if (!duracao || typeof duracao !== 'string') {
+        return '0h 0min'
+      }
+
+      // Detectar se é negativo
+      const isNegative = duracao.startsWith('-')
+      const cleanDuration = duracao.replace('-', '')
+
+      // Regex para extrair valores ISO 8601: PT[nH][nM][nS]
+      const regex = /P(?:(\d+)Y)?(?:(\d+)M)?(?:(\d+)W)?(?:(\d+)D)?T?(?:(\d+)H)?(?:(\d+)M)?(?:(\d+(?:\.\d+)?)S)?/
+      const match = cleanDuration.match(regex)
+
+      if (!match) {
+        console.warn('Formato ISO 8601 inválido:', duracao)
+        return '0h 0min'
+      }
+
+      const horas = parseInt(match[5] || 0)
+      const minutos = parseInt(match[6] || 0)
+      const segundos = parseInt(parseFloat(match[7] || 0))
+
+      // Converter segundos para minutos
+      let totalMinutos = minutos + Math.round(segundos / 60)
+
+      // Se houver mais de 60 minutos, converter para horas
+      const horasAdicionais = Math.floor(totalMinutos / 60)
+      const minutosRestantes = totalMinutos % 60
+
+      const horasTotal = horas + horasAdicionais
+      const sign = isNegative ? '-' : '+'
+
+      return `${sign}${horasTotal}h ${minutosRestantes}min`
+    },
     formatMinutes(minutes) {
       if (!minutes && minutes !== 0) return '0h 0min'
       const absMinutes = Math.abs(minutes)
@@ -198,6 +278,42 @@ export default {
     hoursClass(minutes) {
       if (!minutes) return 'neutral'
       return minutes > 0 ? 'positive' : 'negative'
+    },
+    hoursClassISO(duracao) {
+      /**
+       * Retorna a classe CSS baseada no sinal da duração ISO 8601
+       * @param {string} duracao - Duração em formato ISO 8601
+       * @returns {string} - 'positive', 'negative' ou 'neutral'
+       */
+      if (!duracao || typeof duracao !== 'string') {
+        return 'neutral'
+      }
+      
+      return duracao.startsWith('-') ? 'negative' : 'positive'
+    },
+    viewUsuario(id) {
+      if (!id) {
+        toast.error('ID do usuário inválido.')
+        console.error('Tentativa de visualizar usuário sem ID:', id)
+        return
+      }
+      this.$router.push(`/usuario/${id}`)
+    },
+    editUsuario(id) {
+      if (!id) {
+        toast.error('ID do usuário inválido.')
+        console.error('Tentativa de editar usuário sem ID:', id)
+        return
+      }
+      this.$router.push(`/funcionarios/${id}/editar`)
+    },
+    viewReport(id) {
+      if (!id) {
+        toast.error('ID do usuário inválido.')
+        console.error('Tentativa de visualizar relatório sem ID:', id)
+        return
+      }
+      this.$router.push(`/ponto/relatorios/usuario/${id}`)
     }
   }
 }

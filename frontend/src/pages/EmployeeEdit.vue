@@ -95,7 +95,34 @@ import { REGEX } from '../utils/validators.js';
 // ---- Estado principal ----
 const router = useRouter();
 const route = useRoute();
-const userId = route.params.id;
+const userId = ref(null);
+
+// Validar e normalizar o ID
+onMounted(() => {
+  const rawId = route.params.id;
+  console.log('Raw ID from route:', rawId, 'Type:', typeof rawId);
+  
+  if (!rawId || rawId === 'undefined' || rawId === 'null') {
+    console.error('ID inválido detectado:', rawId);
+    toast.error('ID do funcionário não fornecido ou inválido.');
+    router.push('/usuario/list');
+    return;
+  }
+  
+  const parsedId = Number(rawId);
+  if (isNaN(parsedId) || parsedId <= 0) {
+    console.error('ID não é um número válido:', rawId);
+    toast.error('ID do funcionário inválido.');
+    router.push('/usuario/list');
+    return;
+  }
+  
+  userId.value = parsedId;
+  console.log('ID válido definido:', userId.value);
+  
+  // Carregar dados apenas após validar o ID
+  Promise.all([loadCargos(), loadEmployee()]);
+});
 
 const form = reactive({
   nome: '',
@@ -187,21 +214,33 @@ async function loadCargos() {
 
 // ---- Carregar Funcionário ----
 async function loadEmployee() {
+  if (!userId.value) {
+    console.error('loadEmployee chamado sem userId válido');
+    return;
+  }
+  
   loading.value = true;
   loadError.value = null;
   
+  console.log(`Carregando funcionário com ID: ${userId.value}`);
+  
   try {
-    const res = await api.get(`/usuarios/${userId}`);
+    const res = await api.get(`/usuarios/${userId.value}`);
     const usuario = res.data;
     
+    console.log('Dados do funcionário recebidos:', usuario);
+    
     // Preencher formulário com dados do usuário
-    form.nome = usuario.nome || '';
-    form.email = usuario.email || '';
-    form.cargoId = usuario.contrato?.cargo?.id || '';
+    form.nome = usuario.nome || usuario.Nome || '';
+    form.email = usuario.email || usuario.Email || '';
+    form.cargoId = usuario.contrato?.cargo?.id || usuario.contrato?.cargo?.ID || '';
+    
+    console.log('Formulário preenchido:', { ...form });
     
   } catch (err) {
     const status = err.response?.status;
     console.error('Erro ao carregar funcionário:', err);
+    console.error('Status:', status, 'URL:', err.config?.url);
     
     if (status === 401) {
       toast.error('Sessão expirada. Faça login novamente.');
@@ -222,20 +261,14 @@ async function loadEmployee() {
   }
 }
 
-onMounted(async () => {
-  if (!userId) {
-    toast.error('ID do funcionário não fornecido.');
-    router.push('/usuario/list');
-    return;
-  }
-  
-  // Carregar cargos e funcionário em paralelo
-  await Promise.all([loadCargos(), loadEmployee()]);
-});
-
 // ---- Submit ----
 async function handleSubmit() {
   liveMessage.value = '';
+  
+  if (!userId.value) {
+    toast.error('ID do funcionário inválido.');
+    return;
+  }
   
   if (!validateAll()) { 
     liveMessage.value = 'Erros de validação no formulário.'; 
@@ -251,7 +284,9 @@ async function handleSubmit() {
       cargoId: Number(form.cargoId)
     };
     
-    await api.put(`/usuarios/${userId}`, payload, { 
+    console.log(`Atualizando usuário ${userId.value} com payload:`, payload);
+    
+    await api.put(`/usuarios/${userId.value}`, payload, { 
       headers: { 'Content-Type': 'application/json' }
     });
     
@@ -383,6 +418,16 @@ form {
   padding: 10px 12px; 
   color: #fff; 
   font-size: 14px; 
+}
+
+.form-row select option {
+  background: #1a242d;
+  color: #fff;
+  padding: 8px;
+}
+
+.form-row select option:hover {
+  background: rgba(105, 96, 0, 0.3);
 }
 
 .form-row input::placeholder { 
