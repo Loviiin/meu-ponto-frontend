@@ -52,12 +52,7 @@
                   <th>Nome</th>
                   <th>Email</th>
                   <th>Cargo</th>
-                  <th>
-                    Banco de Horas
-                    <span v-if="loadingSaldos" class="spinner-border spinner-border-sm ms-2" role="status">
-                      <span class="visually-hidden">Carregando...</span>
-                    </span>
-                  </th>
+                  <th>Banco de Horas</th>
                   <th>Ações</th>
                 </tr>
               </thead>
@@ -122,24 +117,24 @@ export default {
       usuarios: [],
       loading: false,
       error: null,
-      loadingSaldos: false,
       saldosBancoHoras: {} // Mapa: { userId: saldoMinutos }
     }
   },
   async mounted() {
     await this.fetchUsuarios()
-    // Buscar saldos de banco de horas após carregar usuários
-    if (this.usuarios.length > 0) {
-      await this.fetchSaldosBancoHoras()
-    }
   },
   methods: {
     async fetchUsuarios() {
       this.loading = true
       this.error = null
       try {
-        const res = await api.get('/usuarios')
-        console.log('Resposta da API /usuarios:', res.data)
+        // ✅ Adiciona query parameter para incluir saldo de banco de horas
+        const res = await api.get('/usuarios', {
+          params: {
+            include_saldo: true
+          }
+        })
+        console.log('Resposta da API /usuarios?include_saldo=true:', res.data)
         
         // A API retorna um objeto com paginação: { usuarios: [...], total, page, ... }
         const usuariosArray = res.data.usuarios || res.data || []
@@ -152,6 +147,8 @@ export default {
             nome: u.nome || u.Nome || 'Sem nome',
             email: u.email || u.Email || 'Sem email',
             cpf: u.cpf || u.CPF,
+            // ✅ NOVO: Saldo vem direto do endpoint agora (uma requisição só!)
+            saldo_banco_horas_minutos: u.saldo_banco_horas_minutos ?? u.SaldoBancoHorasMinutos ?? 0,
             // Estrutura nova do backend
             cargo: u.cargo || null,
             banco_horas_saldo: u.banco_horas_saldo || 'PT0H',
@@ -160,12 +157,20 @@ export default {
             empresa_id: u.empresa_id || u.EmpresaId,
             created_at: u.created_at || u.CreatedAt || u.data_criacao,
             updated_at: u.updated_at || u.UpdatedAt || u.data_atualizacao,
-            contrato: u.contrato,
-            saldo_banco_horas_minutos: u.saldo_banco_horas_minutos ?? u.SaldoBancoHorasMinutos ?? 0
+            contrato: u.contrato
           }
         })
         console.log('Usuários processados:', this.usuarios)
         console.log('Total de usuários:', res.data.total)
+        
+        // ✅ Popular o mapa de saldos direto da resposta (sem requisições extras!)
+        this.saldosBancoHoras = this.usuarios.reduce((map, u) => {
+          if (u.saldo_banco_horas_minutos !== undefined) {
+            map[u.id] = u.saldo_banco_horas_minutos
+          }
+          return map
+        }, {})
+        console.log('Saldos extraídos da resposta:', this.saldosBancoHoras)
       } catch (error) {
         console.error('Erro ao carregar funcionários:', error)
         
@@ -183,44 +188,6 @@ export default {
         }
       } finally {
         this.loading = false
-      }
-    },
-    async fetchSaldosBancoHoras() {
-      this.loadingSaldos = true
-      console.log('Buscando saldos de banco de horas para', this.usuarios.length, 'usuários')
-      
-      try {
-        // Buscar saldo de cada usuário em paralelo
-        const promises = this.usuarios.map(async (usuario) => {
-          try {
-            // Endpoint para buscar saldo de um usuário específico
-            const res = await api.get(`/bancohoras/dashboard/${usuario.id}`)
-            console.log(`Saldo do usuário ${usuario.id} (${usuario.nome}):`, res.data)
-            
-            // O saldo atual está em res.data.saldo_atual_minutos
-            const saldoMinutos = res.data?.saldo_atual_minutos ?? 0
-            return { userId: usuario.id, saldo: saldoMinutos }
-          } catch (err) {
-            console.warn(`Erro ao buscar saldo do usuário ${usuario.id}:`, err.response?.status)
-            // Se der erro (ex: 404), retorna 0
-            return { userId: usuario.id, saldo: 0 }
-          }
-        })
-        
-        const resultados = await Promise.all(promises)
-        
-        // Criar mapa de saldos
-        this.saldosBancoHoras = resultados.reduce((map, item) => {
-          map[item.userId] = item.saldo
-          return map
-        }, {})
-        
-        console.log('Saldos carregados:', this.saldosBancoHoras)
-      } catch (error) {
-        console.error('Erro ao buscar saldos de banco de horas:', error)
-        // Não exibir erro para o usuário, apenas log
-      } finally {
-        this.loadingSaldos = false
       }
     },
     async deleteUsuario(id) {
@@ -330,22 +297,20 @@ export default {
       return `${sign}${hours}h ${mins}min`
     },
     getSaldoBancoHoras(usuario) {
-      // Busca o saldo do mapa carregado
+      // Busca o saldo do mapa (populado direto da resposta da API)
       const saldo = this.saldosBancoHoras[usuario.id]
       if (saldo !== undefined && saldo !== null) {
         return this.formatMinutes(saldo)
       }
-      // Se ainda está carregando
-      if (this.loadingSaldos) {
-        return '...'
-      }
-      // Fallback: tenta usar dados antigos
-      if (usuario.banco_horas_saldo) {
-        return this.formatarDuracaoISO8601(usuario.banco_horas_saldo)
-      }
+      
+      // Fallback: tenta usar dados direto do usuário
       if (usuario.saldo_banco_horas_minutos !== undefined) {
         return this.formatMinutes(usuario.saldo_banco_horas_minutos)
       }
+      if (usuario.banco_horas_saldo) {
+        return this.formatarDuracaoISO8601(usuario.banco_horas_saldo)
+      }
+      
       return '0h 0min'
     },
     getSaldoBancoHorasClass(usuario) {
