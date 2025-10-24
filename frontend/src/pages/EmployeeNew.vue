@@ -369,6 +369,16 @@ form {
   font-size: 14px; 
 }
 
+.form-row select option {
+  background: #1a242d;
+  color: #fff;
+  padding: 8px;
+}
+
+.form-row select option:hover {
+  background: rgba(105, 96, 0, 0.3);
+}
+
 .form-row input::placeholder { 
   color: rgba(255,255,255,0.7); 
 }

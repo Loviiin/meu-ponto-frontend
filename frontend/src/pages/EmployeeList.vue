@@ -1,83 +1,108 @@
 <template>
-  <div class="table-responsive">
-    <h2>Funcionários</h2>
-    <button class="btn btn-primary btn-sm" style="margin-bottom: 10px;" @click="$router.push('/usuario/new')" :disabled="loading">
-      Novo Funcionário
-      <i class="bi bi-person-add"></i>
-    </button>
-
-    <!-- Loading Indicator -->
-    <div v-if="loading" class="text-center py-5">
-      <div class="spinner-border text-primary" role="status">
-        <span class="visually-hidden">Carregando...</span>
+  <div class="employee-list-page">
+    <div class="glass-card">
+      <div class="card-header">
+        <h2 class="h4 mb-0 d-flex align-items-center justify-content-between">
+          <span>
+            <i class="bi bi-people-fill me-2"></i>
+            Funcionários
+          </span>
+          <button class="btn btn-new" @click="$router.push('/usuario/new')" :disabled="loading">
+            <i class="bi bi-person-plus-fill me-2"></i>
+            Novo Funcionário
+          </button>
+        </h2>
       </div>
-      <p class="mt-3 text-muted">Carregando funcionários...</p>
-    </div>
 
-    <!-- Error Message -->
-    <div v-else-if="error" class="alert alert-danger" role="alert">
-      <i class="bi bi-exclamation-triangle-fill me-2"></i>
-      {{ error }}
-      <button class="btn btn-sm btn-outline-danger ms-3" @click="fetchUsuarios">
-        <i class="bi bi-arrow-clockwise"></i> Tentar Novamente
-      </button>
-    </div>
+      <div class="card-body">
+        <!-- Loading Indicator -->
+        <div v-if="loading" class="loading-state">
+          <div class="spinner"></div>
+          <p class="mt-3">Carregando funcionários...</p>
+        </div>
 
-    <!-- Empty State -->
-    <div v-else-if="usuarios.length === 0" class="text-center py-5">
-      <i class="bi bi-people" style="font-size: 4rem; color: #6c757d;"></i>
-      <h4 class="mt-3 text-muted">Nenhum funcionário cadastrado</h4>
-      <p class="text-muted">Comece adicionando o primeiro funcionário ao sistema.</p>
-      <button class="btn btn-primary mt-3" @click="$router.push('/usuario/new')">
-        <i class="bi bi-person-plus-fill me-2"></i>
-        Cadastrar Primeiro Funcionário
-      </button>
-    </div>
+        <!-- Error Message -->
+        <div v-else-if="error" class="error-state">
+          <i class="bi bi-exclamation-triangle-fill"></i>
+          <p>{{ error }}</p>
+          <button class="btn btn-retry" @click="fetchUsuarios">
+            <i class="bi bi-arrow-clockwise me-2"></i>
+            Tentar Novamente
+          </button>
+        </div>
 
-    <!-- Table -->
-    <table v-else class="table table-striped table-dark table-mobile">
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Nome</th>
-          <th>Email</th>
-          <th>Cargo</th>
-          <th>Localidade</th>
-          <th>Data de Criação</th>
-          <th>Última Atualização</th>
-          <th>Saldo Banco de Horas (min)</th>
-          <th width="180">Ações</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="usuario in usuarios" :key="usuario.id">
-          <td :data-label="'ID'">{{ usuario.id }}</td>
-          <td :data-label="'Nome'">{{ usuario.nome }}</td>
-          <td :data-label="'Email'">{{ usuario.email }}</td>
-          <td :data-label="'Cargo'">{{ usuario.contrato?.cargo?.nome || 'N/A' }}</td>
-          <td :data-label="'Localidade'">{{ usuario.contrato?.localidade?.nome || 'N/A' }}</td>
-          <td :data-label="'Data de Criação'">{{ formatDate(usuario.data_criacao) }}</td>
-          <td :data-label="'Última Atualização'">{{ formatDate(usuario.data_atualizacao) }}</td>
-          <td :data-label="'Saldo Banco de Horas (min)'">{{ usuario.saldo_banco_horas_minutos ?? 0 }}</td>
-          <td class="text-nowrap" :data-label="'Ações'">
-            <div class="btn-group" role="group">
-              <a class="btn btn-primary btn-sm" title="Consultar" @click="$router.push(`/usuario/${usuario.id}`)">
-                <i class="bi bi-eye"></i>
-              </a>
-              <a @click="$router.push(`/funcionarios/${usuario.id}/editar`)" class="btn btn-warning btn-sm" title="Editar">
-                <i class="bi bi-pencil-square"></i>
-              </a>
-              <a @click="deleteUsuario(usuario.id)" class="btn btn-danger btn-sm" title="Excluir">
-                <i class="bi bi-trash"></i>
-              </a>
-              <a @click="$router.push(`/ponto/relatorios/usuario/${usuario.id}`)" class="btn btn-success btn-sm" title="Exportar Relatório">
-                <i class="bi bi-file-earmark-arrow-down"></i>
-              </a>
-            </div>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+        <!-- Empty State -->
+        <div v-else-if="usuarios.length === 0" class="empty-state">
+          <i class="bi bi-people"></i>
+          <h4>Nenhum funcionário cadastrado</h4>
+          <p>Comece adicionando o primeiro funcionário ao sistema.</p>
+          <button class="btn btn-primary" @click="$router.push('/usuario/new')">
+            <i class="bi bi-person-plus-fill me-2"></i>
+            Cadastrar Primeiro Funcionário
+          </button>
+        </div>
+
+        <!-- Table -->
+        <div v-else class="table-container">
+          <div class="table-scroll">
+            <table class="employee-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Nome</th>
+                  <th>Email</th>
+                  <th>Cargo</th>
+                  <th>Banco de Horas</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="usuario in usuarios" :key="usuario.id">
+                  <td data-label="ID">
+                    <span class="badge-id">{{ usuario.id }}</span>
+                  </td>
+                  <td data-label="Nome">
+                    <div class="user-info">
+                      <i class="bi bi-person-circle me-2"></i>
+                      <strong>{{ usuario.nome }}</strong>
+                    </div>
+                  </td>
+                  <td data-label="Email">
+                    <span class="text-email">{{ usuario.email }}</span>
+                  </td>
+                  <td data-label="Cargo">
+                    <span class="badge-cargo">
+                      {{ usuario.contrato?.cargo?.nome || 'Sem cargo' }}
+                    </span>
+                  </td>
+                  <td data-label="Banco de Horas">
+                    <span class="badge-hours" :class="hoursClass(usuario.saldo_banco_horas_minutos)">
+                      {{ formatMinutes(usuario.saldo_banco_horas_minutos) }}
+                    </span>
+                  </td>
+                  <td data-label="Ações">
+                    <div class="action-buttons">
+                      <button class="btn-action btn-view" title="Visualizar" @click="$router.push(`/usuario/${usuario.id}`)">
+                        <i class="bi bi-eye-fill"></i>
+                      </button>
+                      <button class="btn-action btn-edit" title="Editar" @click="$router.push(`/funcionarios/${usuario.id}/editar`)">
+                        <i class="bi bi-pencil-square"></i>
+                      </button>
+                      <button class="btn-action btn-report" title="Relatório" @click="$router.push(`/ponto/relatorios/usuario/${usuario.id}`)">
+                        <i class="bi bi-file-earmark-text-fill"></i>
+                      </button>
+                      <button class="btn-action btn-delete" title="Excluir" @click="deleteUsuario(usuario.id)">
+                        <i class="bi bi-trash-fill"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -145,7 +170,6 @@ export default {
           toast.error('Você não tem permissão para excluir funcionários.')
         } else if (status === 404) {
           toast.error(data?.error || 'Funcionário não encontrado.')
-          // Remover da lista local mesmo assim
           this.usuarios = this.usuarios.filter(u => u.id !== id)
         } else if (status >= 500) {
           toast.error(data?.error || 'Erro no servidor. Tente novamente mais tarde.')
@@ -162,7 +186,396 @@ export default {
       } catch {
         return 'N/A'
       }
+    },
+    formatMinutes(minutes) {
+      if (!minutes && minutes !== 0) return '0h 0min'
+      const absMinutes = Math.abs(minutes)
+      const hours = Math.floor(absMinutes / 60)
+      const mins = absMinutes % 60
+      const sign = minutes < 0 ? '-' : '+'
+      return `${sign}${hours}h ${mins}min`
+    },
+    hoursClass(minutes) {
+      if (!minutes) return 'neutral'
+      return minutes > 0 ? 'positive' : 'negative'
     }
   }
 }
 </script>
+
+<style scoped>
+.employee-list-page {
+  min-height: 100vh;
+  padding: 20px;
+  color: white;
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  color: rgba(255, 255, 255, 0.92);
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.card-header {
+  background: rgba(255, 255, 255, 0.04);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 20px 30px;
+  border-top-left-radius: 16px;
+  border-top-right-radius: 16px;
+}
+
+.card-header h2 {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.95);
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.btn-new {
+  background: rgba(105, 96, 0, 0.9);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 18px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.btn-new:hover:not(:disabled) {
+  background: rgba(105, 96, 0, 1);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(105, 96, 0, 0.4);
+}
+
+.btn-new:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.card-body {
+  padding: 30px;
+  min-height: 400px;
+}
+
+/* Loading State */
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.spinner {
+  border: 4px solid rgba(255, 255, 255, 0.2);
+  border-top: 4px solid #fff;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Error State */
+.error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+}
+
+.error-state i {
+  font-size: 3rem;
+  color: #ff6b6b;
+  margin-bottom: 16px;
+}
+
+.error-state p {
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 20px;
+  font-size: 16px;
+}
+
+.btn-retry {
+  background: rgba(255, 107, 107, 0.2);
+  color: #fff;
+  border: 1px solid rgba(255, 107, 107, 0.5);
+  border-radius: 10px;
+  padding: 10px 20px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.btn-retry:hover {
+  background: rgba(255, 107, 107, 0.3);
+  border-color: rgba(255, 107, 107, 0.7);
+}
+
+/* Empty State */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+}
+
+.empty-state i {
+  font-size: 4rem;
+  color: rgba(255, 255, 255, 0.4);
+  margin-bottom: 16px;
+}
+
+.empty-state h4 {
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 8px;
+}
+
+.empty-state p {
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 24px;
+}
+
+.btn-primary {
+  background: rgba(105, 96, 0, 0.9);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 12px 24px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.btn-primary:hover {
+  background: rgba(105, 96, 0, 1);
+  transform: translateY(-2px);
+}
+
+/* Table */
+.table-container {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.table-scroll {
+  border-radius: 12px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.employee-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.employee-table thead {
+  background: rgba(105, 96, 0, 0.3);
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.employee-table thead th {
+  padding: 16px;
+  text-align: left;
+  font-weight: 600;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+  white-space: nowrap;
+}
+
+.employee-table tbody tr {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  transition: background 0.2s;
+}
+
+.employee-table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.employee-table tbody td {
+  padding: 16px;
+  color: rgba(255, 255, 255, 0.87);
+}
+
+/* Badges and Special Cells */
+.badge-id {
+  display: inline-block;
+  background: rgba(255, 255, 255, 0.15);
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+}
+
+.user-info i {
+  font-size: 1.2rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.text-email {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 13px;
+}
+
+.badge-cargo {
+  display: inline-block;
+  background: rgba(105, 96, 0, 0.3);
+  border: 1px solid rgba(105, 96, 0, 0.5);
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-weight: 500;
+  font-size: 13px;
+}
+
+.badge-hours {
+  display: inline-block;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.badge-hours.positive {
+  background: rgba(80, 200, 120, 0.2);
+  border: 1px solid rgba(80, 200, 120, 0.5);
+  color: #90ee90;
+}
+
+.badge-hours.negative {
+  background: rgba(255, 107, 107, 0.2);
+  border: 1px solid rgba(255, 107, 107, 0.5);
+  color: #ff9999;
+}
+
+.badge-hours.neutral {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* Action Buttons */
+.action-buttons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.btn-action {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  padding: 8px 12px;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-size: 14px;
+}
+
+.btn-action:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.btn-view:hover {
+  background: rgba(13, 110, 253, 0.3);
+  border-color: rgba(13, 110, 253, 0.5);
+}
+
+.btn-edit:hover {
+  background: rgba(255, 193, 7, 0.3);
+  border-color: rgba(255, 193, 7, 0.5);
+}
+
+.btn-report:hover {
+  background: rgba(25, 135, 84, 0.3);
+  border-color: rgba(25, 135, 84, 0.5);
+}
+
+.btn-delete:hover {
+  background: rgba(220, 53, 69, 0.3);
+  border-color: rgba(220, 53, 69, 0.5);
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+  .employee-table {
+    font-size: 13px;
+  }
+  
+  .employee-table thead th,
+  .employee-table tbody td {
+    padding: 12px;
+  }
+}
+
+@media (max-width: 768px) {
+  .card-header h2 {
+    flex-direction: column;
+    gap: 12px;
+    align-items: flex-start !important;
+  }
+  
+  .btn-new {
+    width: 100%;
+  }
+  
+  .employee-table thead {
+    display: none;
+  }
+  
+  .employee-table tbody tr {
+    display: block;
+    margin-bottom: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  
+  .employee-table tbody td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  }
+  
+  .employee-table tbody td:last-child {
+    border-bottom: none;
+  }
+  
+  .employee-table tbody td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 12px;
+    text-transform: uppercase;
+  }
+  
+  .action-buttons {
+    justify-content: flex-end;
+    width: 100%;
+  }
+}
+</style>
