@@ -130,26 +130,31 @@ export default {
         const res = await api.get('/usuarios')
         console.log('Resposta da API /usuarios:', res.data)
         
+        // A API retorna um objeto com paginação: { usuarios: [...], total, page, ... }
+        const usuariosArray = res.data.usuarios || res.data || []
+        
         // Normalizar dados da API
-        this.usuarios = (res.data || []).map(u => {
+        this.usuarios = usuariosArray.map(u => {
           console.log('Processando usuário:', u)
           return {
             id: u.id || u.ID,
             nome: u.nome || u.Nome || 'Sem nome',
             email: u.email || u.Email || 'Sem email',
+            cpf: u.cpf || u.CPF,
             // Estrutura nova do backend
             cargo: u.cargo || null,
             banco_horas_saldo: u.banco_horas_saldo || 'PT0H',
             // Estrutura antiga (fallback)
             cargo_id: u.cargo_id || u.CargoId,
             empresa_id: u.empresa_id || u.EmpresaId,
-            created_at: u.created_at || u.CreatedAt,
-            updated_at: u.updated_at || u.UpdatedAt,
+            created_at: u.created_at || u.CreatedAt || u.data_criacao,
+            updated_at: u.updated_at || u.UpdatedAt || u.data_atualizacao,
             contrato: u.contrato,
             saldo_banco_horas_minutos: u.saldo_banco_horas_minutos ?? u.SaldoBancoHorasMinutos ?? 0
           }
         })
         console.log('Usuários processados:', this.usuarios)
+        console.log('Total de usuários:', res.data.total)
       } catch (error) {
         console.error('Erro ao carregar funcionários:', error)
         
