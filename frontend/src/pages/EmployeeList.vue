@@ -52,7 +52,12 @@
                   <th>Nome</th>
                   <th>Email</th>
                   <th>Cargo</th>
-                  <th>Banco de Horas</th>
+                  <th>
+                    Banco de Horas
+                    <span v-if="loadingSaldos" class="spinner-border spinner-border-sm ms-2" role="status">
+                      <span class="visually-hidden">Carregando...</span>
+                    </span>
+                  </th>
                   <th>Ações</th>
                 </tr>
               </thead>
@@ -76,8 +81,8 @@
                     </span>
                   </td>
                   <td data-label="Banco de Horas">
-                    <span class="badge-hours" :class="hoursClassISO(usuario.banco_horas_saldo)">
-                      {{ formatarDuracaoISO8601(usuario.banco_horas_saldo) }}
+                    <span class="badge-hours" :class="getSaldoBancoHorasClass(usuario)">
+                      {{ getSaldoBancoHoras(usuario) }}
                     </span>
                   </td>
                   <td data-label="Ações">
@@ -116,11 +121,17 @@ export default {
     return {
       usuarios: [],
       loading: false,
-      error: null
+      error: null,
+      loadingSaldos: false,
+      saldosBancoHoras: {} // Mapa: { userId: saldoMinutos }
     }
   },
   async mounted() {
     await this.fetchUsuarios()
+    // Buscar saldos de banco de horas após carregar usuários
+    if (this.usuarios.length > 0) {
+      await this.fetchSaldosBancoHoras()
+    }
   },
   methods: {
     async fetchUsuarios() {
@@ -172,6 +183,44 @@ export default {
         }
       } finally {
         this.loading = false
+      }
+    },
+    async fetchSaldosBancoHoras() {
+      this.loadingSaldos = true
+      console.log('Buscando saldos de banco de horas para', this.usuarios.length, 'usuários')
+      
+      try {
+        // Buscar saldo de cada usuário em paralelo
+        const promises = this.usuarios.map(async (usuario) => {
+          try {
+            // Endpoint para buscar saldo de um usuário específico
+            const res = await api.get(`/bancohoras/dashboard/${usuario.id}`)
+            console.log(`Saldo do usuário ${usuario.id} (${usuario.nome}):`, res.data)
+            
+            // O saldo atual está em res.data.saldo_atual_minutos
+            const saldoMinutos = res.data?.saldo_atual_minutos ?? 0
+            return { userId: usuario.id, saldo: saldoMinutos }
+          } catch (err) {
+            console.warn(`Erro ao buscar saldo do usuário ${usuario.id}:`, err.response?.status)
+            // Se der erro (ex: 404), retorna 0
+            return { userId: usuario.id, saldo: 0 }
+          }
+        })
+        
+        const resultados = await Promise.all(promises)
+        
+        // Criar mapa de saldos
+        this.saldosBancoHoras = resultados.reduce((map, item) => {
+          map[item.userId] = item.saldo
+          return map
+        }, {})
+        
+        console.log('Saldos carregados:', this.saldosBancoHoras)
+      } catch (error) {
+        console.error('Erro ao buscar saldos de banco de horas:', error)
+        // Não exibir erro para o usuário, apenas log
+      } finally {
+        this.loadingSaldos = false
       }
     },
     async deleteUsuario(id) {
@@ -279,6 +328,41 @@ export default {
       const mins = absMinutes % 60
       const sign = minutes < 0 ? '-' : '+'
       return `${sign}${hours}h ${mins}min`
+    },
+    getSaldoBancoHoras(usuario) {
+      // Busca o saldo do mapa carregado
+      const saldo = this.saldosBancoHoras[usuario.id]
+      if (saldo !== undefined && saldo !== null) {
+        return this.formatMinutes(saldo)
+      }
+      // Se ainda está carregando
+      if (this.loadingSaldos) {
+        return '...'
+      }
+      // Fallback: tenta usar dados antigos
+      if (usuario.banco_horas_saldo) {
+        return this.formatarDuracaoISO8601(usuario.banco_horas_saldo)
+      }
+      if (usuario.saldo_banco_horas_minutos !== undefined) {
+        return this.formatMinutes(usuario.saldo_banco_horas_minutos)
+      }
+      return '0h 0min'
+    },
+    getSaldoBancoHorasClass(usuario) {
+      const saldo = this.saldosBancoHoras[usuario.id]
+      if (saldo !== undefined && saldo !== null) {
+        if (saldo > 0) return 'positive'
+        if (saldo < 0) return 'negative'
+        return 'neutral'
+      }
+      // Fallback
+      if (usuario.banco_horas_saldo) {
+        return this.hoursClassISO(usuario.banco_horas_saldo)
+      }
+      if (usuario.saldo_banco_horas_minutos !== undefined) {
+        return this.hoursClass(usuario.saldo_banco_horas_minutos)
+      }
+      return 'neutral'
     },
     hoursClass(minutes) {
       if (!minutes) return 'neutral'
