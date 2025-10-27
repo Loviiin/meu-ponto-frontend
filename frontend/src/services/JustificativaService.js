@@ -12,7 +12,7 @@ const JustificativaService = {
    * @returns {Promise<Object>} Justificativa criada
    */
   async criar(dados) {
-    const response = await api.post('/api/v1/justificativas', dados);
+    const response = await api.post('/v1/justificativas', dados);
     return response.data;
   },
 
@@ -21,7 +21,7 @@ const JustificativaService = {
    * @returns {Promise<Array>} Lista de justificativas
    */
   async listarMinhas() {
-    const response = await api.get('/api/v1/justificativas/minhas');
+    const response = await api.get('/v1/justificativas/minhas');
     return response.data || [];
   },
 
@@ -30,7 +30,7 @@ const JustificativaService = {
    * @returns {Promise<Array>} Lista de justificativas pendentes
    */
   async listarPendentes() {
-    const response = await api.get('/api/v1/justificativas/pendentes');
+    const response = await api.get('/v1/justificativas/pendentes');
     return response.data || [];
   },
 
@@ -40,7 +40,7 @@ const JustificativaService = {
    * @returns {Promise<Object>} Justificativa aprovada
    */
   async aprovar(id) {
-    const response = await api.post(`/api/v1/justificativas/${id}/processar`, {
+    const response = await api.post(`/v1/justificativas/${id}/processar`, {
       aprovado: true
     });
     return response.data;
@@ -53,7 +53,7 @@ const JustificativaService = {
    * @returns {Promise<Object>} Justificativa reprovada
    */
   async reprovar(id, motivoReprovacao) {
-    const response = await api.post(`/api/v1/justificativas/${id}/processar`, {
+    const response = await api.post(`/v1/justificativas/${id}/processar`, {
       aprovado: false,
       motivo_reprovacao: motivoReprovacao
     });
@@ -66,7 +66,7 @@ const JustificativaService = {
    * @returns {Promise<Object>} Justificativa cancelada
    */
   async cancelar(id) {
-    const response = await api.delete(`/api/v1/justificativas/${id}/cancelar`);
+    const response = await api.delete(`/v1/justificativas/${id}/cancelar`);
     return response.data;
   }
 };
