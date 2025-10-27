@@ -58,7 +58,7 @@
 
 <script>
 import api from "../axios";
-import { showToast } from "../toast";
+import { toast } from "../toast";
 
 export default {
   name: "AjustePonto",
@@ -99,7 +99,7 @@ export default {
 
         await api.post("/api/v1/justificativas", payload);
 
-        showToast("✅ Solicitação enviada com sucesso! Aguarde aprovação.", "success");
+        toast.success("✅ Solicitação enviada com sucesso! Aguarde aprovação.");
         this.limparFormulario();
         
         // Redireciona para ver minhas justificativas após 1.5s
@@ -109,7 +109,7 @@ export default {
       } catch (error) {
         console.error("Erro ao enviar justificativa:", error.response?.data || error);
         const mensagem = error.response?.data?.message || error.response?.data?.error || "Erro ao enviar justificativa.";
-        showToast(`❌ ${mensagem}`, "error");
+        toast.error(`❌ ${mensagem}`);
       } finally {
         this.enviando = false;
       }

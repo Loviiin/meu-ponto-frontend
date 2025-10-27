@@ -101,7 +101,7 @@
 
 <script>
 import api from "../axios";
-import { showToast } from "../toast";
+import { toast } from "../toast";
 
 export default {
   name: "MinhasJustificativas",
@@ -126,7 +126,7 @@ export default {
         this.filtrarJustificativas();
       } catch (error) {
         console.error("Erro ao carregar justificativas:", error.response?.data || error);
-        showToast("❌ Erro ao carregar suas solicitações.", "error");
+        toast.error("❌ Erro ao carregar suas solicitações.");
         this.justificativas = [];
         this.justificativasFiltradas = [];
       } finally {
@@ -152,18 +152,18 @@ export default {
       try {
         this.cancelando = id;
         await api.delete(`/api/v1/justificativas/${id}/cancelar`);
-        showToast("✅ Solicitação cancelada com sucesso!", "success");
+        toast.success("✅ Solicitação cancelada com sucesso!");
         await this.fetchJustificativas();
       } catch (error) {
         console.error("Erro ao cancelar solicitação:", error.response?.data || error);
         const mensagem = error.response?.data?.message || error.response?.data?.error || "Erro ao cancelar solicitação.";
         
         if (error.response?.status === 404) {
-          showToast("❌ Solicitação não encontrada ou não está mais pendente.", "error");
+          toast.error("❌ Solicitação não encontrada ou não está mais pendente.");
         } else if (error.response?.status === 403) {
-          showToast("❌ Você não tem permissão para cancelar esta solicitação.", "error");
+          toast.error("❌ Você não tem permissão para cancelar esta solicitação.");
         } else {
-          showToast(`❌ ${mensagem}`, "error");
+          toast.error(`❌ ${mensagem}`);
         }
       } finally {
         this.cancelando = null;

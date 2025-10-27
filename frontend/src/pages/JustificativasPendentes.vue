@@ -118,7 +118,7 @@
 
 <script>
 import api from "../axios";
-import { showToast } from "../toast";
+import { toast } from "../toast";
 
 export default {
   name: "JustificativasPendentes",
@@ -145,9 +145,9 @@ export default {
         console.error("Erro ao carregar justificativas:", error.response?.data || error);
         
         if (error.response?.status === 403) {
-          showToast("❌ Você não tem permissão para visualizar justificativas pendentes.", "error");
+          toast.error("❌ Você não tem permissão para visualizar justificativas pendentes.");
         } else {
-          showToast("❌ Erro ao carregar justificativas.", "error");
+          toast.error("❌ Erro ao carregar justificativas.");
         }
         
         this.justificativas = [];
@@ -167,12 +167,12 @@ export default {
           aprovado: true
         });
 
-        showToast("✅ Solicitação aprovada com sucesso! Ponto criado automaticamente.", "success");
+        toast.success("✅ Solicitação aprovada com sucesso! Ponto criado automaticamente.");
         await this.fetchJustificativas();
       } catch (error) {
         console.error("Erro ao aprovar solicitação:", error.response?.data || error);
         const mensagem = error.response?.data?.message || error.response?.data?.error || "Erro ao aprovar solicitação.";
-        showToast(`❌ ${mensagem}`, "error");
+        toast.error(`❌ ${mensagem}`);
       } finally {
         this.processando = null;
       }
@@ -189,7 +189,7 @@ export default {
     },
     async reprovar() {
       if (!this.motivoReprovacao || this.motivoReprovacao.trim().length < 10) {
-        showToast("❌ O motivo da reprovação deve ter no mínimo 10 caracteres.", "error");
+        toast.error("❌ O motivo da reprovação deve ter no mínimo 10 caracteres.");
         return;
       }
 
@@ -201,13 +201,13 @@ export default {
           motivo_reprovacao: this.motivoReprovacao.trim()
         });
 
-        showToast("✅ Solicitação reprovada.", "success");
+        toast.success("✅ Solicitação reprovada.");
         this.fecharModalReprovacao();
         await this.fetchJustificativas();
       } catch (error) {
         console.error("Erro ao reprovar solicitação:", error.response?.data || error);
         const mensagem = error.response?.data?.message || error.response?.data?.error || "Erro ao reprovar solicitação.";
-        showToast(`❌ ${mensagem}`, "error");
+        toast.error(`❌ ${mensagem}`);
       } finally {
         this.processando = null;
       }
