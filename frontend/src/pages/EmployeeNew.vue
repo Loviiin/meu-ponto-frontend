@@ -641,16 +641,25 @@ async function loadCargos() {
     }
   } catch(err) {
     const status = err.response?.status;
+    const data = err.response?.data;
+    
     if (status === 401) {
-      toast.error('Sessão expirada. Faça login novamente.');
-      router.push('/login');
-      return;
+      // Verificar se é realmente falta de autenticação ou apenas permissão
+      const errorMsg = data?.error || data?.message || '';
+      if (errorMsg.toLowerCase().includes('token') || 
+          errorMsg.toLowerCase().includes('expirado') ||
+          errorMsg.toLowerCase().includes('autenticação')) {
+        toast.error('Sessão expirada. Faça login novamente.');
+        router.push('/login');
+        return;
+      }
+      // Se for erro de autorização mas o token existe, mostrar mensagem sem deslogar
+      toast.warning('Você não tem permissão para acessar os cargos.');
+    } else if (status === 403) {
+      toast.warning('Você não tem permissão para acessar os cargos.');
+    } else {
+      toast.error('Falha ao carregar cargos. Tente novamente.');
     }
-    if (status === 403) {
-      toast.error('Você não tem permissão para acessar os cargos.');
-      return;
-    }
-    toast.error('Falha ao carregar cargos. Tente novamente.');
     console.error('Erro ao carregar cargos:', err);
   } finally { 
     loadingCargos.value = false; 
@@ -673,12 +682,25 @@ async function loadLocalidades() {
     }
   } catch(err) {
     const status = err.response?.status;
+    const data = err.response?.data;
+    
     if (status === 401) {
-      toast.error('Sessão expirada. Faça login novamente.');
-      router.push('/login');
-      return;
+      // Verificar se é realmente falta de autenticação ou apenas permissão
+      const errorMsg = data?.error || data?.message || '';
+      if (errorMsg.toLowerCase().includes('token') || 
+          errorMsg.toLowerCase().includes('expirado') ||
+          errorMsg.toLowerCase().includes('autenticação')) {
+        toast.error('Sessão expirada. Faça login novamente.');
+        router.push('/login');
+        return;
+      }
+      // Se for erro de autorização mas o token existe, mostrar mensagem sem deslogar
+      toast.warning('Você não tem permissão para acessar as localidades.');
+    } else if (status === 403) {
+      toast.warning('Você não tem permissão para acessar as localidades.');
+    } else {
+      toast.error('Falha ao carregar localidades. Tente novamente.');
     }
-    toast.error('Falha ao carregar localidades. Tente novamente.');
     console.error('Erro ao carregar localidades:', err);
   } finally { 
     loadingLocalidades.value = false; 
@@ -771,10 +793,18 @@ function handleSubmitError(err) {
       touched.add('cpf');
     }
   } else if (status === 401) {
-    msg = 'Sessão expirada. Faça login novamente.';
-    toast.error(msg);
-    router.push('/login');
-    return;
+    // Verificar se é realmente falta de autenticação ou apenas permissão
+    const errorMsg = data?.error || data?.message || '';
+    if (errorMsg.toLowerCase().includes('token') || 
+        errorMsg.toLowerCase().includes('expirado') ||
+        errorMsg.toLowerCase().includes('autenticação')) {
+      msg = 'Sessão expirada. Faça login novamente.';
+      toast.error(msg);
+      router.push('/login');
+      return;
+    }
+    // Se for erro de autorização mas o token existe, mostrar mensagem sem deslogar
+    msg = 'Você não tem permissão para criar funcionários.';
   } else if (status === 403) {
     msg = 'Você não tem permissão para criar funcionários.';
   } else if (status >= 500) {
