@@ -139,7 +139,7 @@ export default {
     async fetchJustificativas() {
       try {
         this.carregando = true;
-        const res = await api.get("/api/v1/justificativas/pendentes");
+        const res = await api.get("/justificativas/pendentes");
         this.justificativas = res.data || [];
       } catch (error) {
         console.error("Erro ao carregar justificativas:", error.response?.data || error);
@@ -163,7 +163,7 @@ export default {
       try {
         this.processando = id;
         
-        await api.post(`/api/v1/justificativas/${id}/processar`, {
+        await api.post(`/justificativas/${id}/processar`, {
           aprovado: true
         });
 
@@ -196,7 +196,7 @@ export default {
       try {
         this.processando = this.justificativaSelecionada.id;
         
-        await api.post(`/api/v1/justificativas/${this.justificativaSelecionada.id}/processar`, {
+        await api.post(`/justificativas/${this.justificativaSelecionada.id}/processar`, {
           aprovado: false,
           motivo_reprovacao: this.motivoReprovacao.trim()
         });

@@ -97,7 +97,7 @@ export default {
           descricao: this.form.descricao.trim()
         };
 
-        await api.post("/api/v1/justificativas", payload);
+        await api.post("/justificativas", payload);
 
         toast.success("✅ Solicitação enviada com sucesso! Aguarde aprovação.");
         this.limparFormulario();

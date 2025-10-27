@@ -121,7 +121,7 @@ export default {
     async fetchJustificativas() {
       try {
         this.carregando = true;
-        const res = await api.get("/api/v1/justificativas/minhas");
+        const res = await api.get("/justificativas/minhas");
         this.justificativas = res.data || [];
         this.filtrarJustificativas();
       } catch (error) {
@@ -151,7 +151,7 @@ export default {
     async cancelarSolicitacao(id) {
       try {
         this.cancelando = id;
-        await api.delete(`/api/v1/justificativas/${id}/cancelar`);
+        await api.delete(`/justificativas/${id}/cancelar`);
         toast.success("✅ Solicitação cancelada com sucesso!");
         await this.fetchJustificativas();
       } catch (error) {
