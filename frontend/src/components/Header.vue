@@ -68,11 +68,15 @@
           </li>
 
           <!-- Ponto (colaborador) -->
-          <li class="nav-item">
-            <router-link class="nav-link" to="/Meus-Pontos"><i class="bi bi-clock me-1"></i>Ponto</router-link>
-          </li>
-          <li class="nav-item">
-            <router-link class="nav-link" to="/Ajuste-Ponto"><i class="bi bi-pencil-square me-1"></i>Ajuste de Ponto</router-link>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              <i class="bi bi-clock me-1"></i>Ponto
+            </a>
+            <ul class="dropdown-menu">
+              <li><router-link class="dropdown-item" to="/Meus-Pontos">Meus Registros</router-link></li>
+              <li><router-link class="dropdown-item" to="/Ajuste-Ponto">Solicitar Ajuste</router-link></li>
+              <li><router-link class="dropdown-item" to="/minhas-justificativas">Minhas Solicitações</router-link></li>
+            </ul>
           </li>
         </ul>
 

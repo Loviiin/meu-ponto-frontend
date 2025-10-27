@@ -1,184 +1,132 @@
 <template>
   <div class="card mt-4">
     <div class="card-body">
-      <h3>🛠 Ajuste de Ponto</h3>
-      <p class="">Selecione o ponto que deseja justificar/ajustar.</p>
+      <h3>🛠 Solicitar Ajuste de Ponto</h3>
+      <p>Solicite um ajuste de ponto caso tenha esquecido de registrar ou tenha ocorrido algum problema.</p>
 
-      <!-- Selecionar data -->
-      <div class="d-flex align-items-center gap-2 mb-3">
-        <input 
-          type="date" 
-          v-model="dataSelecionadaStr" 
-          class="form-control w-auto"
-          @change="fetchPontos" 
-        />
-        <button class="btn btn-dark" @click="resetarHoje">Hoje</button>
-      </div>
+      <!-- Formulário de solicitação -->
+      <form @submit.prevent="enviarJustificativa" class="mt-4">
+        <div class="mb-3">
+          <label class="form-label">Data e Hora da Ocorrência *</label>
+          <input 
+            type="datetime-local" 
+            v-model="form.dataOcorrencia" 
+            class="form-control"
+            required
+          />
+          <small class="text-muted">Quando deveria ter sido registrado o ponto</small>
+        </div>
 
-      <!-- Lista de pontos -->
-      <div class="table-wrapper">
-  <table class="table table-dark table-hover text-center align-middle table-mobile">
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Hora</th>
-              <th>Modelo</th>
-              <th>Ação</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="(ponto, index) in pontos" :key="ponto.id">
-              <td :data-label="'#'">{{ index + 1 }}</td>
-              <td :data-label="'Hora'">{{ formatarHora(ponto.timestamp) }}</td>
-              <td :data-label="'Modelo'">{{ ponto.metodo }}</td>
-              <td :data-label="'Ação'">
-                <button class="btn btn-warning btn-sm" @click="selecionarPonto(ponto)">
-                  Justificar
-                </button>
-              </td>
-            </tr>
-            <tr v-if="pontos.length === 0">
-              <td colspan="4">Nenhum ponto registrado nesse dia.</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+        <div class="mb-3">
+          <label class="form-label">Tipo de Justificativa *</label>
+          <select v-model="form.tipo" class="form-select" required>
+            <option value="">Selecione...</option>
+            <option value="ENTRADA_ESQUECIDA">Entrada Esquecida</option>
+            <option value="SAIDA_ESQUECIDA">Saída Esquecida</option>
+            <option value="PONTO_INCORRETO">Ponto Incorreto</option>
+            <option value="SISTEMA_INDISPONIVEL">Sistema Indisponível</option>
+            <option value="OUTROS">Outros</option>
+          </select>
+        </div>
 
-      <!-- Formulário de justificativa -->
-      <div v-if="pontoSelecionado" class="mt-4">
-        <h5>    
-          📄 Justificar ponto das {{ formatarHora(pontoSelecionado.timestamp) }} 
-          <span class="">- {{ pontoSelecionado.metodo }}</span>
-        </h5>
-        <form @submit.prevent="enviarJustificativa">
-          <div class="mb-3">
-            <label class="form-label">Novo horário</label>
-            <input 
-  type="time" 
-  v-model="form.novoHorario" 
-  class="form-control"
-  required
-/>
-          </div>
+        <div class="mb-3">
+          <label class="form-label">Descrição *</label>
+          <textarea 
+            v-model="form.descricao" 
+            class="form-control" 
+            rows="4" 
+            placeholder="Explique detalhadamente o motivo da solicitação..."
+            required
+            minlength="10"
+          ></textarea>
+          <small class="text-muted">Mínimo de 10 caracteres</small>
+        </div>
 
-          <div class="mb-3">
-            <label class="form-label">Motivo</label>
-            <select v-model="form.tipo" class="form-select" required>
-              <option value="">Selecione...</option>
-              <option value="ENTRADA_ESQUECIDA">Saída antecipada</option>
-              <option value="SAIDA_ESQUECIDA">Atraso</option>
-              <option value="INTERVALO_ESQUECIDO">Esqueci de bater ponto</option>
-              <option value="INTERVALO_ESQUECIDO">Problemas técnicos</option>
-              <option value="OUTRO">Outro</option>
-            </select>
-          </div>
-
-          <div class="mb-3">
-            <label class="form-label">Descrição</label>
-            <textarea 
-              v-model="form.descricao" 
-              class="form-control" 
-              rows="3" 
-              placeholder="Explique o motivo do ajuste..."
-              required
-            ></textarea>
-          </div>
-
-          <button type="submit" class="btn btn-success">Enviar Justificativa</button>
-          <button type="button" class="btn btn-secondary ms-2" @click="cancelarJustificativa">
-            Cancelar
+        <div class="d-flex gap-2">
+          <button type="submit" class="btn btn-success" :disabled="enviando">
+            <span v-if="enviando">Enviando...</span>
+            <span v-else>📤 Enviar Solicitação</span>
           </button>
-        </form>
-      </div>
+          <button type="button" class="btn btn-secondary" @click="limparFormulario" :disabled="enviando">
+            Limpar
+          </button>
+        </div>
+      </form>
     </div>
   </div>
 </template>
 
 <script>
 import api from "../axios";
+import { showToast } from "../toast";
 
 export default {
   name: "AjustePonto",
   data() {
     return {
-      pontos: [],
-      dataSelecionada: new Date(),
-      pontoSelecionado: null,
+      enviando: false,
       form: {
-        novoHorario: "",
+        dataOcorrencia: "",
         tipo: "",
         descricao: ""
       }
     };
   },
-  computed: {
-    dataSelecionadaStr: {
-      get() {
-        return this.dataSelecionada.toISOString().split("T")[0];
-      },
-      set(val) {
-        this.dataSelecionada = new Date(val);
-      }
-    }
-  },
   mounted() {
-    this.fetchPontos();
+    // Define data/hora atual como padrão
+    const agora = new Date();
+    const ano = agora.getFullYear();
+    const mes = String(agora.getMonth() + 1).padStart(2, '0');
+    const dia = String(agora.getDate()).padStart(2, '0');
+    const hora = String(agora.getHours()).padStart(2, '0');
+    const minuto = String(agora.getMinutes()).padStart(2, '0');
+    this.form.dataOcorrencia = `${ano}-${mes}-${dia}T${hora}:${minuto}`;
   },
   methods: {
-    async fetchPontos() {
-      try {
-        const dia = this.dataSelecionadaStr;
-        const response = await api.get(`/pontos/meus-registros`, {
-          params: { dia }
-        });
-        this.pontos = response.data || [];
-      } catch (error) {
-        console.error("Erro ao carregar pontos:", error.response?.data || error);
-        this.pontos = [];
-      }
-    },
-    resetarHoje() {
-      this.dataSelecionada = new Date();
-      this.fetchPontos();
-    },
-    selecionarPonto(ponto) {
-      this.pontoSelecionado = ponto;
-      this.form = {
-        novoHorario: this.formatarHora(ponto.timestamp),
-        tipo: "",
-        descricao: ""
-      };
-    },
-    cancelarJustificativa() {
-      this.pontoSelecionado = null;
-      this.form = { novoHorario: "", tipo: "", descricao: "" };
-    },
     async enviarJustificativa() {
       try {
-        const dataISO = this.dataSelecionadaStr + "T" + this.form.novoHorario + ":00Z";
+        this.enviando = true;
+
+        // Converte para ISO 8601 (UTC)
+        const dataLocal = new Date(this.form.dataOcorrencia);
+        const dataISO = dataLocal.toISOString();
 
         const payload = {
           data_ocorrencia: dataISO,
-          descricao: this.form.descricao,
-          tipo: this.form.tipo
+          tipo: this.form.tipo,
+          descricao: this.form.descricao.trim()
         };
 
-        await api.post("/justificativas", payload);
+        await api.post("/api/v1/justificativas", payload);
 
-        alert("Justificativa enviada com sucesso!");
-        this.cancelarJustificativa();
-        this.fetchPontos();
+        showToast("✅ Solicitação enviada com sucesso! Aguarde aprovação.", "success");
+        this.limparFormulario();
+        
+        // Redireciona para ver minhas justificativas após 1.5s
+        setTimeout(() => {
+          this.$router.push('/minhas-justificativas');
+        }, 1500);
       } catch (error) {
         console.error("Erro ao enviar justificativa:", error.response?.data || error);
-        alert("Erro ao enviar justificativa.");
+        const mensagem = error.response?.data?.message || error.response?.data?.error || "Erro ao enviar justificativa.";
+        showToast(`❌ ${mensagem}`, "error");
+      } finally {
+        this.enviando = false;
       }
     },
-    formatarHora(datetime) {
-      const d = new Date(datetime);
-      return d.toLocaleTimeString("pt-BR", {
-        hour: "2-digit",
-        minute: "2-digit"
-      });
+    limparFormulario() {
+      const agora = new Date();
+      const ano = agora.getFullYear();
+      const mes = String(agora.getMonth() + 1).padStart(2, '0');
+      const dia = String(agora.getDate()).padStart(2, '0');
+      const hora = String(agora.getHours()).padStart(2, '0');
+      const minuto = String(agora.getMinutes()).padStart(2, '0');
+      
+      this.form = {
+        dataOcorrencia: `${ano}-${mes}-${dia}T${hora}:${minuto}`,
+        tipo: "",
+        descricao: ""
+      };
     }
   }
 };

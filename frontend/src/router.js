@@ -12,6 +12,7 @@ import Permissoes from './pages/Permissoes.vue'
 import PontoUserList from './pages/PontoUserList.vue'
 import AjustePonto from './pages/AjustePonto.vue'
 import JustificativasPendentes from './pages/JustificativasPendentes.vue'
+import MinhasJustificativas from './pages/MinhasJustificativas.vue'
 import SignUp from './pages/SignUpPage.vue'
 import BancoHoras from './pages/BancoHoras.vue';
 
@@ -105,6 +106,11 @@ const routes = [
   {
     path: '/Ajuste-Ponto',
     component: AjustePonto,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/minhas-justificativas',
+    component: MinhasJustificativas,
     meta: { requiresAuth: true }
   },
   {
