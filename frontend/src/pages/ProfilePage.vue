@@ -322,7 +322,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import api from '../axios'
-import { showToast } from '../toast'
+import { toast } from '../toast'
 
 const profile = ref(null)
 const stats = ref(null)
@@ -358,7 +358,7 @@ const loadProfile = async () => {
     error.value = null
   } catch (err) {
     error.value = err.response?.data?.error || 'Erro ao carregar perfil'
-    showToast('Erro ao carregar perfil', 'error')
+    toast.error('Erro ao carregar perfil')
   } finally {
     loading.value = false
   }
@@ -367,7 +367,7 @@ const loadProfile = async () => {
 // Load stats
 const loadStats = async () => {
   try {
-    const response = await api.get('profile/me/stats')
+    const response = await api.get('/profile/me/stats')
     stats.value = response.data
   } catch (err) {
     console.error('Erro ao carregar estatísticas:', err)
@@ -378,11 +378,11 @@ const loadStats = async () => {
 const loadRecentActivity = async () => {
   try {
     loadingActivity.value = true
-    const response = await api.get('profile/me/recent-activity?limit=10')
+    const response = await api.get('/profile/me/recent-activity?limit=10')
     activities.value = response.data.atividades || []
   } catch (err) {
     console.error('Erro ao carregar atividades:', err)
-    showToast('Erro ao carregar atividades', 'error')
+    toast.error('Erro ao carregar atividades')
   } finally {
     loadingActivity.value = false
   }
@@ -392,11 +392,11 @@ const loadRecentActivity = async () => {
 const updateProfile = async () => {
   try {
     updating.value = true
-    await api.put('profile/me', editForm.value)
-    showToast('Perfil atualizado com sucesso!', 'success')
+    await api.put('/profile/me', editForm.value)
+    toast.success('Perfil atualizado com sucesso!')
     await loadProfile()
   } catch (err) {
-    showToast(err.response?.data?.error || 'Erro ao atualizar perfil', 'error')
+    toast.error(err.response?.data?.error || 'Erro ao atualizar perfil')
   } finally {
     updating.value = false
   }
@@ -405,14 +405,14 @@ const updateProfile = async () => {
 // Change password
 const changePassword = async () => {
   if (passwordForm.value.senha_nova !== passwordForm.value.confirmar_senha) {
-    showToast('As senhas não coincidem', 'error')
+    toast.error('As senhas não coincidem')
     return
   }
 
   try {
     changingPassword.value = true
-    await api.put('profile/me/password', passwordForm.value)
-    showToast('Senha alterada com sucesso!', 'success')
+    await api.put('/profile/me/password', passwordForm.value)
+    toast.success('Senha alterada com sucesso!')
     
     // Clear form
     passwordForm.value = {
@@ -421,7 +421,7 @@ const changePassword = async () => {
       confirmar_senha: ''
     }
   } catch (err) {
-    showToast(err.response?.data?.error || 'Erro ao alterar senha', 'error')
+    toast.error(err.response?.data?.error || 'Erro ao alterar senha')
   } finally {
     changingPassword.value = false
   }
@@ -434,14 +434,14 @@ const handleAvatarUpload = async (event) => {
 
   // Validate file size (5MB)
   if (file.size > 5 * 1024 * 1024) {
-    showToast('Arquivo muito grande (máximo: 5MB)', 'error')
+    toast.error('Arquivo muito grande (máximo: 5MB)')
     return
   }
 
   // Validate file type
   const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp']
   if (!validTypes.includes(file.type)) {
-    showToast('Tipo inválido. Use: JPEG, PNG, JPG ou WebP', 'error')
+    toast.error('Tipo inválido. Use: JPEG, PNG, JPG ou WebP')
     return
   }
 
@@ -449,20 +449,20 @@ const handleAvatarUpload = async (event) => {
     const formData = new FormData()
     formData.append('avatar', file)
 
-    const response = await api.post('profile/me/avatar', formData, {
+    const response = await api.post('/profile/me/avatar', formData, {
       headers: {
         'Content-Type': 'multipart/form-data'
       }
     })
 
-    showToast('Avatar atualizado com sucesso!', 'success')
+    toast.success('Avatar atualizado com sucesso!')
     
     // Update avatar in profile
     if (profile.value) {
       profile.value.avatar = response.data.avatar_url
     }
   } catch (err) {
-    showToast(err.response?.data?.error || 'Erro ao fazer upload do avatar', 'error')
+    toast.error(err.response?.data?.error || 'Erro ao fazer upload do avatar')
   }
 }
 
