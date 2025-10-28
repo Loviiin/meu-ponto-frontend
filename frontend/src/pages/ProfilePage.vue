@@ -367,7 +367,7 @@ const loadProfile = async () => {
 // Load stats
 const loadStats = async () => {
   try {
-    const response = await api.get('/profile/me/stats')
+    const response = await api.get('profile/me/stats')
     stats.value = response.data
   } catch (err) {
     console.error('Erro ao carregar estatísticas:', err)
@@ -378,7 +378,7 @@ const loadStats = async () => {
 const loadRecentActivity = async () => {
   try {
     loadingActivity.value = true
-    const response = await api.get('/profile/me/recent-activity?limit=10')
+    const response = await api.get('profile/me/recent-activity?limit=10')
     activities.value = response.data.atividades || []
   } catch (err) {
     console.error('Erro ao carregar atividades:', err)
@@ -392,7 +392,7 @@ const loadRecentActivity = async () => {
 const updateProfile = async () => {
   try {
     updating.value = true
-    await api.put('/profile/me', editForm.value)
+    await api.put('profile/me', editForm.value)
     toast.success('Perfil atualizado com sucesso!')
     await loadProfile()
   } catch (err) {
@@ -411,7 +411,7 @@ const changePassword = async () => {
 
   try {
     changingPassword.value = true
-    await api.put('/profile/me/password', passwordForm.value)
+    await api.put('profile/me/password', passwordForm.value)
     toast.success('Senha alterada com sucesso!')
     
     // Clear form
@@ -449,7 +449,7 @@ const handleAvatarUpload = async (event) => {
     const formData = new FormData()
     formData.append('avatar', file)
 
-    const response = await api.post('/profile/me/avatar', formData, {
+    const response = await api.post('profile/me/avatar', formData, {
       headers: {
         'Content-Type': 'multipart/form-data'
       }
@@ -516,15 +516,33 @@ onMounted(() => {
 <style scoped>
 .profile-page {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding-top: 100px;
+  padding-top: 80px;
+  padding-bottom: 40px;
 }
 
+/* Glass Card Effect - igual ao resto do projeto */
 .card {
   border: none;
-  border-radius: 12px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  color: white;
 }
 
+.card-header {
+  background: rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px 20px 0 0 !important;
+  color: white;
+}
+
+.card-body {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* Avatar */
 .avatar-container {
   position: relative;
   display: inline-block;
@@ -535,8 +553,8 @@ onMounted(() => {
   height: 150px;
   border-radius: 50%;
   object-fit: cover;
-  border: 4px solid #f8f9fa;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border: 4px solid rgba(212, 175, 55, 0.6);
+  box-shadow: 0 8px 16px rgba(212, 175, 55, 0.3);
 }
 
 .avatar-upload-btn {
@@ -546,26 +564,27 @@ onMounted(() => {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: #667eea;
+  background: linear-gradient(135deg, #d4af37, #696000);
   color: white;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  border: 3px solid white;
+  border: 3px solid rgba(0, 0, 36, 0.8);
   transition: all 0.3s;
 }
 
 .avatar-upload-btn:hover {
-  background: #764ba2;
   transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(212, 175, 55, 0.5);
 }
 
+/* Stats */
 .stat-item {
   display: flex;
   justify-content: space-between;
   padding: 0.75rem 0;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .stat-item:last-child {
@@ -574,17 +593,28 @@ onMounted(() => {
 
 .stat-label {
   font-weight: 500;
-  color: #6c757d;
+  color: rgba(255, 255, 255, 0.7);
 }
 
 .stat-value {
   font-weight: 600;
-  color: #495057;
+  color: #d4af37;
 }
 
+/* Activity Timeline */
 .activity-timeline {
   position: relative;
   padding-left: 30px;
+}
+
+.activity-timeline::before {
+  content: '';
+  position: absolute;
+  left: 15px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: linear-gradient(180deg, rgba(212, 175, 55, 0.5), transparent);
 }
 
 .activity-item {
@@ -608,45 +638,182 @@ onMounted(() => {
   justify-content: center;
   color: white;
   font-size: 0.875rem;
+  border: 2px solid rgba(0, 0, 36, 0.8);
 }
 
 .activity-content {
-  background: #f8f9fa;
+  background: rgba(255, 255, 255, 0.05);
   padding: 0.75rem;
-  border-radius: 8px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .activity-description {
   font-weight: 500;
   margin-bottom: 0.25rem;
+  color: white;
 }
 
 .activity-date {
   font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.6);
 }
 
 .activity-details {
   margin-top: 0.5rem;
   padding-top: 0.5rem;
-  border-top: 1px solid #dee2e6;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* Tabs */
+.nav-tabs {
+  border-bottom: 2px solid rgba(255, 255, 255, 0.1);
 }
 
 .nav-tabs .nav-link {
-  color: #6c757d;
+  color: rgba(255, 255, 255, 0.6);
+  border: none;
+  border-bottom: 2px solid transparent;
+  transition: all 0.3s;
+}
+
+.nav-tabs .nav-link:hover {
+  color: #d4af37;
+  border-bottom-color: rgba(212, 175, 55, 0.5);
 }
 
 .nav-tabs .nav-link.active {
-  color: #667eea;
-  border-color: #dee2e6 #dee2e6 #fff;
+  color: #d4af37;
+  background: transparent;
+  border-bottom-color: #d4af37;
 }
 
+/* Forms */
 .form-label {
   font-weight: 500;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.5rem;
+  color: rgba(255, 255, 255, 0.8);
 }
 
+.form-control {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  border-radius: 8px;
+  transition: all 0.3s;
+}
+
+.form-control:focus {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: #d4af37;
+  box-shadow: 0 0 0 0.2rem rgba(212, 175, 55, 0.25);
+  color: white;
+}
+
+.form-control::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.form-text {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+/* Badges */
 .badge {
   font-weight: 500;
   padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+}
+
+.badge.bg-warning {
+  background: linear-gradient(135deg, #f39c12, #e67e22) !important;
+}
+
+.badge.bg-secondary {
+  background: rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Alerts */
+.alert {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  border-radius: 12px;
+}
+
+.alert-info {
+  background: rgba(52, 152, 219, 0.2);
+  border-color: rgba(52, 152, 219, 0.4);
+}
+
+.alert-danger {
+  background: rgba(231, 76, 60, 0.2);
+  border-color: rgba(231, 76, 60, 0.4);
+}
+
+/* Text Colors */
+.text-muted {
+  color: rgba(255, 255, 255, 0.6) !important;
+}
+
+.text-primary {
+  color: #d4af37 !important;
+}
+
+.text-success {
+  color: #2ecc71 !important;
+}
+
+.text-danger {
+  color: #e74c3c !important;
+}
+
+.fw-bold {
+  color: white;
+}
+
+/* Headings */
+h2, h4, h5, .card-title {
+  color: white;
+  background: linear-gradient(90deg, #d4af37, #fff);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Buttons */
+.btn-primary {
+  background: linear-gradient(135deg, #d4af37, #696000);
+  border: none;
+  transition: all 0.3s;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(212, 175, 55, 0.4);
+}
+
+.btn-primary:disabled {
+  opacity: 0.6;
+  transform: none;
+}
+
+/* Spinner */
+.spinner-border {
+  border-color: #d4af37;
+  border-right-color: transparent;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .profile-page {
+    padding-top: 60px;
+  }
+  
+  .avatar-image {
+    width: 120px;
+    height: 120px;
+  }
 }
 </style>
