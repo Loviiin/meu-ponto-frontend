@@ -112,6 +112,7 @@ const logoutUser = () => {
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+  z-index: 1040;
 }
 
 .navbar-logo {

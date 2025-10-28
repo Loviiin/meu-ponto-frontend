@@ -15,7 +15,7 @@ function remove(id){ removeToast(id); }
 </script>
 
 <style scoped>
-.toast-container { position: fixed; top: 16px; right: 16px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; width: 320px; }
+.toast-container { position: fixed; top: 16px; right: 16px; z-index: 10001; display: flex; flex-direction: column; gap: 8px; width: 320px; }
 .toast-item { position: relative; padding: 12px 36px 12px 14px; border-radius: 8px; font-size: 14px; color: #fff; box-shadow:0 4px 12px rgba(0,0,0,0.25); backdrop-filter: blur(4px); animation: slideIn .3s ease; }
 .toast-item.success { background: linear-gradient(120deg,#2e7d32,#43a047); }
 .toast-item.error { background: linear-gradient(120deg,#c62828,#e53935); }

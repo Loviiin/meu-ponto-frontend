@@ -348,7 +348,7 @@ const passwordForm = ref({
 const loadProfile = async () => {
   try {
     loading.value = true
-    const response = await api.get('/profile/me')
+    const response = await api.get('profile/me')
     profile.value = response.data
     
     // Populate edit form
@@ -367,7 +367,7 @@ const loadProfile = async () => {
 // Load stats
 const loadStats = async () => {
   try {
-    const response = await api.get('/profile/me/stats')
+    const response = await api.get('profile/me/stats')
     stats.value = response.data
   } catch (err) {
     console.error('Erro ao carregar estatísticas:', err)
@@ -378,7 +378,7 @@ const loadStats = async () => {
 const loadRecentActivity = async () => {
   try {
     loadingActivity.value = true
-    const response = await api.get('/profile/me/recent-activity?limit=10')
+    const response = await api.get('profile/me/recent-activity?limit=10')
     activities.value = response.data.atividades || []
   } catch (err) {
     console.error('Erro ao carregar atividades:', err)
@@ -392,7 +392,7 @@ const loadRecentActivity = async () => {
 const updateProfile = async () => {
   try {
     updating.value = true
-    await api.put('/profile/me', editForm.value)
+    await api.put('profile/me', editForm.value)
     showToast('Perfil atualizado com sucesso!', 'success')
     await loadProfile()
   } catch (err) {
@@ -411,7 +411,7 @@ const changePassword = async () => {
 
   try {
     changingPassword.value = true
-    await api.put('/profile/me/password', passwordForm.value)
+    await api.put('profile/me/password', passwordForm.value)
     showToast('Senha alterada com sucesso!', 'success')
     
     // Clear form
@@ -449,7 +449,7 @@ const handleAvatarUpload = async (event) => {
     const formData = new FormData()
     formData.append('avatar', file)
 
-    const response = await api.post('/profile/me/avatar', formData, {
+    const response = await api.post('profile/me/avatar', formData, {
       headers: {
         'Content-Type': 'multipart/form-data'
       }
@@ -515,9 +515,9 @@ onMounted(() => {
 
 <style scoped>
 .profile-page {
-  min-height: calc(100vh - 80px);
+  min-height: 100vh;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding-top: 80px;
+  padding-top: 100px;
 }
 
 .card {
