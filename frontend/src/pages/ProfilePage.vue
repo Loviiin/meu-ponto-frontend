@@ -1,0 +1,652 @@
+<template>
+  <div class="profile-page">
+    <div class="container py-4">
+      <h2 class="mb-4"><i class="bi bi-person-circle me-2"></i>Meu Perfil</h2>
+
+      <!-- Loading State -->
+      <div v-if="loading" class="text-center py-5">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Carregando...</span>
+        </div>
+      </div>
+
+      <!-- Error State -->
+      <div v-else-if="error" class="alert alert-danger">
+        <i class="bi bi-exclamation-triangle me-2"></i>{{ error }}
+      </div>
+
+      <!-- Profile Content -->
+      <div v-else-if="profile" class="row g-4">
+        <!-- Left Column - Avatar and Basic Info -->
+        <div class="col-lg-4">
+          <div class="card shadow-sm">
+            <div class="card-body text-center">
+              <div class="avatar-container mb-3">
+                <img 
+                  :src="profile.avatar || '/default-avatar.png'" 
+                  :alt="profile.nome"
+                  class="avatar-image"
+                  @error="handleImageError"
+                />
+                <label for="avatar-upload" class="avatar-upload-btn" title="Alterar foto">
+                  <i class="bi bi-camera-fill"></i>
+                </label>
+                <input 
+                  id="avatar-upload" 
+                  type="file" 
+                  accept="image/jpeg,image/png,image/jpg,image/webp"
+                  @change="handleAvatarUpload"
+                  style="display: none"
+                />
+              </div>
+              <h4 class="mb-1">{{ profile.nome }}</h4>
+              <p class="text-muted mb-2">{{ profile.cargo?.nome || 'Sem cargo' }}</p>
+              <p class="text-muted small mb-0">
+                <i class="bi bi-building me-1"></i>{{ profile.empresa?.nome }}
+              </p>
+              <hr class="my-3">
+              <div class="d-flex justify-content-around text-center">
+                <div>
+                  <div class="fw-bold text-primary">{{ stats?.tempo_empresa_dias || 0 }}</div>
+                  <small class="text-muted">Dias na empresa</small>
+                </div>
+                <div>
+                  <div class="fw-bold text-success">{{ stats?.pontos?.total_mes_atual || 0 }}</div>
+                  <small class="text-muted">Pontos este mês</small>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Stats Card -->
+          <div class="card shadow-sm mt-3">
+            <div class="card-header bg-primary text-white">
+              <i class="bi bi-graph-up me-2"></i>Estatísticas
+            </div>
+            <div class="card-body">
+              <div class="stat-item">
+                <span class="stat-label">Banco de Horas:</span>
+                <span class="stat-value" :class="{'text-success': stats?.banco_horas?.saldo_atual_minutos >= 0, 'text-danger': stats?.banco_horas?.saldo_atual_minutos < 0}">
+                  {{ stats?.banco_horas?.saldo_atual_formatado || '00:00' }}
+                </span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">Justificativas Pendentes:</span>
+                <span class="stat-value badge bg-warning">{{ stats?.justificativas?.pendentes || 0 }}</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">Total de Pontos:</span>
+                <span class="stat-value">{{ stats?.pontos?.total_geral || 0 }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column - Details and Forms -->
+        <div class="col-lg-8">
+          <!-- Tabs -->
+          <ul class="nav nav-tabs mb-3" role="tablist">
+            <li class="nav-item" role="presentation">
+              <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#info-tab" type="button">
+                <i class="bi bi-info-circle me-1"></i>Informações
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" data-bs-toggle="tab" data-bs-target="#edit-tab" type="button">
+                <i class="bi bi-pencil me-1"></i>Editar
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" data-bs-toggle="tab" data-bs-target="#password-tab" type="button">
+                <i class="bi bi-key me-1"></i>Senha
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" data-bs-toggle="tab" data-bs-target="#activity-tab" type="button" @click="loadRecentActivity">
+                <i class="bi bi-clock-history me-1"></i>Atividades
+              </button>
+            </li>
+          </ul>
+
+          <!-- Tab Content -->
+          <div class="tab-content">
+            <!-- Info Tab -->
+            <div class="tab-pane fade show active" id="info-tab">
+              <div class="card shadow-sm">
+                <div class="card-body">
+                  <h5 class="card-title mb-3">Informações Pessoais</h5>
+                  <div class="row g-3">
+                    <div class="col-md-6">
+                      <label class="form-label text-muted small">Nome Completo</label>
+                      <p class="fw-bold">{{ profile.nome }}</p>
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label text-muted small">Email</label>
+                      <p class="fw-bold">{{ profile.email }}</p>
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label text-muted small">CPF</label>
+                      <p class="fw-bold">{{ profile.cpf }}</p>
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label text-muted small">Telefone</label>
+                      <p class="fw-bold">{{ profile.telefone || 'Não informado' }}</p>
+                    </div>
+                  </div>
+
+                  <hr class="my-4">
+
+                  <h5 class="card-title mb-3">Contrato</h5>
+                  <div class="row g-3" v-if="profile.contrato">
+                    <div class="col-md-6">
+                      <label class="form-label text-muted small">Tipo de Contrato</label>
+                      <p class="fw-bold">{{ profile.contrato.tipo_contrato || 'Não informado' }}</p>
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label text-muted small">Data de Início</label>
+                      <p class="fw-bold">{{ formatDate(profile.contrato.data_inicio) }}</p>
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label text-muted small">Carga Horária Semanal</label>
+                      <p class="fw-bold">{{ profile.contrato.carga_horaria_semanal }}h</p>
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label text-muted small">Carga Horária Mensal</label>
+                      <p class="fw-bold">{{ profile.contrato.carga_horaria_mensal }}h</p>
+                    </div>
+                    <div class="col-12" v-if="profile.contrato.localidade">
+                      <label class="form-label text-muted small">Localidade</label>
+                      <p class="fw-bold">
+                        <i class="bi bi-geo-alt me-1"></i>{{ profile.contrato.localidade.nome }}
+                        <br><small class="text-muted">{{ profile.contrato.localidade.endereco_completo }}</small>
+                      </p>
+                    </div>
+                  </div>
+                  <p v-else class="text-muted">Nenhum contrato vinculado</p>
+
+                  <hr class="my-4" v-if="profile.permissoes && profile.permissoes.length > 0">
+
+                  <h5 class="card-title mb-3" v-if="profile.permissoes && profile.permissoes.length > 0">Permissões</h5>
+                  <div class="d-flex flex-wrap gap-2" v-if="profile.permissoes && profile.permissoes.length > 0">
+                    <span 
+                      v-for="permissao in profile.permissoes" 
+                      :key="permissao.id"
+                      class="badge bg-secondary"
+                      :title="permissao.descricao"
+                    >
+                      {{ permissao.nome }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Edit Tab -->
+            <div class="tab-pane fade" id="edit-tab">
+              <div class="card shadow-sm">
+                <div class="card-body">
+                  <h5 class="card-title mb-3">Editar Perfil</h5>
+                  <form @submit.prevent="updateProfile">
+                    <div class="mb-3">
+                      <label for="nome" class="form-label">Nome Completo</label>
+                      <input 
+                        type="text" 
+                        class="form-control" 
+                        id="nome" 
+                        v-model="editForm.nome"
+                        required
+                      />
+                    </div>
+                    <div class="mb-3">
+                      <label for="telefone" class="form-label">Telefone</label>
+                      <input 
+                        type="tel" 
+                        class="form-control" 
+                        id="telefone" 
+                        v-model="editForm.telefone"
+                        placeholder="(00) 00000-0000"
+                      />
+                    </div>
+                    <div class="alert alert-info small">
+                      <i class="bi bi-info-circle me-1"></i>
+                      Email e CPF não podem ser alterados. Entre em contato com o administrador.
+                    </div>
+                    <button type="submit" class="btn btn-primary" :disabled="updating">
+                      <span v-if="updating" class="spinner-border spinner-border-sm me-2"></span>
+                      <i v-else class="bi bi-check-lg me-1"></i>
+                      Salvar Alterações
+                    </button>
+                  </form>
+                </div>
+              </div>
+            </div>
+
+            <!-- Password Tab -->
+            <div class="tab-pane fade" id="password-tab">
+              <div class="card shadow-sm">
+                <div class="card-body">
+                  <h5 class="card-title mb-3">Alterar Senha</h5>
+                  <form @submit.prevent="changePassword">
+                    <div class="mb-3">
+                      <label for="senha_atual" class="form-label">Senha Atual</label>
+                      <input 
+                        type="password" 
+                        class="form-control" 
+                        id="senha_atual" 
+                        v-model="passwordForm.senha_atual"
+                        required
+                      />
+                    </div>
+                    <div class="mb-3">
+                      <label for="senha_nova" class="form-label">Nova Senha</label>
+                      <input 
+                        type="password" 
+                        class="form-control" 
+                        id="senha_nova" 
+                        v-model="passwordForm.senha_nova"
+                        required
+                        minlength="6"
+                      />
+                      <div class="form-text">Mínimo de 6 caracteres</div>
+                    </div>
+                    <div class="mb-3">
+                      <label for="confirmar_senha" class="form-label">Confirmar Nova Senha</label>
+                      <input 
+                        type="password" 
+                        class="form-control" 
+                        id="confirmar_senha" 
+                        v-model="passwordForm.confirmar_senha"
+                        required
+                        minlength="6"
+                      />
+                    </div>
+                    <button type="submit" class="btn btn-primary" :disabled="changingPassword">
+                      <span v-if="changingPassword" class="spinner-border spinner-border-sm me-2"></span>
+                      <i v-else class="bi bi-shield-lock me-1"></i>
+                      Alterar Senha
+                    </button>
+                  </form>
+                </div>
+              </div>
+            </div>
+
+            <!-- Activity Tab -->
+            <div class="tab-pane fade" id="activity-tab">
+              <div class="card shadow-sm">
+                <div class="card-body">
+                  <h5 class="card-title mb-3">Atividades Recentes</h5>
+                  
+                  <div v-if="loadingActivity" class="text-center py-3">
+                    <div class="spinner-border spinner-border-sm text-primary" role="status">
+                      <span class="visually-hidden">Carregando...</span>
+                    </div>
+                  </div>
+
+                  <div v-else-if="activities.length === 0" class="text-center text-muted py-3">
+                    <i class="bi bi-inbox fs-1"></i>
+                    <p class="mt-2">Nenhuma atividade recente</p>
+                  </div>
+
+                  <div v-else class="activity-timeline">
+                    <div 
+                      v-for="activity in activities" 
+                      :key="activity.id"
+                      class="activity-item"
+                    >
+                      <div class="activity-icon" :class="getActivityIconClass(activity.tipo)">
+                        <i :class="getActivityIcon(activity.tipo)"></i>
+                      </div>
+                      <div class="activity-content">
+                        <div class="activity-description">{{ activity.descricao }}</div>
+                        <div class="activity-date text-muted small">
+                          {{ formatDateTime(activity.data) }}
+                        </div>
+                        <div v-if="activity.detalhes" class="activity-details small text-muted">
+                          <span v-for="(value, key) in activity.detalhes" :key="key" class="me-2">
+                            <strong>{{ key }}:</strong> {{ value }}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { ref, onMounted } from 'vue'
+import api from '../axios'
+import { showToast } from '../toast'
+
+const profile = ref(null)
+const stats = ref(null)
+const activities = ref([])
+const loading = ref(true)
+const loadingActivity = ref(false)
+const updating = ref(false)
+const changingPassword = ref(false)
+const error = ref(null)
+
+const editForm = ref({
+  nome: '',
+  telefone: ''
+})
+
+const passwordForm = ref({
+  senha_atual: '',
+  senha_nova: '',
+  confirmar_senha: ''
+})
+
+// Load profile data
+const loadProfile = async () => {
+  try {
+    loading.value = true
+    const response = await api.get('/profile/me')
+    profile.value = response.data
+    
+    // Populate edit form
+    editForm.value.nome = response.data.nome
+    editForm.value.telefone = response.data.telefone || ''
+    
+    error.value = null
+  } catch (err) {
+    error.value = err.response?.data?.error || 'Erro ao carregar perfil'
+    showToast('Erro ao carregar perfil', 'error')
+  } finally {
+    loading.value = false
+  }
+}
+
+// Load stats
+const loadStats = async () => {
+  try {
+    const response = await api.get('/profile/me/stats')
+    stats.value = response.data
+  } catch (err) {
+    console.error('Erro ao carregar estatísticas:', err)
+  }
+}
+
+// Load recent activity
+const loadRecentActivity = async () => {
+  try {
+    loadingActivity.value = true
+    const response = await api.get('/profile/me/recent-activity?limit=10')
+    activities.value = response.data.atividades || []
+  } catch (err) {
+    console.error('Erro ao carregar atividades:', err)
+    showToast('Erro ao carregar atividades', 'error')
+  } finally {
+    loadingActivity.value = false
+  }
+}
+
+// Update profile
+const updateProfile = async () => {
+  try {
+    updating.value = true
+    await api.put('/profile/me', editForm.value)
+    showToast('Perfil atualizado com sucesso!', 'success')
+    await loadProfile()
+  } catch (err) {
+    showToast(err.response?.data?.error || 'Erro ao atualizar perfil', 'error')
+  } finally {
+    updating.value = false
+  }
+}
+
+// Change password
+const changePassword = async () => {
+  if (passwordForm.value.senha_nova !== passwordForm.value.confirmar_senha) {
+    showToast('As senhas não coincidem', 'error')
+    return
+  }
+
+  try {
+    changingPassword.value = true
+    await api.put('/profile/me/password', passwordForm.value)
+    showToast('Senha alterada com sucesso!', 'success')
+    
+    // Clear form
+    passwordForm.value = {
+      senha_atual: '',
+      senha_nova: '',
+      confirmar_senha: ''
+    }
+  } catch (err) {
+    showToast(err.response?.data?.error || 'Erro ao alterar senha', 'error')
+  } finally {
+    changingPassword.value = false
+  }
+}
+
+// Handle avatar upload
+const handleAvatarUpload = async (event) => {
+  const file = event.target.files?.[0]
+  if (!file) return
+
+  // Validate file size (5MB)
+  if (file.size > 5 * 1024 * 1024) {
+    showToast('Arquivo muito grande (máximo: 5MB)', 'error')
+    return
+  }
+
+  // Validate file type
+  const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp']
+  if (!validTypes.includes(file.type)) {
+    showToast('Tipo inválido. Use: JPEG, PNG, JPG ou WebP', 'error')
+    return
+  }
+
+  try {
+    const formData = new FormData()
+    formData.append('avatar', file)
+
+    const response = await api.post('/profile/me/avatar', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    })
+
+    showToast('Avatar atualizado com sucesso!', 'success')
+    
+    // Update avatar in profile
+    if (profile.value) {
+      profile.value.avatar = response.data.avatar_url
+    }
+  } catch (err) {
+    showToast(err.response?.data?.error || 'Erro ao fazer upload do avatar', 'error')
+  }
+}
+
+// Handle image error
+const handleImageError = (event) => {
+  event.target.src = '/default-avatar.png'
+}
+
+// Format date
+const formatDate = (dateString) => {
+  if (!dateString) return 'N/A'
+  const date = new Date(dateString)
+  return date.toLocaleDateString('pt-BR')
+}
+
+// Format date time
+const formatDateTime = (dateString) => {
+  if (!dateString) return 'N/A'
+  const date = new Date(dateString)
+  return date.toLocaleString('pt-BR')
+}
+
+// Get activity icon
+const getActivityIcon = (tipo) => {
+  const icons = {
+    ponto: 'bi bi-clock-fill',
+    justificativa: 'bi bi-file-text-fill',
+    banco_horas: 'bi bi-piggy-bank-fill',
+    perfil: 'bi bi-person-fill'
+  }
+  return icons[tipo] || 'bi bi-circle-fill'
+}
+
+// Get activity icon class
+const getActivityIconClass = (tipo) => {
+  const classes = {
+    ponto: 'bg-primary',
+    justificativa: 'bg-warning',
+    banco_horas: 'bg-success',
+    perfil: 'bg-info'
+  }
+  return classes[tipo] || 'bg-secondary'
+}
+
+onMounted(() => {
+  loadProfile()
+  loadStats()
+})
+</script>
+
+<style scoped>
+.profile-page {
+  min-height: calc(100vh - 80px);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding-top: 80px;
+}
+
+.card {
+  border: none;
+  border-radius: 12px;
+}
+
+.avatar-container {
+  position: relative;
+  display: inline-block;
+}
+
+.avatar-image {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 4px solid #f8f9fa;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.avatar-upload-btn {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #667eea;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border: 3px solid white;
+  transition: all 0.3s;
+}
+
+.avatar-upload-btn:hover {
+  background: #764ba2;
+  transform: scale(1.1);
+}
+
+.stat-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.stat-item:last-child {
+  border-bottom: none;
+}
+
+.stat-label {
+  font-weight: 500;
+  color: #6c757d;
+}
+
+.stat-value {
+  font-weight: 600;
+  color: #495057;
+}
+
+.activity-timeline {
+  position: relative;
+  padding-left: 30px;
+}
+
+.activity-item {
+  position: relative;
+  padding-bottom: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.activity-item:last-child {
+  margin-bottom: 0;
+}
+
+.activity-icon {
+  position: absolute;
+  left: -30px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 0.875rem;
+}
+
+.activity-content {
+  background: #f8f9fa;
+  padding: 0.75rem;
+  border-radius: 8px;
+}
+
+.activity-description {
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+}
+
+.activity-date {
+  font-size: 0.75rem;
+}
+
+.activity-details {
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid #dee2e6;
+}
+
+.nav-tabs .nav-link {
+  color: #6c757d;
+}
+
+.nav-tabs .nav-link.active {
+  color: #667eea;
+  border-color: #dee2e6 #dee2e6 #fff;
+}
+
+.form-label {
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+}
+
+.badge {
+  font-weight: 500;
+  padding: 0.5rem 0.75rem;
+}
+</style>

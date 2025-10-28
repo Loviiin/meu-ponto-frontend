@@ -82,6 +82,9 @@
 
         <!-- Right side: account actions -->
         <div class="d-flex align-items-center gap-2">
+          <router-link to="/perfil" class="btn btn-outline-light btn-sm" title="Meu Perfil">
+            <i class="bi bi-person-circle me-1"></i> Perfil
+          </router-link>
           <button class="btn btn-outline-light btn-sm" title="Sair" @click="logoutUser">
             <i class="bi bi-box-arrow-right me-1"></i> Sair
           </button>

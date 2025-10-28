@@ -15,6 +15,7 @@ import JustificativasPendentes from './pages/JustificativasPendentes.vue'
 import MinhasJustificativas from './pages/MinhasJustificativas.vue'
 import SignUp from './pages/SignUpPage.vue'
 import BancoHoras from './pages/BancoHoras.vue';
+import ProfilePage from './pages/ProfilePage.vue';
 
 const routes = [
 
@@ -143,6 +144,14 @@ const routes = [
   {
     path: '/meu-banco-horas',
     component: BancoHoras,
+    meta: { requiresAuth: true }
+  },
+
+  // Perfil
+  {
+    path: '/perfil',
+    name: 'Profile',
+    component: ProfilePage,
     meta: { requiresAuth: true }
   },
 
