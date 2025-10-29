@@ -1,4 +1,5 @@
 import api from './axios';
+import ProfileService from './services/ProfileService';
 
 export async function login(username, password, email) {
   const res = await api.post('/api/token/', { username, password, email });
@@ -16,6 +17,11 @@ export async function refreshToken() {
 }
 
 export function logout() {
+  // Limpa cache do ProfileService (perfil e permissões)
+  ProfileService.clearCache();
+  
+  // Remove tokens de autenticação
   localStorage.removeItem('access');
   localStorage.removeItem('refresh');
+  localStorage.removeItem('token');
 }

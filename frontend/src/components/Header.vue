@@ -25,6 +25,12 @@
             <router-link class="nav-link" to="/home"><i class="bi bi-house-fill me-1"></i>Home</router-link>
           </li>
           <li class="nav-item">
+            <router-link class="nav-link" to="/dashboard"><i class="bi bi-speedometer2 me-1"></i>Dashboard</router-link>
+          </li>
+          <li class="nav-item">
+            <router-link class="nav-link" to="/calendario"><i class="bi bi-calendar3 me-1"></i>Calendário</router-link>
+          </li>
+          <li class="nav-item">
             <router-link class="nav-link" to="/meu-banco-horas"><i class="bi bi-clock-history me-1"></i>Meu Banco de Horas</router-link>
           </li>
 

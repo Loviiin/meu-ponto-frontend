@@ -16,6 +16,8 @@ import MinhasJustificativas from './pages/MinhasJustificativas.vue'
 import SignUp from './pages/SignUpPage.vue'
 import BancoHoras from './pages/BancoHoras.vue';
 import ProfilePage from './pages/ProfilePage.vue';
+import DashboardPage from './pages/DashboardPage.vue';
+import CalendarioPage from './pages/CalendarioPage.vue';
 
 const routes = [
 
@@ -155,7 +157,21 @@ const routes = [
     meta: { requiresAuth: true }
   },
 
+  // Dashboard de Estatísticas
+  {
+    path: '/dashboard',
+    name: 'Dashboard',
+    component: DashboardPage,
+    meta: { requiresAuth: true }
+  },
 
+  // Calendário de Ponto
+  {
+    path: '/calendario',
+    name: 'Calendario',
+    component: CalendarioPage,
+    meta: { requiresAuth: true }
+  },
   
 ] 
 
