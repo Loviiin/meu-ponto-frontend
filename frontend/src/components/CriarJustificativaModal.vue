@@ -174,9 +174,25 @@
 
 <script>
 import { Modal } from 'bootstrap';
+import axios from 'axios';
 import JustificativaService from '../services/JustificativaService';
-import PontoService from '../services/PontoService';
 import { toast } from '../toast';
+
+const api = axios.create({
+  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api/v1',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+// Adicionar token ao header
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
 
 export default {
   name: 'CriarJustificativaModal',
@@ -266,13 +282,14 @@ export default {
     async carregarPontosParaCorrecao() {
       try {
         this.carregandoPontos = true;
-        const response = await PontoService.listarMeus();
+        const response = await api.get('/pontos/meus-registros');
+        const pontos = response.data || [];
         
         // Filtrar apenas pontos do último mês
         const umMesAtras = new Date();
         umMesAtras.setMonth(umMesAtras.getMonth() - 1);
         
-        this.pontosFiltrados = response
+        this.pontosFiltrados = pontos
           .filter(ponto => new Date(ponto.timestamp) > umMesAtras)
           .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
       } catch (error) {
