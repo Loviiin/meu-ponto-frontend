@@ -92,7 +92,7 @@
             >
               <option value="">Selecione o cargo</option>
               <option v-for="c in cargos" :key="c.id" :value="c.id">
-                {{ c.nome }}
+                {{ c.nome }}<template v-if="c.nivel_hierarquia"> - Nível {{ c.nivel_hierarquia }}</template><template v-if="c.salario_minimo && c.salario_maximo"> (R$ {{ c.salario_minimo.toFixed(2) }} - R$ {{ c.salario_maximo.toFixed(2) }})</template>
               </option>
             </select>
             <small v-if="cargoSelecionado" class="info">
@@ -114,7 +114,6 @@
               <option value="PJ">PJ (Pessoa Jurídica)</option>
               <option value="Part-time">Part-time (Meio Período)</option>
               <option value="Estagiário">Estagiário</option>
-              <option value="Temporário">Temporário</option>
             </select>
             <small class="hint">{{ descricoesTipoContrato[form.tipoContrato] }}</small>
             <FieldError :error="errors.tipoContrato" />
@@ -130,7 +129,7 @@
             >
               <option value="">Selecione a localidade</option>
               <option v-for="l in localidades" :key="l.id" :value="l.id">
-                {{ l.nome }}
+                {{ l.nome }}<template v-if="l.cidade && l.estado"> - {{ l.cidade }}/{{ l.estado }}</template>
               </option>
             </select>
             <FieldError :error="errors.localidadeId" />
@@ -320,7 +319,21 @@ import { REGEX } from '../utils/validators.js';
 
 // ---- Estado principal ----
 const router = useRouter();
-const empresaId = Number(localStorage.getItem('empresa_id')) || null;
+
+function getEmpresaIdFromToken() {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) return null;
+    const payloadB64 = token.split('.')[1];
+    if (!payloadB64) return null;
+    const json = JSON.parse(atob(payloadB64));
+    return Number(json.empresa_id || json.empresaID || json.empresaId) || null;
+  } catch (_) {
+    return null;
+  }
+}
+
+const empresaId = Number(localStorage.getItem('empresa_id')) || getEmpresaIdFromToken() || null;
 
 // Log para debug
 if (!empresaId) {
@@ -375,8 +388,7 @@ const descricoesTipoContrato = {
   'CLT': 'Regime CLT padrão - 44h semanais, todos os direitos trabalhistas',
   'PJ': 'Pessoa Jurídica - Autônomo/Freelancer',
   'Part-time': 'Meio período - Até 6h diárias, 30h semanais',
-  'Estagiário': 'Estágio - Até 6h diárias (Lei 11.788/2008)',
-  'Temporário': 'Contrato temporário (Lei 6.019/74)'
+  'Estagiário': 'Estágio - Até 6h diárias (Lei 11.788/2008)'
 };
 
 // Validação de carga horária por tipo de contrato
@@ -593,6 +605,17 @@ function validateField(field) {
     case 'salario':
       if (!form.salario || form.salario <= 0) {
         errors.salario = 'Informe um salário válido';
+      } else if (cargoSelecionado.value) {
+        const cargo = cargoSelecionado.value;
+        const min = Number(cargo.salario_minimo || 0);
+        const max = Number(cargo.salario_maximo || 0);
+        if (min && form.salario < min) {
+          errors.salario = `Salário abaixo do mínimo permitido para este cargo (R$ ${min.toFixed(2)})`;
+        } else if (max && form.salario > max) {
+          errors.salario = `Salário acima do máximo permitido para este cargo (R$ ${max.toFixed(2)})`;
+        } else {
+          delete errors.salario;
+        }
       } else {
         delete errors.salario;
       }
@@ -633,6 +656,7 @@ async function loadCargos() {
     cargos.value = (res.data || []).map(c => ({
       id: c.id || c.ID,
       nome: c.nome || c.Nome,
+      nivel_hierarquia: c.nivel_hierarquia || c.NivelHierarquia || null,
       carga_horaria_diaria_minutos: c.carga_horaria_diaria_minutos || c.CargaHorariaDiariaMinutos || 480,
       salario_minimo: c.salario_minimo || c.SalarioMinimo || 0,
       salario_maximo: c.salario_maximo || c.SalarioMaximo || 0
@@ -646,16 +670,13 @@ async function loadCargos() {
     const data = err.response?.data;
     
     if (status === 401) {
-      // Verificar se é realmente falta de autenticação ou apenas permissão
-      const errorMsg = data?.error || data?.message || '';
-      if (errorMsg.toLowerCase().includes('token') || 
-          errorMsg.toLowerCase().includes('expirado') ||
-          errorMsg.toLowerCase().includes('autenticação')) {
+      const hasToken = !!localStorage.getItem('token');
+      if (!hasToken) {
         toast.error('Sessão expirada. Faça login novamente.');
         router.push('/login');
         return;
       }
-      // Se for erro de autorização mas o token existe, mostrar mensagem sem deslogar
+      // Token existe, trate como falta de permissão/acesso ao recurso, sem deslogar
       toast.warning('Você não tem permissão para acessar os cargos.');
     } else if (status === 403) {
       toast.warning('Você não tem permissão para acessar os cargos.');
@@ -669,34 +690,50 @@ async function loadCargos() {
 }
 
 async function loadLocalidades() {
-  // Não bloqueiar mais se não houver empresa_id, tenta carregar mesmo assim
-  
+  // Tenta endpoint escopado por empresa se disponível; caso contrário, usa o genérico
   loadingLocalidades.value = true;
   try {
-    const res = await api.get('/localidades');
-    localidades.value = (res.data || []).map(l => ({
-      id: l.id || l.ID,
-      nome: l.nome || l.Nome
-    })).filter(l => l.id && l.nome);
-    
-    if (localidades.value.length === 0) {
+    const endpoints = [];
+    if (empresaId) endpoints.push(`/empresas/${empresaId}/localidades`);
+    endpoints.push('/localidades');
+
+    let loaded = false;
+    for (const path of endpoints) {
+      try {
+        const res = await api.get(path);
+        const data = res.data;
+        const lista = Array.isArray(data) ? data : (Array.isArray(data?.localidades) ? data.localidades : []);
+        localidades.value = (lista || []).map(l => ({
+          id: l.id || l.ID,
+          nome: l.nome || l.Nome,
+          cidade: l.cidade || l.Cidade || '',
+          estado: l.estado || l.Estado || ''
+        })).filter(l => l.id && l.nome);
+
+        loaded = true;
+        break;
+      } catch (errTry) {
+        const statusTry = errTry.response?.status;
+        // Se 401/403/404, tenta o próximo endpoint; outros erros: relança
+        if (![401, 403, 404].includes(statusTry)) throw errTry;
+        // Continua para tentar o próximo
+      }
+    }
+
+    if (!loaded) {
+      toast.warning('Não foi possível carregar as localidades deste usuário.');
+    } else if (localidades.value.length === 0) {
       toast.info('Nenhuma localidade cadastrada. Você pode adicionar localidades depois.');
     }
   } catch(err) {
     const status = err.response?.status;
-    const data = err.response?.data;
-    
     if (status === 401) {
-      // Verificar se é realmente falta de autenticação ou apenas permissão
-      const errorMsg = data?.error || data?.message || '';
-      if (errorMsg.toLowerCase().includes('token') || 
-          errorMsg.toLowerCase().includes('expirado') ||
-          errorMsg.toLowerCase().includes('autenticação')) {
+      const hasToken = !!localStorage.getItem('token');
+      if (!hasToken) {
         toast.error('Sessão expirada. Faça login novamente.');
         router.push('/login');
         return;
       }
-      // Se for erro de autorização mas o token existe, mostrar mensagem sem deslogar
       toast.warning('Você não tem permissão para acessar as localidades.');
     } else if (status === 403) {
       toast.warning('Você não tem permissão para acessar as localidades.');
