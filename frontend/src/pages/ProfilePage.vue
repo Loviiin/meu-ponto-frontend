@@ -22,12 +22,19 @@
           <div class="card shadow-sm">
             <div class="card-body text-center">
               <div class="avatar-container mb-3">
-                <img 
-                  :src="profile.avatar || '/default-avatar.png'" 
-                  :alt="profile.nome"
-                  class="avatar-image"
-                  @error="handleImageError"
-                />
+                <!-- Avatar com foto ou iniciais -->
+                <div class="avatar-wrapper">
+                  <img 
+                    v-if="profile.avatar"
+                    :src="profile.avatar" 
+                    :alt="profile.nome"
+                    class="avatar-image"
+                    @error="handleImageError"
+                  />
+                  <div v-else class="avatar-initials">
+                    {{ getInitials(profile.nome) }}
+                  </div>
+                </div>
                 <label for="avatar-upload" class="avatar-upload-btn" title="Alterar foto">
                   <i class="bi bi-camera-fill"></i>
                 </label>
@@ -452,9 +459,17 @@ const handleAvatarUpload = async (event) => {
   }
 }
 
-// Handle image error
+// Handle image error - remove broken image and show initials
 const handleImageError = (event) => {
-  event.target.src = '/default-avatar.png'
+  profile.value.avatar = null // Remove avatar quebrado para mostrar iniciais
+}
+
+// Get user initials for avatar
+const getInitials = (nome) => {
+  if (!nome) return '?'
+  const words = nome.trim().split(' ').filter(w => w.length > 0)
+  if (words.length === 1) return words[0].substring(0, 2).toUpperCase()
+  return (words[0][0] + words[words.length - 1][0]).toUpperCase()
 }
 
 // Format date
@@ -569,6 +584,31 @@ onMounted(() => {
 .avatar-upload-btn:hover {
   transform: scale(1.1);
   box-shadow: 0 4px 12px rgba(212, 175, 55, 0.5);
+}
+
+/* Avatar Wrapper */
+.avatar-wrapper {
+  position: relative;
+  width: 150px;
+  height: 150px;
+  margin: 0 auto;
+}
+
+.avatar-initials {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #d4af37 0%, #aa8c2c 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+  font-weight: 700;
+  color: rgba(0, 0, 36, 0.9);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  border: 3px solid rgba(212, 175, 55, 0.3);
+  box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
 }
 
 /* Stats */

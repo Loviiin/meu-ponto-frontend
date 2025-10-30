@@ -31,12 +31,16 @@
             <div class="card-body text-center">
               <div class="avatar-wrapper mb-3 position-relative">
                 <img 
-                  :src="profile?.avatar || '/default-avatar.png'" 
+                  v-if="profile?.avatar"
+                  :src="profile.avatar" 
                   :alt="profile?.nome"
                   class="avatar-image rounded-circle"
                   style="width: 150px; height: 150px; object-fit: cover;"
                   @error="handleImageError"
                 />
+                <div v-else class="avatar-initials" style="width: 150px; height: 150px;">
+                  {{ getInitials(profile?.nome) }}
+                </div>
                 <label 
                   for="avatar-upload" 
                   class="position-absolute bottom-0 end-0 btn btn-primary btn-sm rounded-circle"
@@ -602,7 +606,17 @@ export default {
     };
     
     const handleImageError = (event) => {
-      event.target.src = '/default-avatar.png';
+      // Remove avatar quebrado para mostrar iniciais
+      if (profile.value) {
+        profile.value.avatar = null;
+      }
+    };
+
+    const getInitials = (nome) => {
+      if (!nome) return '?';
+      const words = nome.trim().split(' ').filter(w => w.length > 0);
+      if (words.length === 1) return words[0].substring(0, 2).toUpperCase();
+      return (words[0][0] + words[words.length - 1][0]).toUpperCase();
     };
     
     const changePassword = async () => {
@@ -785,6 +799,21 @@ export default {
 .avatar-image {
   border: 4px solid #fff;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.avatar-initials {
+  border-radius: 50%;
+  background: linear-gradient(135deg, #d4af37 0%, #aa8c2c 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+  font-weight: 700;
+  color: rgba(0, 0, 36, 0.9);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  border: 3px solid rgba(212, 175, 55, 0.3);
+  box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
 }
 
 .timeline-item {
