@@ -174,25 +174,9 @@
 
 <script>
 import { Modal } from 'bootstrap';
-import axios from 'axios';
+import api from '../axios';
 import JustificativaService from '../services/JustificativaService';
 import { toast } from '../toast';
-
-const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api/v1',
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
-
-// Adicionar token ao header
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
 
 export default {
   name: 'CriarJustificativaModal',
@@ -215,7 +199,8 @@ export default {
       modalElement: null,
       modal: null,
       enviando: false,
-      carregandoPontos: false
+      carregandoPontos: false,
+      ultimaTipoCarregado: null
     };
   },
   computed: {
@@ -238,12 +223,17 @@ export default {
   },
   watch: {
     pontoSelecionado(novoValor) {
-      if (novoValor) {
+      if (novoValor && novoValor.id) {
         // Pré-preencher para correção
         this.formulario.tipo = 'CORRECAO_PONTO';
         this.formulario.ponto_id = novoValor.id;
         this.formulario.novo_horario = novoValor.timestamp;
         this.formulario.data_ocorrencia = novoValor.timestamp.split('T')[0];
+        
+        // Só carrega pontos se ainda não foram carregados
+        if (this.pontosFiltrados.length === 0 && !this.carregandoPontos) {
+          this.carregarPontosParaCorrecao();
+        }
       }
     }
   },
@@ -277,10 +267,16 @@ export default {
       this.formulario.ponto_id = null;
       this.formulario.novo_horario = '';
       this.pontosFiltrados = [];
+      // Não chama carregarPontosParaCorrecao aqui
     },
 
     async carregarPontosParaCorrecao() {
       try {
+        // Evitar múltiplas requisições simultâneas
+        if (this.carregandoPontos) {
+          return;
+        }
+        
         this.carregandoPontos = true;
         const response = await api.get('/pontos/meus-registros');
         const pontos = response.data || [];

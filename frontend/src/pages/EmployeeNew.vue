@@ -322,6 +322,11 @@ import { REGEX } from '../utils/validators.js';
 const router = useRouter();
 const empresaId = Number(localStorage.getItem('empresa_id')) || null;
 
+// Log para debug
+if (!empresaId) {
+  console.warn('empresa_id não encontrado no localStorage. O funcionário será criado sem vínculo com empresa específica.');
+}
+
 const form = reactive({
   nome: '',
   cpf: '',
@@ -619,11 +624,8 @@ function validateAll() {
 
 // ---- Carregar Dados ----
 async function loadCargos() {
-  if (!empresaId) { 
-    toast.error('empresa_id não encontrado. Faça login novamente.'); 
-    router.push('/login'); 
-    return; 
-  }
+  // Não deslogar mais se não houver empresa_id
+  // O backend deve lidar com isso ou retornar todos os cargos disponíveis
   
   loadingCargos.value = true;
   try {
@@ -667,7 +669,7 @@ async function loadCargos() {
 }
 
 async function loadLocalidades() {
-  if (!empresaId) return;
+  // Não bloqueiar mais se não houver empresa_id, tenta carregar mesmo assim
   
   loadingLocalidades.value = true;
   try {
@@ -678,7 +680,7 @@ async function loadLocalidades() {
     })).filter(l => l.id && l.nome);
     
     if (localidades.value.length === 0) {
-      toast.warning('Nenhuma localidade cadastrada. Cadastre localidades primeiro.');
+      toast.info('Nenhuma localidade cadastrada. Você pode adicionar localidades depois.');
     }
   } catch(err) {
     const status = err.response?.status;
@@ -740,28 +742,30 @@ async function handleSubmit() {
   
   submitting.value = true;
   try {
+    // Payload seguindo exatamente a documentação da API
     const payload = {
+      // Dados do Usuário (obrigatórios)
       nome: form.nome.trim(),
-      cpf: form.cpf.replace(/\D/g, ''),
+      cpf: form.cpf.replace(/\D/g, ''), // Remove formatação
       email: form.email.toLowerCase().trim(),
       senha: form.senha,
+      
+      // Dados do Contrato (obrigatórios)
       cargo_id: Number(form.cargoId),
       localidade_id: Number(form.localidadeId),
       salario: Number(form.salario),
-      data_admissao: new Date(form.dataAdmissao).toISOString()
+      data_admissao: new Date(form.dataAdmissao).toISOString(),
+      
+      // Tipo de contrato (sempre enviar se tiver valor)
+      ...(form.tipoContrato && { tipo_contrato: form.tipoContrato }),
+      
+      // Carga horária personalizada (opcional)
+      ...(usarCargaPersonalizada.value && form.cargaHorariaDiariaMinutos && {
+        carga_horaria_diaria_minutos: Number(form.cargaHorariaDiariaMinutos),
+        carga_horaria_semanal_minutos: Number(form.cargaHorariaSemanalMinutos),
+        dias_trabalhados_semana: Number(form.diasTrabalhadosSemana)
+      })
     };
-
-    // Adicionar tipo de contrato se diferente de CLT
-    if (form.tipoContrato && form.tipoContrato !== 'CLT') {
-      payload.tipo_contrato = form.tipoContrato;
-    }
-
-    // Adicionar carga horária se personalizada
-    if (usarCargaPersonalizada.value && form.cargaHorariaDiariaMinutos) {
-      payload.carga_horaria_diaria_minutos = Number(form.cargaHorariaDiariaMinutos);
-      payload.carga_horaria_semanal_minutos = Number(form.cargaHorariaSemanalMinutos);
-      payload.dias_trabalhados_semana = Number(form.diasTrabalhadosSemana);
-    }
     
     const res = await api.post('/usuarios', payload, { 
       headers: { 'Content-Type': 'application/json' }
@@ -779,45 +783,63 @@ async function handleSubmit() {
 function handleSubmitError(err) {
   const status = err.response?.status;
   const data = err.response?.data;
+  const errorMsg = data?.error || data?.message || data?.details || '';
   let msg = 'Erro ao criar funcionário';
   
+  // Tratamento de erros seguindo o guia da API
   if (status === 400) {
-    msg = data?.error || data?.message || 'Dados inválidos. Verifique os campos.';
-  } else if (status === 409) {
-    msg = data?.error || data?.message || 'Email ou CPF já cadastrado no sistema.';
-    if (msg.toLowerCase().includes('email')) {
-      errors.email = msg;
-      touched.add('email');
-    } else if (msg.toLowerCase().includes('cpf')) {
-      errors.cpf = msg;
-      touched.add('cpf');
+    msg = errorMsg || 'Dados inválidos. Verifique os campos preenchidos.';
+    // Verificar se é erro de salário fora da faixa
+    if (errorMsg.toLowerCase().includes('salário') || errorMsg.toLowerCase().includes('faixa')) {
+      errors.salario = errorMsg;
+      touched.add('salario');
     }
   } else if (status === 401) {
-    // Verificar se é realmente falta de autenticação ou apenas permissão
-    const errorMsg = data?.error || data?.message || '';
+    // Verificar se é token expirado ou falta de autenticação
     if (errorMsg.toLowerCase().includes('token') || 
         errorMsg.toLowerCase().includes('expirado') ||
         errorMsg.toLowerCase().includes('autenticação')) {
-      msg = 'Sessão expirada. Faça login novamente.';
+      msg = 'Sua sessão expirou. Por favor, faça login novamente.';
       toast.error(msg);
       router.push('/login');
       return;
     }
-    // Se for erro de autorização mas o token existe, mostrar mensagem sem deslogar
     msg = 'Você não tem permissão para criar funcionários.';
   } else if (status === 403) {
-    msg = 'Você não tem permissão para criar funcionários.';
+    // Erro de permissão - provavelmente tentando atribuir cargo superior
+    msg = errorMsg || 'Você não tem permissão para criar funcionários com este cargo. Apenas cargos com nível hierárquico igual ou inferior ao seu são permitidos.';
+  } else if (status === 404) {
+    // Cargo ou localidade não encontrados
+    if (errorMsg.toLowerCase().includes('cargo')) {
+      msg = 'Cargo não encontrado. Por favor, recarregue a página e tente novamente.';
+      errors.cargoId = 'Cargo inválido ou não encontrado';
+      touched.add('cargoId');
+    } else if (errorMsg.toLowerCase().includes('localidade')) {
+      msg = 'Localidade não encontrada. Por favor, recarregue a página e tente novamente.';
+      errors.localidadeId = 'Localidade inválida ou não encontrada';
+      touched.add('localidadeId');
+    } else {
+      msg = errorMsg || 'Recurso não encontrado. Recarregue a página.';
+    }
+  } else if (status === 409) {
+    // CPF ou Email duplicados
+    msg = errorMsg || 'Email ou CPF já cadastrado no sistema.';
+    if (errorMsg.toLowerCase().includes('email')) {
+      errors.email = 'Este email já está cadastrado';
+      touched.add('email');
+    } else if (errorMsg.toLowerCase().includes('cpf')) {
+      errors.cpf = 'Este CPF já está cadastrado';
+      touched.add('cpf');
+    }
   } else if (status >= 500) {
-    msg = data?.error || data?.message || 'Erro no servidor. Tente novamente mais tarde.';
-  } else if (data?.error) {
-    msg = data.error;
-  } else if (data?.message) {
-    msg = data.message;
+    msg = 'Erro no servidor. Tente novamente mais tarde ou contate o suporte técnico.';
+  } else if (errorMsg) {
+    msg = errorMsg;
   }
   
   toast.error(msg);
   liveMessage.value = msg;
-  console.error('Erro ao criar funcionário:', err);
+  console.error('Erro ao criar funcionário:', { status, data, error: err });
 }
 
 function goBack() { 
