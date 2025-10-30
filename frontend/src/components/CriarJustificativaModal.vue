@@ -8,7 +8,7 @@
     <div class="modal-dialog modal-lg">
       <div class="modal-content bg-dark text-white border-secondary">
         <div class="modal-header">
-          <h5 class="modal-title">📋 Nova Justificativa de Ponto</h5>
+          <h5 class="modal-title">📋 {{ modeTitle }}</h5>
           <button 
             type="button" 
             class="btn-close btn-close-white" 
@@ -18,6 +18,19 @@
         </div>
 
         <div class="modal-body">
+          <!-- Contexto do modo selecionado -->
+          <div v-if="formulario.tipo" class="alert alert-info py-2 small mb-3">
+            <strong>Modo:</strong>
+            <span v-if="formulario.tipo === 'PONTO_FALTANTE'">Criar ponto faltante</span>
+            <span v-else-if="formulario.tipo === 'CORRECAO_PONTO'">Correção de ponto existente</span>
+            <br />
+            <span>{{ modeHelp }}</span>
+            <template v-if="formulario.tipo === 'CORRECAO_PONTO' && formulario.ponto_id">
+              <br />
+              <span class="badge bg-primary">Ponto selecionado: #{{ formulario.ponto_id }}</span>
+            </template>
+          </div>
+
           <!-- Seleção de Tipo -->
           <div class="mb-4">
             <label class="form-label fw-bold">Tipo de Justificativa *</label>
@@ -164,7 +177,7 @@
             :disabled="!formularioValido || enviando"
           >
             <span v-if="enviando">⏳ Enviando...</span>
-            <span v-else>✅ Enviar Justificativa</span>
+            <span v-else>✅ {{ submitLabel }}</span>
           </button>
         </div>
       </div>
@@ -204,8 +217,32 @@ export default {
     };
   },
   computed: {
+    tiposPermitidos() {
+      // Valores aceitos pelo backend
+      return ['PONTO_FALTANTE', 'CORRECAO_PONTO'];
+    },
+    modeTitle() {
+      if (this.formulario.tipo === 'PONTO_FALTANTE') return 'Criar Ponto Faltante';
+      if (this.formulario.tipo === 'CORRECAO_PONTO') return 'Corrigir Ponto Existente';
+      return 'Nova Justificativa de Ponto';
+    },
+    submitLabel() {
+      if (this.formulario.tipo === 'PONTO_FALTANTE') return 'Enviar criação de ponto';
+      if (this.formulario.tipo === 'CORRECAO_PONTO') return 'Enviar correção de ponto';
+      return 'Enviar Justificativa';
+    },
+    modeHelp() {
+      if (this.formulario.tipo === 'PONTO_FALTANTE') {
+        return 'Um novo registro de ponto será criado com o horário informado quando for aprovado.';
+      }
+      if (this.formulario.tipo === 'CORRECAO_PONTO') {
+        return 'O ponto selecionado será atualizado para o novo horário quando for aprovado.';
+      }
+      return '';
+    },
     formularioValido() {
       if (!this.formulario.tipo) return false;
+      if (!this.tiposPermitidos.includes(this.formulario.tipo)) return false;
       if (!this.formulario.data_ocorrencia) return false;
       if (!this.formulario.novo_horario) return false;
       if (this.formulario.descricao.trim().length < 10) return false;
@@ -227,7 +264,8 @@ export default {
         // Pré-preencher para correção
         this.formulario.tipo = 'CORRECAO_PONTO';
         this.formulario.ponto_id = novoValor.id;
-        this.formulario.novo_horario = novoValor.timestamp;
+        // Converter ISO (com Z e frações) para formato aceito por input datetime-local (YYYY-MM-DDTHH:mm)
+        this.formulario.novo_horario = this.toInputDateTimeLocal(novoValor.timestamp);
         this.formulario.data_ocorrencia = novoValor.timestamp.split('T')[0];
         
         // Só carrega pontos se ainda não foram carregados
@@ -238,6 +276,27 @@ export default {
     }
   },
   methods: {
+    toInputDateTimeLocal(ts) {
+      if (!ts) return '';
+      const d = new Date(ts);
+      if (isNaN(d.getTime())) return '';
+      const pad = n => String(n).padStart(2, '0');
+      const yyyy = d.getFullYear();
+      const mm = pad(d.getMonth() + 1);
+      const dd = pad(d.getDate());
+      const hh = pad(d.getHours());
+      const mi = pad(d.getMinutes());
+      // Mantemos até minutos para compatibilidade ampla; segundos são opcionais
+      return `${yyyy}-${mm}-${dd}T${hh}:${mi}`;
+    },
+
+    fromInputDateTimeLocal(localStr) {
+      // Converte o valor do input (na hora local) para ISO UTC com 'Z'
+      // Ex.: '2025-10-30T21:08' -> '2025-10-30T23:08:00.000Z' (dependendo do fuso)
+      if (!localStr) return '';
+      const d = new Date(localStr);
+      return isNaN(d.getTime()) ? '' : d.toISOString();
+    },
     obterDataHoje() {
       const hoje = new Date();
       return hoje.toISOString().split('T')[0];
@@ -300,12 +359,17 @@ export default {
     selecionarPonto(ponto) {
       this.formulario.ponto_id = ponto.id;
       // Pré-preencher o horário atual do ponto
-      this.formulario.novo_horario = ponto.timestamp;
+      this.formulario.novo_horario = this.toInputDateTimeLocal(ponto.timestamp);
     },
 
     async enviarFormulario() {
       if (!this.formularioValido) {
         toast.error('❌ Preencha todos os campos obrigatórios corretamente');
+        return;
+      }
+
+      if (!this.tiposPermitidos.includes(this.formulario.tipo)) {
+        toast.error('❌ Tipo de justificativa inválido');
         return;
       }
 
@@ -315,7 +379,8 @@ export default {
         const dados = {
           tipo: this.formulario.tipo,
           data_ocorrencia: this.formulario.data_ocorrencia + 'T12:00:00Z',
-          novo_horario: this.formulario.novo_horario,
+          // Converter o valor do input local para ISO UTC antes de enviar
+          novo_horario: this.fromInputDateTimeLocal(this.formulario.novo_horario),
           descricao: this.formulario.descricao
         };
 
