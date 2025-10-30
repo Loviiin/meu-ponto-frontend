@@ -1,11 +1,52 @@
 <template>
   <div class="card mt-4">
     <div class="card-body">
-      <h3>🛠 Solicitar Ajuste de Ponto</h3>
-      <p>Solicite um ajuste de ponto caso tenha esquecido de registrar ou tenha ocorrido algum problema.</p>
+  <h3>🛠 Solicitar Ajuste de Ponto</h3>
+  <p>Escolha entre criar um ponto faltante ou corrigir um ponto existente.</p>
 
       <!-- Formulário de solicitação -->
       <form @submit.prevent="enviarJustificativa" class="mt-4">
+        <!-- Tipo de justificativa -->
+        <div class="mb-3">
+          <label class="form-label fw-bold">Tipo de Justificativa *</label>
+          <div class="btn-group w-100" role="group">
+            <input 
+              type="radio" 
+              class="btn-check" 
+              name="tipo"
+              id="tipoFaltantePg"
+              value="PONTO_FALTANTE"
+              v-model="form.tipo"
+            >
+            <label class="btn btn-outline-primary" for="tipoFaltantePg">
+              🕐 Ponto Faltante
+            </label>
+
+            <input 
+              type="radio" 
+              class="btn-check" 
+              name="tipo"
+              id="tipoCorrecaoPg"
+              value="CORRECAO_PONTO"
+              v-model="form.tipo"
+              @change="carregarPontos"
+            >
+            <label class="btn btn-outline-primary" for="tipoCorrecaoPg">
+              ✏️ Correção de Ponto
+            </label>
+          </div>
+        </div>
+
+        <!-- Ajuda do modo selecionado -->
+        <div v-if="form.tipo" class="alert alert-info py-2 small mb-3">
+          <strong>Modo:</strong>
+          <span v-if="form.tipo === 'PONTO_FALTANTE'">Criar ponto faltante</span>
+          <span v-else>Correção de ponto existente</span>
+          <br />
+          <span>{{ modeHelp }}</span>
+        </div>
+
+        <!-- Data de ocorrência -->
         <div class="mb-3">
           <label class="form-label">Data e Hora da Ocorrência *</label>
           <input 
@@ -14,19 +55,38 @@
             class="form-control"
             required
           />
-          <small class="text-muted">Quando deveria ter sido registrado o ponto</small>
+          <small class="text-muted">Data/hora do fato relacionado ao ajuste</small>
         </div>
 
+        <!-- Novo horário -->
         <div class="mb-3">
-          <label class="form-label">Tipo de Justificativa *</label>
-          <select v-model="form.tipo" class="form-select" required>
-            <option value="">Selecione...</option>
-            <option value="ENTRADA_ESQUECIDA">Entrada Esquecida</option>
-            <option value="SAIDA_ESQUECIDA">Saída Esquecida</option>
-            <option value="PONTO_INCORRETO">Ponto Incorreto</option>
-            <option value="SISTEMA_INDISPONIVEL">Sistema Indisponível</option>
-            <option value="OUTROS">Outros</option>
-          </select>
+          <label class="form-label">Novo Horário *</label>
+          <input 
+            type="datetime-local" 
+            v-model="form.novoHorario" 
+            class="form-control"
+            required
+          />
+          <small class="text-muted">Horário a ser criado (faltante) ou aplicado à correção</small>
+        </div>
+
+        <!-- Seleção de ponto (somente correção) -->
+        <div class="mb-3" v-if="form.tipo === 'CORRECAO_PONTO'">
+          <label class="form-label">Selecione o Ponto a Corrigir *</label>
+          <div v-if="pontos.length > 0" class="list-group">
+            <button 
+              v-for="p in pontos"
+              :key="p.id"
+              type="button"
+              class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+              :class="{ 'active': form.pontoId === p.id }"
+              @click="form.pontoId = p.id"
+            >
+              <span><strong>{{ formatarData(p.timestamp) }}</strong> <small class="text-muted">(#{{ p.id }})</small></span>
+              <input type="radio" class="form-check-input" :checked="form.pontoId === p.id" />
+            </button>
+          </div>
+          <div v-else class="alert alert-warning">Nenhum ponto recente encontrado.</div>
         </div>
 
         <div class="mb-3">
@@ -45,7 +105,7 @@
         <div class="d-flex gap-2">
           <button type="submit" class="btn btn-success" :disabled="enviando">
             <span v-if="enviando">Enviando...</span>
-            <span v-else>📤 Enviar Solicitação</span>
+            <span v-else>📤 {{ submitLabel }}</span>
           </button>
           <button type="button" class="btn btn-secondary" @click="limparFormulario" :disabled="enviando">
             Limpar
@@ -67,9 +127,14 @@ export default {
       enviando: false,
       form: {
         dataOcorrencia: "",
+        novoHorario: "",
         tipo: "",
-        descricao: ""
+        descricao: "",
+        pontoId: null
       }
+      ,
+      pontos: [],
+      tiposPermitidos: ['PONTO_FALTANTE', 'CORRECAO_PONTO']
     };
   },
   mounted() {
@@ -80,22 +145,75 @@ export default {
     const dia = String(agora.getDate()).padStart(2, '0');
     const hora = String(agora.getHours()).padStart(2, '0');
     const minuto = String(agora.getMinutes()).padStart(2, '0');
-    this.form.dataOcorrencia = `${ano}-${mes}-${dia}T${hora}:${minuto}`;
+    const local = `${ano}-${mes}-${dia}T${hora}:${minuto}`;
+    this.form.dataOcorrencia = local;
+    this.form.novoHorario = local;
   },
   methods: {
+    formatarData(datetime) {
+      return new Date(datetime).toLocaleString("pt-BR", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit"
+      });
+    },
+    modeHelp() {
+      if (this.form.tipo === 'PONTO_FALTANTE') {
+        return 'Um novo registro de ponto será criado quando aprovado.';
+      }
+      if (this.form.tipo === 'CORRECAO_PONTO') {
+        return 'O ponto selecionado será atualizado para o novo horário quando aprovado.';
+      }
+      return '';
+    },
+    submitLabel() {
+      if (this.form.tipo === 'PONTO_FALTANTE') return 'Enviar criação de ponto';
+      if (this.form.tipo === 'CORRECAO_PONTO') return 'Enviar correção de ponto';
+      return 'Enviar Solicitação';
+    },
+    async carregarPontos() {
+      try {
+        const res = await api.get('/pontos/meus-registros');
+        const pontos = res.data || [];
+        const umMesAtras = new Date();
+        umMesAtras.setMonth(umMesAtras.getMonth() - 1);
+        this.pontos = pontos
+          .filter(p => new Date(p.timestamp) > umMesAtras)
+          .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+      } catch (e) {
+        console.error('Erro ao carregar pontos:', e);
+        this.pontos = [];
+      }
+    },
     async enviarJustificativa() {
       try {
         this.enviando = true;
 
+        if (!this.tiposPermitidos.includes(this.form.tipo)) {
+          toast.error('❌ Tipo de justificativa inválido');
+          return;
+        }
+
         // Converte para ISO 8601 (UTC)
-        const dataLocal = new Date(this.form.dataOcorrencia);
-        const dataISO = dataLocal.toISOString();
+        const dataOcISO = new Date(this.form.dataOcorrencia).toISOString();
+        const novoHorISO = new Date(this.form.novoHorario).toISOString();
 
         const payload = {
-          data_ocorrencia: dataISO,
+          data_ocorrencia: dataOcISO,
+          novo_horario: novoHorISO,
           tipo: this.form.tipo,
           descricao: this.form.descricao.trim()
         };
+
+        if (this.form.tipo === 'CORRECAO_PONTO') {
+          if (!this.form.pontoId) {
+            toast.error('❌ Selecione o ponto a corrigir');
+            return;
+          }
+          payload.ponto_id = this.form.pontoId;
+        }
 
         await api.post("/justificativas", payload);
 
@@ -124,9 +242,12 @@ export default {
       
       this.form = {
         dataOcorrencia: `${ano}-${mes}-${dia}T${hora}:${minuto}`,
+        novoHorario: `${ano}-${mes}-${dia}T${hora}:${minuto}`,
         tipo: "",
-        descricao: ""
+        descricao: "",
+        pontoId: null
       };
+      this.pontos = [];
     }
   }
 };

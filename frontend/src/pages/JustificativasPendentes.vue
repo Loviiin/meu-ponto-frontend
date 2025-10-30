@@ -222,17 +222,13 @@ export default {
       });
     },
     traduzTipo(tipo) {
-      const map = {
+      const suportados = {
         PONTO_FALTANTE: "🕐 Ponto Faltante",
-        CORRECAO_PONTO: "✏️ Correção de Ponto",
-        // Tipos legados
-        ENTRADA_ESQUECIDA: "Entrada Esquecida",
-        SAIDA_ESQUECIDA: "Saída Esquecida",
-        PONTO_INCORRETO: "Ponto Incorreto",
-        SISTEMA_INDISPONIVEL: "Sistema Indisponível",
-        OUTROS: "Outros"
+        CORRECAO_PONTO: "✏️ Correção de Ponto"
       };
-      return map[tipo] || tipo;
+      if (suportados[tipo]) return suportados[tipo];
+      // Exibir marcação clara para tipos legados/não suportados
+      return `⚠️ Não suportado (${tipo})`;
     }
   }
 };

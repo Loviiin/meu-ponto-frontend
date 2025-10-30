@@ -166,7 +166,7 @@
             type="button" 
             class="btn btn-secondary" 
             data-bs-dismiss="modal"
-            @click="limparFormulario"
+            @click="handleCancelar"
           >
             Cancelar
           </button>
@@ -256,7 +256,18 @@ export default {
   },
   mounted() {
     this.modalElement = this.$refs.modalElement;
-    this.modal = new Modal(this.modalElement);
+    // Garante uma única instância e limpa backdrops em transições
+    this.modal = new Modal(this.modalElement, { backdrop: true, keyboard: true, focus: true });
+    this.modalElement.addEventListener('hidden.bs.modal', this.cleanupBackdrop);
+  },
+  beforeUnmount() {
+    try {
+      if (this.modal) {
+        this.modal.hide();
+        this.modal.dispose();
+      }
+    } catch (_) {}
+    this.cleanupBackdrop();
   },
   watch: {
     pontoSelecionado(novoValor) {
@@ -276,6 +287,22 @@ export default {
     }
   },
   methods: {
+    cleanupBackdrop() {
+      try {
+        document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+        document.body.classList.remove('modal-open');
+        if (document.body.style) {
+          document.body.style.removeProperty('padding-right');
+        }
+      } catch (_) {}
+    },
+
+    handleCancelar() {
+      try { this.modal?.hide(); } catch (_) {}
+      this.limparFormulario();
+      // Se por algum motivo o evento hidden não disparar, faz limpeza manual
+      this.cleanupBackdrop();
+    },
     toInputDateTimeLocal(ts) {
       if (!ts) return '';
       const d = new Date(ts);
@@ -430,6 +457,8 @@ export default {
 
     abrir() {
       this.limparFormulario();
+      // Se existir backdrop preso de uma interação anterior, remove antes de abrir
+      this.cleanupBackdrop();
       this.modal.show();
     }
   }
