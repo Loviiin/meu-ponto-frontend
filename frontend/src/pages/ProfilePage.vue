@@ -148,11 +148,11 @@
                     </div>
                     <div class="col-md-6">
                       <label class="form-label text-muted small">Carga Horária Semanal</label>
-                      <p class="fw-bold">{{ profile.contrato.carga_horaria_semanal }}h</p>
+                      <p class="fw-bold">{{ minutesToHours(profile.contrato.carga_horaria_semanal) }}h</p>
                     </div>
                     <div class="col-md-6">
                       <label class="form-label text-muted small">Carga Horária Mensal</label>
-                      <p class="fw-bold">{{ profile.contrato.carga_horaria_mensal }}h</p>
+                      <p class="fw-bold">{{ minutesToHours(profile.contrato.carga_horaria_mensal) }}h</p>
                     </div>
                     <div class="col-12" v-if="profile.contrato.localidade">
                       <label class="form-label text-muted small">Localidade</label>
@@ -332,6 +332,7 @@ const loadingActivity = ref(false)
 const updating = ref(false)
 const changingPassword = ref(false)
 const error = ref(null)
+const isInitialized = ref(false) // Previne múltiplos carregamentos
 
 const editForm = ref({
   nome: '',
@@ -346,6 +347,9 @@ const passwordForm = ref({
 
 // Load profile data with cache
 const loadProfile = async () => {
+  // Previne múltiplos carregamentos simultâneos
+  if (loading.value && isInitialized.value) return
+  
   try {
     loading.value = true
     // Usa cache automático (15 minutos) - 100% mais rápido em cache HIT
@@ -356,6 +360,7 @@ const loadProfile = async () => {
     editForm.value.telefone = profile.value.telefone || ''
     
     error.value = null
+    isInitialized.value = true
   } catch (err) {
     error.value = err.response?.data?.error || 'Erro ao carregar perfil'
     toast.error('Erro ao carregar perfil')
@@ -471,6 +476,12 @@ const formatDateTime = (dateString) => {
   if (!dateString) return 'N/A'
   const date = new Date(dateString)
   return date.toLocaleString('pt-BR')
+}
+
+// Convert minutes to hours
+const minutesToHours = (minutes) => {
+  if (!minutes) return 0
+  return (minutes / 60).toFixed(1)
 }
 
 // Get activity icon

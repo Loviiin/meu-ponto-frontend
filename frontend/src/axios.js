@@ -1,4 +1,5 @@
 import axios from 'axios'
+import ProfileService from './services/ProfileService'
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL,
@@ -14,5 +15,18 @@ api.interceptors.request.use(config => {
   }
   return config
 })
+
+// Interceptor de resposta para tratar erros 401 (não autenticado)
+api.interceptors.response.use(
+  response => response,
+  error => {
+    // Se receber 401, limpa o cache do ProfileService
+    if (error.response && error.response.status === 401) {
+      console.log('🔒 Token expirado ou inválido - Limpando cache')
+      ProfileService.clearCache()
+    }
+    return Promise.reject(error)
+  }
+)
 
 export default api

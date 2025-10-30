@@ -424,10 +424,10 @@ const validacaoCarga = computed(() => {
 
 // ---- Funções auxiliares ----
 function formatarMinutosParaHoras(minutos) {
-  if (!minutos) return '0h';
+  if (!minutos) return '0';
   const horas = Math.floor(minutos / 60);
   const mins = minutos % 60;
-  return mins > 0 ? `${horas}h${mins}min` : `${horas}h`;
+  return mins > 0 ? `${horas}:${mins.toString().padStart(2, '0')}` : `${horas}`;
 }
 
 function formatCPF() {

@@ -246,11 +246,11 @@
                     </div>
                     <div class="col-md-6">
                       <small class="text-muted d-block">Carga Horária Semanal</small>
-                      <strong>{{ profile?.contrato?.carga_horaria_semanal || 0 }}h</strong>
+                      <strong>{{ minutesToHours(profile?.contrato?.carga_horaria_semanal) }}h</strong>
                     </div>
                     <div class="col-md-6">
                       <small class="text-muted d-block">Carga Horária Mensal</small>
-                      <strong>{{ profile?.contrato?.carga_horaria_mensal || 0 }}h</strong>
+                      <strong>{{ minutesToHours(profile?.contrato?.carga_horaria_mensal) }}h</strong>
                     </div>
                     <div class="col-md-6">
                       <small class="text-muted d-block">Horário de Entrada</small>
@@ -633,7 +633,15 @@ export default {
     };
     
     const handleLogout = () => {
-      ProfileService.logout();
+      // Limpa o cache do ProfileService
+      ProfileService.clearCache();
+      
+      // Remove tokens de autenticação
+      localStorage.removeItem('access');
+      localStorage.removeItem('refresh');
+      localStorage.removeItem('token');
+      localStorage.removeItem('cargo');
+      
       router.push('/login');
       showToast('Logout realizado com sucesso', 'success');
     };
@@ -649,6 +657,12 @@ export default {
       if (!dateString) return '-';
       const date = new Date(dateString);
       return date.toLocaleString('pt-BR');
+    };
+    
+    // Convert minutes to hours
+    const minutesToHours = (minutes) => {
+      if (!minutes) return 0;
+      return (minutes / 60).toFixed(1);
     };
     
     const getMonthName = (month) => {

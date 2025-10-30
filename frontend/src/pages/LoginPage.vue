@@ -194,6 +194,7 @@ button.btn-primary:disabled {
 
 <script>
 import api from '../axios'
+import ProfileService from '../services/ProfileService'
 
 export default {
   name: 'LoginPage',
@@ -291,6 +292,9 @@ export default {
 
         const token = response.data.token;
         localStorage.setItem("token", token);
+        
+        // Limpa cache antigo ao fazer novo login
+        ProfileService.clearCache();
 
         const userResponse = await api.get(
           "/usuarios/me",

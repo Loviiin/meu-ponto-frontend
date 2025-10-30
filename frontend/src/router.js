@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import ProfileService from './services/ProfileService'
 import Login from './pages/LoginPage.vue'
 import Home from './pages/HomePage.vue'
 import EmployeeList from './pages/EmployeeList.vue'
@@ -178,6 +179,16 @@ const routes = [
 const router = createRouter({
   history: createWebHistory(),
   routes
+})
+
+// Clear cache when navigating to login page (logout scenario)
+router.beforeEach((to, from, next) => {
+  if (to.path === '/login' || to.path === '/') {
+    // Clear cache to ensure fresh data on next login
+    ProfileService.clearCache()
+    console.log('🧹 Cache limpo ao navegar para login')
+  }
+  next()
 })
 
 // Toggle login theme class on body based on current route

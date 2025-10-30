@@ -102,11 +102,18 @@
 
 <script setup>
 import { useRouter } from 'vue-router'
+import { logout } from '../auth'
+
 const router = useRouter()
 
 const logoutUser = () => {
-  localStorage.removeItem('token')
+  // Chama a função logout do auth.js que limpa o cache e todos os tokens
+  logout()
+  
+  // Remove outros dados se necessário
   localStorage.removeItem('cargo')
+  
+  // Redireciona para login
   router.push('/login')
 }
 </script>
