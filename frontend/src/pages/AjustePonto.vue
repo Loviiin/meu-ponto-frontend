@@ -43,7 +43,8 @@
           <span v-if="form.tipo === 'PONTO_FALTANTE'">Criar ponto faltante</span>
           <span v-else>Correção de ponto existente</span>
           <br />
-          <span>{{ modeHelp }}</span>
+          <span v-if="form.tipo === 'PONTO_FALTANTE'">Um novo registro de ponto será criado quando aprovado.</span>
+          <span v-else-if="form.tipo === 'CORRECAO_PONTO'">O ponto selecionado será atualizado para o novo horário quando aprovado.</span>
         </div>
 
         <!-- Data de ocorrência -->
@@ -78,7 +79,7 @@
               v-for="p in pontos"
               :key="p.id"
               type="button"
-              class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+              class="list-group-item list-group-item-action d-flex justify-content-between align-items-center ponto-item"
               :class="{ 'active': form.pontoId === p.id }"
               @click="form.pontoId = p.id"
             >
@@ -105,7 +106,9 @@
         <div class="d-flex gap-2">
           <button type="submit" class="btn btn-success" :disabled="enviando">
             <span v-if="enviando">Enviando...</span>
-            <span v-else>📤 {{ submitLabel }}</span>
+            <span v-else-if="form.tipo === 'PONTO_FALTANTE'">📤 Enviar criação de ponto</span>
+            <span v-else-if="form.tipo === 'CORRECAO_PONTO'">📤 Enviar correção de ponto</span>
+            <span v-else>📤 Enviar Solicitação</span>
           </button>
           <button type="button" class="btn btn-secondary" @click="limparFormulario" :disabled="enviando">
             Limpar
@@ -158,20 +161,6 @@ export default {
         hour: "2-digit",
         minute: "2-digit"
       });
-    },
-    modeHelp() {
-      if (this.form.tipo === 'PONTO_FALTANTE') {
-        return 'Um novo registro de ponto será criado quando aprovado.';
-      }
-      if (this.form.tipo === 'CORRECAO_PONTO') {
-        return 'O ponto selecionado será atualizado para o novo horário quando aprovado.';
-      }
-      return '';
-    },
-    submitLabel() {
-      if (this.form.tipo === 'PONTO_FALTANTE') return 'Enviar criação de ponto';
-      if (this.form.tipo === 'CORRECAO_PONTO') return 'Enviar correção de ponto';
-      return 'Enviar Solicitação';
     },
     async carregarPontos() {
       try {
@@ -261,6 +250,38 @@ export default {
   color: white;
   backdrop-filter: blur(8px);
 }
+
+.form-control, .form-select {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+.form-control:focus, .form-select:focus {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.4);
+  color: white;
+}
+
+.list-group-item.ponto-item {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.list-group-item.ponto-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.list-group-item.ponto-item.active {
+  background: rgba(13, 110, 253, 0.3);
+  border-color: rgba(13, 110, 253, 0.6);
+  color: white;
+}
+
 .table {
   width: 100%;
   table-layout: auto;

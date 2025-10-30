@@ -156,7 +156,12 @@ export default {
       }
     },
     async aprovar(id) {
-      if (!confirm("Tem certeza que deseja aprovar esta solicitação? Um ponto será criado automaticamente.")) {
+      const justificativa = this.justificativas.find(j => j.id === id);
+      const acao = justificativa?.tipo === 'CORRECAO_PONTO' 
+        ? 'O ponto será atualizado para o novo horário.' 
+        : 'Um novo ponto será criado automaticamente.';
+      
+      if (!confirm(`Tem certeza que deseja aprovar esta solicitação? ${acao}`)) {
         return;
       }
 
