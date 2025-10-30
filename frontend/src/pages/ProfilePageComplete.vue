@@ -633,9 +633,6 @@ export default {
     };
     
     const handleLogout = () => {
-      // Limpa o cache do ProfileService
-      ProfileService.clearCache();
-      
       // Remove tokens de autenticação
       localStorage.removeItem('access');
       localStorage.removeItem('refresh');

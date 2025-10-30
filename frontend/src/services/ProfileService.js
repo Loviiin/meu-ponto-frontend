@@ -171,79 +171,6 @@ class ProfileService {
     }
   }
 
-  // ====== MÉTODOS AUXILIARES DE CACHE (Frontend) ======
-
-  /**
-   * Busca perfil com cache (LocalStorage)
-   * Cache de 15 minutos conforme recomendação do guia
-   * @returns {Promise<Object>} Dados do perfil (do cache ou API)
-   */
-  async getProfileCached() {
-    const cached = localStorage.getItem('userCache')
-    
-    if (cached) {
-      const { user, timestamp, expiresIn } = JSON.parse(cached)
-      
-      // Cache ainda válido?
-      if (Date.now() - timestamp < expiresIn) {
-        console.log('✅ Cache HIT - Profile (0ms)')
-        return user
-      }
-    }
-    
-    // Cache expirado - buscar da API
-    console.log('⚠️ Cache MISS - Profile')
-    const profile = await this.getProfile()
-    
-    // Atualizar cache (15 minutos)
-    localStorage.setItem('userCache', JSON.stringify({
-      user: profile,
-      timestamp: Date.now(),
-      expiresIn: 15 * 60 * 1000 // 15 minutos
-    }))
-    
-    return profile
-  }
-
-  /**
-   * Invalida o cache do perfil
-   * Deve ser chamado após logout ou atualização de perfil
-   */
-  clearCache() {
-    localStorage.removeItem('userCache')
-    localStorage.removeItem('permissions')
-    console.log('🗑️ Cache limpo')
-  }
-
-  /**
-   * Busca permissões com cache (30 minutos)
-   * @returns {Promise<Object>} Permissões (do cache ou API)
-   */
-  async getPermissionsCached() {
-    const cached = localStorage.getItem('permissionsCache')
-    
-    if (cached) {
-      const { permissions, timestamp, expiresIn } = JSON.parse(cached)
-      
-      if (Date.now() - timestamp < expiresIn) {
-        console.log('✅ Cache HIT - Permissions (0ms)')
-        return permissions
-      }
-    }
-    
-    console.log('⚠️ Cache MISS - Permissions')
-    const permissions = await this.getPermissions()
-    
-    // Atualizar cache (30 minutos)
-    localStorage.setItem('permissionsCache', JSON.stringify({
-      permissions,
-      timestamp: Date.now(),
-      expiresIn: 30 * 60 * 1000 // 30 minutos
-    }))
-    
-    return permissions
-  }
-
   /**
    * Verifica se o usuário tem uma permissão específica
    * @param {string} permissionName - Nome da permissão (ex: "VER_SALDO_FUNCIONARIOS")
@@ -251,7 +178,7 @@ class ProfileService {
    */
   async hasPermission(permissionName) {
     try {
-      const data = await this.getPermissionsCached()
+      const data = await this.getPermissions()
       const permissions = data.permissoes || []
       return permissions.some(p => p.nome === permissionName)
     } catch (error) {

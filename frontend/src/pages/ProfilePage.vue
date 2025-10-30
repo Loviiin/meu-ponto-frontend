@@ -352,8 +352,7 @@ const loadProfile = async () => {
   
   try {
     loading.value = true
-    // Usa cache automático (15 minutos) - 100% mais rápido em cache HIT
-    profile.value = await ProfileService.getProfileCached()
+    profile.value = await ProfileService.getProfile()
     
     // Populate edit form
     editForm.value.nome = profile.value.nome
@@ -397,9 +396,6 @@ const updateProfile = async () => {
   try {
     updating.value = true
     await ProfileService.updateProfile(editForm.value)
-    
-    // Invalida cache para forçar reload com dados atualizados
-    ProfileService.clearCache()
     
     toast.success('Perfil atualizado com sucesso!')
     await loadProfile()
@@ -450,9 +446,6 @@ const handleAvatarUpload = async (event) => {
     if (profile.value) {
       profile.value.avatar = response.avatar_url
     }
-    
-    // Invalida cache para refletir mudanças
-    ProfileService.clearCache()
   } catch (err) {
     // ProfileService já retorna mensagens de erro descritivas
     toast.error(err.message || err.response?.data?.error || 'Erro ao fazer upload do avatar')
