@@ -68,6 +68,28 @@ const JustificativaService = {
   async cancelar(id) {
     const response = await api.delete(`justificativas/${id}/cancelar`);
     return response.data;
+  },
+
+  /**
+   * Solicitar correção de ponto (endpoint deprecated)
+   * @param {Object} dados - { ponto_id, nova_data_hora, descricao }
+   * @returns {Promise<Object>}
+   * @deprecated Use criar() com tipo CORRECAO_PONTO
+   */
+  async solicitarCorrecao(dados) {
+    const response = await api.post('justificativas/solicitar-correcao', dados);
+    return response.data;
+  },
+
+  /**
+   * Processar justificativa (aprovar ou reprovar)
+   * @param {Number} id - ID da justificativa
+   * @param {Object} dados - { aprovado: boolean, motivo_reprovacao?: string }
+   * @returns {Promise<Object>}
+   */
+  async processar(id, dados) {
+    const response = await api.post(`justificativas/${id}/processar`, dados);
+    return response.data;
   }
 };
 

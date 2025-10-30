@@ -3,9 +3,14 @@
     <div class="card-body">
       <div class="d-flex justify-content-between align-items-center mb-3">
         <h3>📌 Meus Pontos</h3>
-        <button class="btn btn-warning" @click="ajustarPonto">
-          Ajuste de ponto
-        </button>
+        <div class="d-flex gap-2">
+          <button class="btn btn-primary" @click="abrirModalCriarJustificativa">
+            📋 Criar Justificativa
+          </button>
+          <button class="btn btn-warning" @click="ajustarPonto">
+            Ajuste de ponto
+          </button>
+        </div>
       </div>
 
       <!-- Configuração -->
@@ -32,6 +37,9 @@
 
       <!-- Navegação -->
       <div class="d-flex justify-content-center align-items-center mb-3 gap-2 flex-wrap">
+        <button class="btn btn-success me-3" @click="abrirModalPontoFaltante">
+          <i class="bi bi-plus-circle me-1"></i> ➕ Ponto Faltante
+        </button>
         <button class="btn btn-primary me-3" @click="irParaRelatorio">
           <i class="bi bi-download me-1"></i> Exportar Relatório
         </button>
@@ -58,6 +66,7 @@
             <th>Método</th>
             <th>Latitude</th>
             <th>Longitude</th>
+            <th>Ações</th>
           </tr>
         </thead>
         <tbody>
@@ -67,27 +76,47 @@
             <td :data-label="'Método'">{{ ponto.metodo }}</td>
             <td :data-label="'Latitude'">{{ ponto.latitude }}</td>
             <td :data-label="'Longitude'">{{ ponto.longitude }}</td>
+            <td :data-label="'Ações'">
+              <button 
+                class="btn btn-sm btn-info"
+                @click="abrirModalCorrigirPonto(ponto)"
+                title="Corrigir este ponto"
+              >
+                ✏️
+              </button>
+            </td>
           </tr>
           <tr v-if="pontos.length === 0">
-            <td colspan="5">Nenhum ponto registrado nesse dia.</td>
+            <td colspan="6">Nenhum ponto registrado nesse dia.</td>
           </tr>
         </tbody>
       </table>
+
+      <!-- Modal de Justificativa -->
+      <CriarJustificativaModal 
+        ref="modalJustificativa"
+        :ponto-selecionado="pontoSelecionado"
+        @justificativa-criada="atualizarLista"
+      />
     </div>
   </div>
 </template>
 
 <script>
 import api from "../axios";
+import CriarJustificativaModal from "../components/CriarJustificativaModal.vue";
 
 export default {
   name: "PontoUserList",
+  components: {
+    CriarJustificativaModal
+  },
   data() {
     return {
       pontos: [],
       dataSelecionada: new Date(),
       usarAlmoco: true, // toggle almoço ativado por padrão
-      
+      pontoSelecionado: null
     };
   },
   computed: {
@@ -173,6 +202,22 @@ export default {
     irParaRelatorio() {
       const dia = this.dataSelecionadaStr
       this.$router.push({ name: 'RelatorioProprio', query: { dia } })
+    },
+    abrirModalCriarJustificativa() {
+      this.pontoSelecionado = null;
+      this.$refs.modalJustificativa?.abrir();
+    },
+    abrirModalPontoFaltante() {
+      this.pontoSelecionado = null;
+      // Pré-seta para PONTO_FALTANTE
+      this.$refs.modalJustificativa?.abrir();
+    },
+    abrirModalCorrigirPonto(ponto) {
+      this.pontoSelecionado = ponto;
+      this.$refs.modalJustificativa?.abrir();
+    },
+    atualizarLista() {
+      this.fetchPontos();
     }
   },
 };

@@ -223,6 +223,9 @@ export default {
     },
     traduzTipo(tipo) {
       const map = {
+        PONTO_FALTANTE: "🕐 Ponto Faltante",
+        CORRECAO_PONTO: "✏️ Correção de Ponto",
+        // Tipos legados
         ENTRADA_ESQUECIDA: "Entrada Esquecida",
         SAIDA_ESQUECIDA: "Saída Esquecida",
         PONTO_INCORRETO: "Ponto Incorreto",
