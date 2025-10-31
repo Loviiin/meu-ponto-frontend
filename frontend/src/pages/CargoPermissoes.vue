@@ -198,17 +198,11 @@ export default {
         this.processando = permissaoId
         const cargoId = this.$route.params.id
 
-        console.log('Atribuindo permissão', permissaoId, 'ao cargo', cargoId)
         await ProfileService.addPermissionToCargo(cargoId, permissaoId)
         toast.success('✅ Permissão atribuída com sucesso!')
 
-        // Recarregar apenas as permissões atribuídas
-        console.log('Recarregando permissões atribuídas...')
-        const atribuidasRes = await ProfileService.getCargoPermissions(cargoId)
-        // Criar novo array para forçar reatividade do Vue
-        this.permissoesAtribuidas = Array.isArray(atribuidasRes) ? [...atribuidasRes] : []
-        console.log('Permissões atribuídas atualizadas:', this.permissoesAtribuidas.length)
-        console.log('Lista atualizada:', this.permissoesAtribuidas.map(p => p.nome))
+        // Recarregar permissões
+        await this.carregarDados()
       } catch (error) {
         console.error('Erro ao atribuir permissão:', error)
         const msg = error.response?.data?.error || 'Erro ao atribuir permissão'
@@ -227,17 +221,11 @@ export default {
         this.processando = permissaoId
         const cargoId = this.$route.params.id
 
-        console.log('Removendo permissão', permissaoId, 'do cargo', cargoId)
         await ProfileService.removePermissionFromCargo(cargoId, permissaoId)
         toast.success('✅ Permissão removida com sucesso!')
 
-        // Recarregar apenas as permissões atribuídas
-        console.log('Recarregando permissões atribuídas...')
-        const atribuidasRes = await ProfileService.getCargoPermissions(cargoId)
-        // Criar novo array para forçar reatividade do Vue
-        this.permissoesAtribuidas = Array.isArray(atribuidasRes) ? [...atribuidasRes] : []
-        console.log('Permissões atribuídas atualizadas:', this.permissoesAtribuidas.length)
-        console.log('Lista atualizada:', this.permissoesAtribuidas.map(p => p.nome))
+        // Recarregar permissões
+        await this.carregarDados()
       } catch (error) {
         console.error('Erro ao remover permissão:', error)
         const msg = error.response?.data?.error || 'Erro ao remover permissão'

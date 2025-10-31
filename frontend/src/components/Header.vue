@@ -218,7 +218,7 @@ onUnmounted(() => {
 }
 
 .navbar-logo {
-  height: 52px; /* slightly larger per request */
+  height: 40px; /* reduced for more compact header */
   width: auto;
   object-fit: contain;
 }

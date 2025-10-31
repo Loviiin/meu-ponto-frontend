@@ -26,7 +26,7 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
-  padding-top: 64px; /* account for fixed navbar */
+  padding-top: 70px; /* account for fixed navbar */
   padding-bottom: 45px; /* espaço mínimo para footer compacto */
 }
 

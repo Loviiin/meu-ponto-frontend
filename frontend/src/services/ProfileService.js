@@ -212,9 +212,7 @@ class ProfileService {
    */
   async getCargoPermissions(cargoId) {
     try {
-      console.log(`[ProfileService] Buscando permissões do cargo ${cargoId}`)
       const response = await api.get(`/cargos/${cargoId}/permissoes`)
-      console.log('[ProfileService] Resposta recebida:', response.data)
       return response.data
     } catch (error) {
       console.error('Erro ao buscar permissões do cargo:', error)
@@ -232,9 +230,7 @@ class ProfileService {
    */
   async addPermissionToCargo(cargoId, permissaoId) {
     try {
-      console.log(`[ProfileService] Atribuindo permissão ${permissaoId} ao cargo ${cargoId}`)
       const response = await api.post(`/cargos/${cargoId}/permissoes/${permissaoId}`)
-      console.log('[ProfileService] Permissão atribuída:', response.data)
       return response.data
     } catch (error) {
       console.error('Erro ao adicionar permissão ao cargo:', error)
