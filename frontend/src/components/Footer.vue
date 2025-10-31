@@ -1,19 +1,14 @@
 <template>
     <footer class="footer">
-        <div class="footer-content">
-            <p class="footer-text mb-0">
-                <strong>© 2025 Nexora</strong> - Controle de ponto eletrônico
-            </p>
-            <div class="footer-version">
-                <span class="version-badge">v1.0.0</span>
-            </div>
-        </div>
+        <p class="footer-text mb-0">
+            <strong>© 2025 Nexora</strong> <span class="separator">•</span> <span class="version-text">v1.0.0</span>
+        </p>
     </footer>
 </template>
 
 <style scoped>
 .footer {
-  background: rgba(26, 36, 45, 0.7);
+  background: rgba(26, 36, 45, 0.85);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border-top: 1px solid rgba(255, 255, 255, 0.1);
@@ -21,90 +16,87 @@
   left: 0;
   bottom: 0;
   width: 100%;
-  z-index: 100;
+  z-index: 1100; /* Sempre acima de todo conteúdo */
   color: white;
-  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.2);
-}
-
-.footer-content {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.5rem 1rem;
-  max-width: 100%;
-  margin: 0 auto;
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.3);
+  padding: 0.4rem 1.5rem;
+  text-align: center;
 }
 
 .footer-text {
   font-size: 0.75rem;
   opacity: 0.9;
+  line-height: 1.2;
 }
 
 .footer-text strong {
   font-weight: 600;
 }
 
-.footer-version {
-  display: flex;
-  align-items: center;
-}
-
-.version-badge {
-  font-size: 0.7rem;
-  padding: 0.15rem 0.5rem;
+.version-text {
+  padding: 0.1rem 0.4rem;
   background: rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  font-weight: 500;
+  border-radius: 10px;
+  font-size: 0.7rem;
 }
 
-/* Responsividade para mobile */
+.separator {
+  margin: 0 0.3rem;
+  opacity: 0.6;
+}
+
+/* Responsividade para mobile - ultra compacto */
+@media (max-width: 768px) {
+  .footer {
+    padding: 0.25rem 0.75rem;
+  }
+  
+  .footer-text {
+    font-size: 0.65rem;
+  }
+  
+  .version-text {
+    font-size: 0.6rem;
+    padding: 0.05rem 0.3rem;
+  }
+  
+  .separator {
+    margin: 0 0.2rem;
+  }
+}
+
 @media (max-width: 576px) {
-  .footer-content {
-    flex-direction: column;
-    gap: 0.2rem;
-    padding: 0.35rem 0.5rem;
-    text-align: center;
+  .footer {
+    padding: 0.2rem 0.5rem;
   }
   
   .footer-text {
     font-size: 0.6rem;
-    line-height: 1.2;
   }
   
-  .footer-text strong {
-    display: inline; /* manter na mesma linha para economizar espaço */
+  .version-text {
+    font-size: 0.55rem;
   }
   
-  .version-badge {
-    font-size: 0.6rem;
-    padding: 0.1rem 0.35rem;
+  /* Oculta texto desnecessário no mobile pequeno */
+  .footer-text strong::after {
+    content: " • Ponto";
   }
 }
 
-/* Extra small devices */
+/* Mobile extra pequeno - minimal */
 @media (max-width: 375px) {
-  .footer-content {
-    padding: 0.3rem 0.4rem;
+  .footer {
+    padding: 0.15rem 0.4rem;
   }
   
   .footer-text {
     font-size: 0.55rem;
   }
   
-  .version-badge {
-    font-size: 0.55rem;
-  }
-}
-
-/* Tablet */
-@media (min-width: 577px) and (max-width: 991px) {
-  .footer-content {
-    padding: 0.5rem 1.5rem;
-  }
-  
-  .footer-text {
-    font-size: 0.7rem;
+  .version-text {
+    font-size: 0.5rem;
+    padding: 0.05rem 0.25rem;
   }
 }
 

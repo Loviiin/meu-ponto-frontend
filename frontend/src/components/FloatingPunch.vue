@@ -49,7 +49,7 @@
   position: fixed;
   top: 20px;
   left: 10px;
-  z-index: 999;
+  z-index: 1030; /* Acima do navbar (1020) e abaixo do modal (1050) */
   margin-top: 50px;
 }
 
@@ -76,26 +76,57 @@
 @media (max-width: 768px) {
   .floating-container {
     top: auto;
-    bottom: 90px; /* acima do footer */
+    bottom: 50px; /* acima do footer */
     left: 50%;
     transform: translateX(-50%);
     margin-top: 0;
+    z-index: 1030; /* garante que fica acima de tudo exceto modals */
   }
   
   .floating-btn {
-    padding: 12px 16px;
+    padding: 12px 18px;
     font-size: 0.9rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  }
+  
+  .floating-btn:active {
+    transform: scale(0.95);
   }
   
   .expanded-card {
     width: 90vw;
-    max-width: 280px;
+    max-width: 320px;
+    position: fixed;
+    bottom: 50px;
+    left: 50%;
+    transform: translateX(-50%);
   }
 }
 
 @media (max-width: 576px) {
   .floating-container {
-    bottom: 95px; /* mais espaço no mobile pequeno */
+    bottom: 45px;
+  }
+  
+  .floating-btn {
+    padding: 10px 16px;
+    font-size: 0.85rem;
+  }
+  
+  .expanded-card {
+    bottom: 45px;
+  }
+}
+
+@media (max-width: 375px) {
+  .floating-container {
+    bottom: 40px;
+  }
+  
+  .expanded-card {
+    bottom: 40px;
+    width: 95vw;
+    max-width: 280px;
   }
 }
 
