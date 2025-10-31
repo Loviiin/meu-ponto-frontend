@@ -85,16 +85,21 @@ body > .modal-backdrop ~ .modal-backdrop {
   1000: Base content
   1020: Navbar
   1030: Floating button
+  1035: Footer
   1040: Modal backdrop
   1050: Modal
-  1100: Footer (sempre visível)
 */
 
-/* Garantir que footer fique sempre fixo no bottom */
+/* Garantir que footer fique sempre fixo no bottom mas abaixo de modals */
 .footer {
   position: fixed !important;
   bottom: 0 !important;
   left: 0 !important;
   right: 0 !important;
-  z-index: 1100 !important;
+  z-index: 1035 !important;
+}
+
+/* Quando modal estiver aberto, esconder o footer temporariamente */
+body.modal-open .footer {
+  z-index: 1000 !important;
 }

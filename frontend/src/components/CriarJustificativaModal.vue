@@ -256,6 +256,11 @@ export default {
   },
   mounted() {
     this.modalElement = this.$refs.modalElement;
+    
+    // Limpa qualquer backdrop órfão antes de criar instância
+    document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+    document.body.classList.remove('modal-open');
+    
     // Garante uma única instância e limpa backdrops em transições
     this.modal = new Modal(this.modalElement, { backdrop: true, keyboard: true, focus: true });
     
@@ -270,14 +275,43 @@ export default {
         this.cleanupBackdrop();
       }, 150);
     });
+    
+    // Observer para detectar backdrops órfãos
+    this.backdropObserver = setInterval(() => {
+      const backdrops = document.querySelectorAll('.modal-backdrop');
+      const openModals = document.querySelectorAll('.modal.show');
+      
+      // Se há backdrop mas nenhum modal aberto, remove
+      if (backdrops.length > 0 && openModals.length === 0) {
+        console.warn('Backdrop órfão detectado, removendo...');
+        backdrops.forEach(el => el.remove());
+        document.body.classList.remove('modal-open');
+        document.body.style.removeProperty('padding-right');
+        document.body.style.removeProperty('overflow');
+      }
+      
+      // Se há mais de um backdrop, remove extras
+      if (backdrops.length > 1) {
+        console.warn('Múltiplos backdrops detectados, limpando...');
+        for (let i = 1; i < backdrops.length; i++) {
+          backdrops[i].remove();
+        }
+      }
+    }, 500);
   },
   beforeUnmount() {
+    // Limpa o observer
+    if (this.backdropObserver) {
+      clearInterval(this.backdropObserver);
+    }
+    
     try {
       if (this.modal) {
         this.modal.hide();
         this.modal.dispose();
       }
     } catch (_) {}
+    
     this.cleanupBackdrop();
   },
   watch: {
@@ -300,15 +334,27 @@ export default {
   methods: {
     cleanupBackdrop() {
       try {
-        // Remove TODOS os backdrops (pode haver múltiplos se bug)
-        document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+        // Remove TODOS os backdrops - força remoção múltipla
+        setTimeout(() => {
+          const backdrops = document.querySelectorAll('.modal-backdrop');
+          backdrops.forEach(el => {
+            el.remove();
+          });
+        }, 0);
+        
+        // Segunda tentativa após um delay
+        setTimeout(() => {
+          const backdrops = document.querySelectorAll('.modal-backdrop');
+          backdrops.forEach(el => {
+            el.remove();
+          });
+        }, 100);
         
         // Remove classes e estilos do body
         document.body.classList.remove('modal-open');
-        if (document.body.style) {
-          document.body.style.removeProperty('padding-right');
-          document.body.style.removeProperty('overflow');
-        }
+        document.body.style.removeProperty('padding-right');
+        document.body.style.removeProperty('overflow');
+        document.body.style.overflow = '';
         
         // Limpa qualquer fade show que ficou preso
         document.querySelectorAll('.modal.show, .modal.fade.show').forEach(modal => {
@@ -499,32 +545,61 @@ export default {
     },
 
     abrir() {
-      // Limpa qualquer backdrop existente antes de abrir
-      this.cleanupBackdrop();
+      // Limpeza agressiva de qualquer backdrop existente
+      const limparTudo = () => {
+        document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+        document.body.classList.remove('modal-open');
+        document.body.style.removeProperty('padding-right');
+        document.body.style.removeProperty('overflow');
+      };
       
-      // Aguarda um tick para garantir que o DOM está limpo
-      this.$nextTick(() => {
+      // Limpa imediatamente
+      limparTudo();
+      
+      // Limpa novamente após um tick
+      setTimeout(limparTudo, 0);
+      
+      // Aguarda para garantir DOM limpo
+      setTimeout(() => {
         this.limparFormulario();
         
         try {
           // Se o modal já estava aberto, fecha primeiro
-          if (this.modal._isShown) {
+          if (this.modal && this.modal._isShown) {
             this.modal.hide();
-            // Aguarda um pouco antes de reabrir
+            // Aguarda antes de reabrir
             setTimeout(() => {
-              this.cleanupBackdrop();
+              limparTudo();
               this.modal.show();
-            }, 100);
+            }, 150);
           } else {
+            // Se modal não existe ou não está inicializado, recria
+            if (!this.modal) {
+              this.modal = new Modal(this.modalElement, { 
+                backdrop: true, 
+                keyboard: true, 
+                focus: true 
+              });
+            }
             this.modal.show();
           }
         } catch (error) {
           console.error('Erro ao abrir modal:', error);
-          // Tenta criar uma nova instância se falhou
-          this.modal = new Modal(this.modalElement, { backdrop: true, keyboard: true, focus: true });
+          // Força recriação da instância
+          try {
+            if (this.modal) {
+              this.modal.dispose();
+            }
+          } catch (_) {}
+          
+          this.modal = new Modal(this.modalElement, { 
+            backdrop: true, 
+            keyboard: true, 
+            focus: true 
+          });
           this.modal.show();
         }
-      });
+      }, 100);
     }
   }
 };
