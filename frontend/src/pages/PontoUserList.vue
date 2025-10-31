@@ -4,10 +4,18 @@
       <div class="d-flex justify-content-between align-items-center mb-3">
         <h3>📌 Meus Pontos</h3>
         <div class="d-flex gap-2">
-          <button class="btn btn-primary" @click="abrirModalCriarJustificativa">
+          <button 
+            v-if="hasPerm('CRIAR_JUSTIFICATIVA_PROPRIA')"
+            class="btn btn-primary" 
+            @click="abrirModalCriarJustificativa"
+          >
             📋 Criar Justificativa
           </button>
-          <button class="btn btn-warning" @click="ajustarPonto">
+          <button 
+            v-if="hasPerm('CRIAR_JUSTIFICATIVA_PROPRIA')"
+            class="btn btn-warning" 
+            @click="ajustarPonto"
+          >
             Ajuste de ponto
           </button>
         </div>
@@ -37,7 +45,11 @@
 
       <!-- Navegação -->
       <div class="d-flex justify-content-center align-items-center mb-3 gap-2 flex-wrap">
-        <button class="btn btn-success me-3" @click="abrirModalPontoFaltante">
+        <button 
+          v-if="hasPerm('CRIAR_JUSTIFICATIVA_PROPRIA')"
+          class="btn btn-success me-3" 
+          @click="abrirModalPontoFaltante"
+        >
           <i class="bi bi-plus-circle me-1"></i> ➕ Ponto Faltante
         </button>
         <button class="btn btn-primary me-3" @click="irParaRelatorio">
@@ -105,6 +117,7 @@
 <script>
 import api from "../axios";
 import CriarJustificativaModal from "../components/CriarJustificativaModal.vue";
+import { getUserPermissions, hasPerm as hasPermission } from '../utils/permissions'
 
 export default {
   name: "PontoUserList",
@@ -124,6 +137,9 @@ export default {
     };
   },
   computed: {
+    userPermissions() {
+      return getUserPermissions()
+    },
     dataSelecionadaStr: {
       get() {
         return this.dataSelecionada.toISOString().split("T")[0];
@@ -172,6 +188,9 @@ export default {
     this.fetchPontos();
   },
   methods: {
+    hasPerm(permission) {
+      return hasPermission(this.userPermissions, permission)
+    },
     async fetchPontos() {
       try {
         const dia = this.dataSelecionadaStr;

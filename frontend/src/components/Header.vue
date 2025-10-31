@@ -33,8 +33,8 @@
             <router-link class="nav-link" to="/meu-banco-horas" @click="closeMobileMenu"><i class="bi bi-clock-history me-1"></i>Meu Banco de Horas</router-link>
           </li>
 
-          <!-- Cadastros -->
-          <li class="nav-item dropdown">
+          <!-- Cadastros (apenas se tiver permissão de editar usuários ou gerenciar cargos) -->
+          <li v-if="canAccessCadastros" class="nav-item dropdown">
             <a 
               class="nav-link dropdown-toggle" 
               href="#" 
@@ -45,16 +45,16 @@
               <i class="bi bi-ui-checks-grid me-1"></i>Cadastros
             </a>
             <ul class="dropdown-menu" :class="{ show: openDropdown === 'cadastros' }">
-              <li><router-link class="dropdown-item" to="/usuario/list" @click="closeMobileMenu">Listar Funcionários</router-link></li>
-              <li><router-link class="dropdown-item" to="/usuario/new" @click="closeMobileMenu">Novo Funcionário</router-link></li>
-              <li><hr class="dropdown-divider" /></li>
-              <li><router-link class="dropdown-item" to="/cargo/list" @click="closeMobileMenu">Listar Cargos</router-link></li>
-              <li><router-link class="dropdown-item" to="/cargo/new" @click="closeMobileMenu">Novo Cargo</router-link></li>
+              <li v-if="hasPerm('EDITAR_USUARIO')"><router-link class="dropdown-item" to="/usuario/list" @click="closeMobileMenu">Listar Funcionários</router-link></li>
+              <li v-if="hasPerm('EDITAR_USUARIO')"><router-link class="dropdown-item" to="/usuario/new" @click="closeMobileMenu">Novo Funcionário</router-link></li>
+              <li v-if="hasPerm('EDITAR_USUARIO') && hasPerm('GERENCIAR_CARGOS')"><hr class="dropdown-divider" /></li>
+              <li v-if="hasPerm('GERENCIAR_CARGOS')"><router-link class="dropdown-item" to="/cargo/list" @click="closeMobileMenu">Listar Cargos</router-link></li>
+              <li v-if="hasPerm('GERENCIAR_CARGOS')"><router-link class="dropdown-item" to="/cargo/new" @click="closeMobileMenu">Novo Cargo</router-link></li>
             </ul>
           </li>
 
-          <!-- Administrativo -->
-          <li class="nav-item dropdown">
+          <!-- Administrativo (apenas se tiver permissões administrativas) -->
+          <li v-if="canAccessAdministrativo" class="nav-item dropdown">
             <a 
               class="nav-link dropdown-toggle" 
               href="#" 
@@ -65,11 +65,11 @@
               <i class="bi bi-building-gear me-1"></i>Administrativo
             </a>
             <ul class="dropdown-menu" :class="{ show: openDropdown === 'administrativo' }">
-              <li><router-link class="dropdown-item" to="/empresa/list" @click="closeMobileMenu">Listar Empresas</router-link></li>
-              <li><router-link class="dropdown-item" to="/empresa/new" @click="closeMobileMenu">Nova Empresa</router-link></li>
-              <li><hr class="dropdown-divider" /></li>
-              <li><router-link class="dropdown-item" to="/permissoes" @click="closeMobileMenu">Gerenciar Permissões</router-link></li>
-              <li><router-link class="dropdown-item" to="/Solicitacoes/Ajuste-Ponto" @click="closeMobileMenu">Justificativas Pendentes</router-link></li>
+              <li v-if="hasPerm('EDITAR_EMPRESA')"><router-link class="dropdown-item" to="/empresa/list" @click="closeMobileMenu">Listar Empresas</router-link></li>
+              <li v-if="hasPerm('EDITAR_EMPRESA')"><router-link class="dropdown-item" to="/empresa/new" @click="closeMobileMenu">Nova Empresa</router-link></li>
+              <li v-if="(hasPerm('EDITAR_EMPRESA')) && (hasPerm('GERENCIAR_CARGOS') || hasPerm('APROVAR_JUSTIFICATIVAS'))"><hr class="dropdown-divider" /></li>
+              <li v-if="hasPerm('GERENCIAR_CARGOS')"><router-link class="dropdown-item" to="/permissoes" @click="closeMobileMenu">Gerenciar Permissões</router-link></li>
+              <li v-if="hasPerm('APROVAR_JUSTIFICATIVAS')"><router-link class="dropdown-item" to="/Solicitacoes/Ajuste-Ponto" @click="closeMobileMenu">Justificativas Pendentes</router-link></li>
             </ul>
           </li>
 
@@ -86,7 +86,7 @@
             </a>
             <ul class="dropdown-menu" :class="{ show: openDropdown === 'relatorios' }">
               <li><router-link class="dropdown-item" :to="{ name: 'RelatorioProprio' }" @click="closeMobileMenu">Exportar Relatório de Ponto</router-link></li>
-              <li><router-link class="dropdown-item" :to="{ name: 'RelatorioGeral' }" @click="closeMobileMenu">Relatório Geral de Ponto</router-link></li>
+              <li v-if="hasPerm('VISUALIZAR_RELATORIOS_GERAIS')"><router-link class="dropdown-item" :to="{ name: 'RelatorioGeral' }" @click="closeMobileMenu">Relatório Geral de Ponto</router-link></li>
             </ul>
           </li>
 
@@ -103,7 +103,7 @@
             </a>
             <ul class="dropdown-menu" :class="{ show: openDropdown === 'ponto' }">
               <li><router-link class="dropdown-item" to="/Meus-Pontos" @click="closeMobileMenu">Meus Registros</router-link></li>
-              <li><router-link class="dropdown-item" to="/Ajuste-Ponto" @click="closeMobileMenu">Solicitar Ajuste</router-link></li>
+              <li v-if="hasPerm('CRIAR_JUSTIFICATIVA_PROPRIA')"><router-link class="dropdown-item" to="/Ajuste-Ponto" @click="closeMobileMenu">Solicitar Ajuste</router-link></li>
               <li><router-link class="dropdown-item" to="/minhas-justificativas" @click="closeMobileMenu">Minhas Solicitações</router-link></li>
             </ul>
           </li>
@@ -126,11 +126,30 @@
 <script setup>
 import { useRouter } from 'vue-router'
 import { logout } from '../auth'
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { getUserPermissions, hasPerm as hasPermission, anyPerm } from '../utils/permissions'
 
 const router = useRouter()
 const isMobileMenuOpen = ref(false)
 const openDropdown = ref(null)
+
+// Obter permissões do usuário
+const userPermissions = computed(() => getUserPermissions())
+
+// Helper para verificar permissão
+const hasPerm = (permission) => {
+  return hasPermission(userPermissions.value, permission)
+}
+
+// Verificar se pode acessar menu de cadastros
+const canAccessCadastros = computed(() => {
+  return anyPerm(userPermissions.value, ['EDITAR_USUARIO', 'GERENCIAR_CARGOS'])
+})
+
+// Verificar se pode acessar menu administrativo
+const canAccessAdministrativo = computed(() => {
+  return anyPerm(userPermissions.value, ['EDITAR_EMPRESA', 'GERENCIAR_CARGOS', 'APROVAR_JUSTIFICATIVAS'])
+})
 
 const logoutUser = () => {
   // Chama a função logout do auth.js que limpa o cache e todos os tokens

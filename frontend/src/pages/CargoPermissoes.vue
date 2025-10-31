@@ -33,7 +33,7 @@
             >
               <div class="permission-info">
                 <strong>{{ getPermissionLabel(perm.nome) }}</strong>
-                <small class="text-muted d-block">{{ perm.descricao }}</small>
+                <small class="d-block">{{ perm.descricao }}</small>
               </div>
               <button 
                 class="btn btn-sm btn-danger"
@@ -77,8 +77,8 @@
             >
               <div class="permission-info">
                 <strong>{{ getPermissionLabel(perm.nome) }}</strong>
-                <small class="text-muted d-block">{{ perm.descricao }}</small>
-                <span class="badge bg-secondary mt-1">{{ getCategoryLabel(perm.nome) }}</span>
+                <small class="d-block">{{ perm.descricao }}</small>
+                <span class="badge mt-1">{{ getCategoryLabel(perm.nome) }}</span>
               </div>
               <button 
                 class="btn btn-sm btn-success"
@@ -97,9 +97,10 @@
 </template>
 
 <script>
+import api from '../axios'
 import ProfileService from '../services/ProfileService'
 import { toast } from '../toast'
-import { PERMISSION_LABELS, PERMISSION_CATEGORIES } from '../utils/permissions'
+import { PERMISSION_LABELS, PERMISSION_CATEGORIES, getUserPermissions, hasPerm as hasPermission } from '../utils/permissions'
 
 export default {
   name: 'CargoPermissoes',
@@ -114,6 +115,9 @@ export default {
     }
   },
   computed: {
+    userPermissions() {
+      return getUserPermissions()
+    },
     permissoesDisponiveis() {
       const atribuidasIds = new Set(this.permissoesAtribuidas.map(p => p.id))
       let disponiveis = this.todasPermissoes.filter(p => !atribuidasIds.has(p.id))
@@ -128,33 +132,60 @@ export default {
     }
   },
   async mounted() {
+    // Verificar se tem permissão para gerenciar cargos
+    if (!this.hasPerm('GERENCIAR_CARGOS')) {
+      toast.error('❌ Você não tem permissão para gerenciar permissões de cargos')
+      this.$router.push('/home')
+      return
+    }
+    
     await this.carregarDados()
   },
   methods: {
+    hasPerm(permission) {
+      return hasPermission(this.userPermissions, permission)
+    },
     async carregarDados() {
       try {
         this.carregando = true
         const cargoId = this.$route.params.id
 
+        if (!cargoId) {
+          toast.error('❌ ID do cargo não informado')
+          this.$router.push('/cargo/list')
+          return
+        }
+
         // Carregar cargo
-        const cargosRes = await this.$axios.get(`/cargos/${cargoId}`)
+        console.log('Carregando cargo:', cargoId)
+        const cargosRes = await api.get(`/cargos/${cargoId}`)
         this.cargo = cargosRes.data
+        console.log('Cargo carregado:', this.cargo)
 
         // Carregar todas as permissões disponíveis
+        console.log('Carregando todas as permissões...')
         const todasRes = await ProfileService.listAllPermissions()
-        this.todasPermissoes = todasRes || []
+        this.todasPermissoes = Array.isArray(todasRes) ? todasRes : []
+        console.log('Todas as permissões:', this.todasPermissoes.length)
 
         // Carregar permissões atribuídas ao cargo
+        console.log('Carregando permissões do cargo...')
         const atribuidasRes = await ProfileService.getCargoPermissions(cargoId)
-        this.permissoesAtribuidas = atribuidasRes || []
+        this.permissoesAtribuidas = Array.isArray(atribuidasRes) ? atribuidasRes : []
+        console.log('Permissões atribuídas:', this.permissoesAtribuidas.length)
 
       } catch (error) {
         console.error('Erro ao carregar dados:', error)
-        const msg = error.response?.data?.error || 'Erro ao carregar permissões'
+        console.error('Detalhes do erro:', error.response)
+        
+        const msg = error.response?.data?.error || error.message || 'Erro ao carregar permissões'
         toast.error(`❌ ${msg}`)
         
         if (error.response?.status === 403) {
           toast.error('❌ Você não tem permissão para gerenciar permissões de cargos')
+          this.$router.push('/cargo/list')
+        } else if (error.response?.status === 404) {
+          toast.error('❌ Cargo não encontrado')
           this.$router.push('/cargo/list')
         }
       } finally {
@@ -167,11 +198,17 @@ export default {
         this.processando = permissaoId
         const cargoId = this.$route.params.id
 
+        console.log('Atribuindo permissão', permissaoId, 'ao cargo', cargoId)
         await ProfileService.addPermissionToCargo(cargoId, permissaoId)
         toast.success('✅ Permissão atribuída com sucesso!')
 
-        // Recarregar permissões
-        await this.carregarDados()
+        // Recarregar apenas as permissões atribuídas
+        console.log('Recarregando permissões atribuídas...')
+        const atribuidasRes = await ProfileService.getCargoPermissions(cargoId)
+        // Criar novo array para forçar reatividade do Vue
+        this.permissoesAtribuidas = Array.isArray(atribuidasRes) ? [...atribuidasRes] : []
+        console.log('Permissões atribuídas atualizadas:', this.permissoesAtribuidas.length)
+        console.log('Lista atualizada:', this.permissoesAtribuidas.map(p => p.nome))
       } catch (error) {
         console.error('Erro ao atribuir permissão:', error)
         const msg = error.response?.data?.error || 'Erro ao atribuir permissão'
@@ -190,11 +227,17 @@ export default {
         this.processando = permissaoId
         const cargoId = this.$route.params.id
 
+        console.log('Removendo permissão', permissaoId, 'do cargo', cargoId)
         await ProfileService.removePermissionFromCargo(cargoId, permissaoId)
         toast.success('✅ Permissão removida com sucesso!')
 
-        // Recarregar permissões
-        await this.carregarDados()
+        // Recarregar apenas as permissões atribuídas
+        console.log('Recarregando permissões atribuídas...')
+        const atribuidasRes = await ProfileService.getCargoPermissions(cargoId)
+        // Criar novo array para forçar reatividade do Vue
+        this.permissoesAtribuidas = Array.isArray(atribuidasRes) ? [...atribuidasRes] : []
+        console.log('Permissões atribuídas atualizadas:', this.permissoesAtribuidas.length)
+        console.log('Lista atualizada:', this.permissoesAtribuidas.map(p => p.nome))
       } catch (error) {
         console.error('Erro ao remover permissão:', error)
         const msg = error.response?.data?.error || 'Erro ao remover permissão'
@@ -280,11 +323,23 @@ export default {
 .permission-info strong {
   display: block;
   margin-bottom: 0.25rem;
+  font-size: 1rem;
+  color: white;
 }
 
 .permission-info small {
-  font-size: 0.875rem;
-  opacity: 0.8;
+  font-size: 0.9rem;
+  color: #ffd700;
+  line-height: 1.5;
+  font-weight: 400;
+}
+
+.badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: rgba(255, 215, 0, 0.2) !important;
+  color: #ffd700 !important;
+  border: 1px solid rgba(255, 215, 0, 0.3);
 }
 
 .form-select {

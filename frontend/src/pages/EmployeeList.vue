@@ -8,8 +8,9 @@
             Funcionários
           </span>
           <div class="d-flex gap-2 align-items-center">
-            <!-- Toggle para mostrar saldo de banco de horas -->
+            <!-- Toggle para mostrar saldo de banco de horas (apenas se tiver permissão) -->
             <button 
+              v-if="hasPerm('VER_SALDO_FUNCIONARIOS')"
               class="btn btn-toggle" 
               @click="toggleMostrarSaldo" 
               :class="{ 'active': mostrarSaldo }"
@@ -19,7 +20,12 @@
               <i class="bi" :class="mostrarSaldo ? 'bi-eye-fill' : 'bi-eye-slash-fill'"></i>
               <span class="ms-2 d-none d-md-inline">Banco de Horas</span>
             </button>
-            <button class="btn btn-new" @click="$router.push('/usuario/new')" :disabled="loading">
+            <button 
+              v-if="hasPerm('EDITAR_USUARIO')"
+              class="btn btn-new" 
+              @click="$router.push('/usuario/new')" 
+              :disabled="loading"
+            >
               <i class="bi bi-person-plus-fill me-2"></i>
               Novo Funcionário
             </button>
@@ -65,7 +71,7 @@
                   <th>Nome</th>
                   <th>Email</th>
                   <th>Cargo</th>
-                  <th v-if="mostrarSaldo">Banco de Horas</th>
+                  <th v-if="mostrarSaldo && hasPerm('VER_SALDO_FUNCIONARIOS')">Banco de Horas</th>
                   <th>Ações</th>
                 </tr>
               </thead>
@@ -88,23 +94,43 @@
                       {{ getCargo(usuario) }}
                     </span>
                   </td>
-                  <td v-if="mostrarSaldo" data-label="Banco de Horas">
+                  <td v-if="mostrarSaldo && hasPerm('VER_SALDO_FUNCIONARIOS')" data-label="Banco de Horas">
                     <span class="badge-hours" :class="getSaldoBancoHorasClass(usuario)">
                       {{ getSaldoBancoHoras(usuario) }}
                     </span>
                   </td>
                   <td data-label="Ações">
                     <div class="action-buttons">
-                      <button class="btn-action btn-view" title="Visualizar" @click="viewUsuario(usuario.id)">
+                      <button 
+                        v-if="hasPerm('VISUALIZAR_PONTO_FUNCIONARIOS')"
+                        class="btn-action btn-view" 
+                        title="Visualizar" 
+                        @click="viewUsuario(usuario.id)"
+                      >
                         <i class="bi bi-eye-fill"></i>
                       </button>
-                      <button class="btn-action btn-edit" title="Editar" @click="editUsuario(usuario.id)">
+                      <button 
+                        v-if="hasPerm('EDITAR_USUARIO')"
+                        class="btn-action btn-edit" 
+                        title="Editar" 
+                        @click="editUsuario(usuario.id)"
+                      >
                         <i class="bi bi-pencil-square"></i>
                       </button>
-                      <button class="btn-action btn-report" title="Relatório" @click="viewReport(usuario.id)">
+                      <button 
+                        v-if="hasPerm('VISUALIZAR_PONTO_FUNCIONARIOS')"
+                        class="btn-action btn-report" 
+                        title="Relatório" 
+                        @click="viewReport(usuario.id)"
+                      >
                         <i class="bi bi-file-earmark-text-fill"></i>
                       </button>
-                      <button class="btn-action btn-delete" title="Excluir" @click="deleteUsuario(usuario.id)">
+                      <button 
+                        v-if="hasPerm('DELETAR_USUARIO')"
+                        class="btn-action btn-delete" 
+                        title="Excluir" 
+                        @click="deleteUsuario(usuario.id)"
+                      >
                         <i class="bi bi-trash-fill"></i>
                       </button>
                     </div>
@@ -122,6 +148,7 @@
 <script>
 import api from '../axios'
 import { toast } from '../toast.js'
+import { getUserPermissions, hasPerm as hasPermission } from '../utils/permissions'
 
 export default {
   name: 'EmployeeList',
@@ -134,22 +161,43 @@ export default {
       saldosBancoHoras: {} // Mapa: { userId: saldoMinutos }
     }
   },
+  computed: {
+    userPermissions() {
+      return getUserPermissions()
+    }
+  },
   async mounted() {
+    // Verificar se tem permissão básica para estar aqui
+    if (!this.hasPerm('EDITAR_USUARIO')) {
+      toast.error('❌ Você não tem permissão para visualizar esta página')
+      this.$router.push('/home')
+      return
+    }
+    
     // Carregar preferência do localStorage
     const preferencia = localStorage.getItem('mostrarSaldoBancoHoras')
     if (preferencia !== null) {
       this.mostrarSaldo = preferencia === 'true'
     }
+    
+    // Só mostrar saldo se tiver permissão
+    if (!this.hasPerm('VER_SALDO_FUNCIONARIOS')) {
+      this.mostrarSaldo = false
+    }
+    
     await this.fetchUsuarios()
   },
   methods: {
+    hasPerm(permission) {
+      return hasPermission(this.userPermissions, permission)
+    },
     async fetchUsuarios() {
       this.loading = true
       this.error = null
       try {
-        // ✅ Só busca saldos se o toggle estiver ativo
+        // ✅ Só busca saldos se o toggle estiver ativo E tiver permissão
         const params = {}
-        if (this.mostrarSaldo) {
+        if (this.mostrarSaldo && this.hasPerm('VER_SALDO_FUNCIONARIOS')) {
           params.include_saldo = true
         }
         
@@ -213,6 +261,11 @@ export default {
       }
     },
     async deleteUsuario(id) {
+      if (!this.hasPerm('DELETAR_USUARIO')) {
+        toast.error('❌ Você não tem permissão para excluir funcionários')
+        return
+      }
+      
       if (!confirm('Tem certeza que deseja excluir este funcionário?')) {
         return
       }

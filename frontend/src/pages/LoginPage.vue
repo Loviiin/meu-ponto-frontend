@@ -275,6 +275,7 @@ export default {
     async loginUser() {
       this.loading = true
       try {
+        // 1. Fazer login
         const response = await api.post(
           "/auth/login",
           {
@@ -291,7 +292,9 @@ export default {
 
         const token = response.data.token;
         localStorage.setItem("token", token);
+        localStorage.setItem("access", token); // Para compatibilidade com auth.js
 
+        // 2. Buscar dados do usuário
         const userResponse = await api.get(
           "/usuarios/me",
           {
@@ -310,10 +313,36 @@ export default {
           console.warn("Contrato não encontrado no payload de /usuarios/me. Verifique o backend ou o vínculo do usuário.");
         }
 
-        this.$router.push('/home');
+        // 3. Carregar permissões do usuário
+        try {
+          const permResponse = await api.get("/profile/me/permissions");
+          const permissions = permResponse.data.permissoes || [];
+          
+          // Salvar permissões no localStorage
+          const permissionNames = permissions.map(p => p.nome);
+          localStorage.setItem('user_permissions', JSON.stringify(permissionNames));
+          
+          console.log('✅ Permissões carregadas:', permissionNames);
+        } catch (permError) {
+          console.warn('⚠️ Erro ao carregar permissões:', permError);
+          // Continua mesmo sem permissões
+        }
+
+        // 4. Redirecionar para home
+        console.log('✅ Login bem-sucedido, redirecionando para /home...');
+        
+        // Usar nextTick para garantir que o router está pronto
+        await this.$nextTick();
+        
+        // Tentar redirecionar
+        await this.$router.push('/home');
+        console.log('✅ Redirecionamento concluído');
       } catch (error) {
-        console.error("Erro no login:", error.response?.data || error.message);
-        alert(error.response?.data?.message || "Não foi possível fazer login");
+        console.error("❌ Erro no login:", error.response?.data || error.message);
+        const errorMessage = error.response?.data?.message 
+          || error.response?.data?.error 
+          || "Não foi possível fazer login. Verifique suas credenciais.";
+        alert(errorMessage);
       } finally {
         this.loading = false
       }

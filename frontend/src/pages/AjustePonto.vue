@@ -122,6 +122,7 @@
 <script>
 import api from "../axios";
 import { toast } from "../toast";
+import { getUserPermissions, hasPerm as hasPermission } from '../utils/permissions'
 
 export default {
   name: "AjustePonto",
@@ -140,7 +141,19 @@ export default {
       tiposPermitidos: ['PONTO_FALTANTE', 'CORRECAO_PONTO']
     };
   },
+  computed: {
+    userPermissions() {
+      return getUserPermissions()
+    }
+  },
   mounted() {
+    // Verificar se tem permissão para criar justificativas
+    if (!this.hasPerm('CRIAR_JUSTIFICATIVA_PROPRIA')) {
+      toast.error('❌ Você não tem permissão para criar justificativas')
+      this.$router.push('/home')
+      return
+    }
+    
     // Define data/hora atual como padrão
     const agora = new Date();
     const ano = agora.getFullYear();
@@ -153,6 +166,9 @@ export default {
     this.form.novoHorario = local;
   },
   methods: {
+    hasPerm(permission) {
+      return hasPermission(this.userPermissions, permission)
+    },
     formatarData(datetime) {
       return new Date(datetime).toLocaleString("pt-BR", {
         day: "2-digit",

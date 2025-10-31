@@ -46,22 +46,22 @@ const routes = [
   {
     path: '/usuario/list',
     component: EmployeeList,
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true, permission: 'EDITAR_USUARIO' }
   },
   {
     path: '/usuario/new',
     component: EmployeeNew,
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true, permission: 'EDITAR_USUARIO' }
   },
   {
     path: '/usuario/edit/:id',
     component: EmployeeEdit,
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true, permission: 'EDITAR_USUARIO' }
   },
   {
     path: '/funcionarios/:id/editar',
     component: EmployeeEdit,
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true, permission: 'EDITAR_USUARIO' }
   },
   {
     path: '/empresa/list',
@@ -76,35 +76,35 @@ const routes = [
   {
     path: '/cargo/list',
     component: CargoList,
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true, permission: 'GERENCIAR_CARGOS' }
   },
   {
     path: '/cargo/new',
     component: CargoNew,
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true, permission: 'GERENCIAR_CARGOS' }
   },
   {
     path: '/cargo/detail/:id',
     name: 'CargoDetail',
     component: () => import('../src/pages/CargoDetail.vue'),
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true, permission: 'GERENCIAR_CARGOS' }
   },
   {
     path: '/cargo/edit/:id',
     name: 'CargoEdit',
     component: () => import('../src/pages/CargoEdit.vue'),
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true, permission: 'GERENCIAR_CARGOS' }
   },
   {
     path: '/cargo/:id/permissoes',
     name: 'CargoPermissoes',
     component: () => import('../src/pages/CargoPermissoes.vue'),
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true, permission: 'GERENCIAR_CARGOS' }
   },
   {
     path: '/permissoes',
     component: Permissoes,
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true, permission: 'GERENCIAR_CARGOS' }
   },
     {
     path: '/Meus-Pontos',
@@ -125,7 +125,7 @@ const routes = [
   {
     path: '/Solicitacoes/Ajuste-Ponto',
     component: JustificativasPendentes,
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true, permission: 'APROVAR_JUSTIFICATIVAS' }
   },
 
   // Relatórios de Ponto
@@ -145,7 +145,7 @@ const routes = [
     path: '/relatorio-geral',
     name: 'RelatorioGeral',
     component: () => import('./pages/RelatorioGeral.vue'),
-    meta: { requiresAuth: true, roles: ['ADMIN', 'MANAGER'] }
+    meta: { requiresAuth: true, permission: 'VISUALIZAR_RELATORIOS_GERAIS' }
   },
 
   // Banco de Horas
@@ -184,6 +184,36 @@ const routes = [
 const router = createRouter({
   history: createWebHistory(),
   routes
+})
+
+// Importar funções de permissão
+import { getUserPermissions, hasPerm } from './utils/permissions'
+
+// Guard de autenticação e permissões
+router.beforeEach((to, from, next) => {
+  // Verifica autenticação (aceita 'token' ou 'access' por compatibilidade)
+  const isAuthenticated = !!(localStorage.getItem('token') || localStorage.getItem('access'))
+  const requiresAuth = to.meta.requiresAuth
+  const requiredPermission = to.meta.permission
+
+  // Se a rota requer autenticação e o usuário não está autenticado
+  if (requiresAuth && !isAuthenticated) {
+    console.log('❌ Não autenticado, redirecionando para /login')
+    return next('/login')
+  }
+
+  // Se a rota requer permissão específica
+  if (requiredPermission && isAuthenticated) {
+    const userPermissions = getUserPermissions()
+    
+    if (!hasPerm(userPermissions, requiredPermission)) {
+      // Redireciona para home com mensagem de erro
+      console.warn(`⚠️ Acesso negado: permissão ${requiredPermission} necessária`)
+      return next('/home')
+    }
+  }
+
+  next()
 })
 
 // Toggle login theme class on body based on current route

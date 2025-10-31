@@ -47,7 +47,7 @@
             <th>Nome</th>
             <th>Descrição</th>
             <th style="width: 200px;">Data de Criação</th>
-            <th style="width: 180px;" class="text-center">Ações</th>
+            <th style="width: 220px;" class="text-center">Ações</th>
           </tr>
         </thead>
         <tbody>
@@ -75,6 +75,14 @@
                   @click="$router.push(`/cargo/detail/${cargo.id}`)"
                 >
                   <i class="bi bi-eye"></i>
+                </button>
+                <button
+                  v-if="podeGerenciarCargos"
+                  class="btn btn-sm btn-outline-info"
+                  title="Gerenciar Permissões"
+                  @click="$router.push(`/cargo/${cargo.id}/permissoes`)"
+                >
+                  <i class="bi bi-shield-lock"></i>
                 </button>
                 <button
                   v-if="podeGerenciarCargos"

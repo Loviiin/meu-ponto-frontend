@@ -99,6 +99,7 @@
 <script>
 import api from '../axios'
 import { toast } from '../toast'
+import { getUserPermissions, hasPerm as hasPermission } from '../utils/permissions'
 
 export default {
   name: 'CargoNew',
@@ -112,7 +113,18 @@ export default {
       errors: {}
     }
   },
+  mounted() {
+    // Verificar se tem permissão para gerenciar cargos
+    if (!this.hasPerm('GERENCIAR_CARGOS')) {
+      toast.error('❌ Você não tem permissão para gerenciar cargos')
+      this.$router.push('/home')
+      return
+    }
+  },
   computed: {
+    userPermissions() {
+      return getUserPermissions()
+    },
     isFormValid() {
       return (
         this.cargo.nome.trim().length >= 3 && 
@@ -121,6 +133,9 @@ export default {
     }
   },
   methods: {
+    hasPerm(permission) {
+      return hasPermission(this.userPermissions, permission)
+    },
     validateField(fieldName) {
       if (fieldName === 'nome') {
         if (!this.cargo.nome.trim()) {

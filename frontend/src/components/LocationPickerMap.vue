@@ -129,12 +129,27 @@ function updateCircle() {
 <style scoped>
 .map-wrapper {
   width: 100%;
-  height: 60vh;
+  height: 100%;
   border-radius: 8px;
   overflow: hidden;
+  position: relative;
+  touch-action: pan-x pan-y;
 }
+
 .map-el {
   width: 100%;
   height: 100%;
+  min-height: 250px;
+}
+
+/* Touch feedback para mobile */
+@media (max-width: 768px) {
+  .map-wrapper {
+    touch-action: pan-x pan-y pinch-zoom;
+  }
+  
+  .map-el {
+    min-height: 280px;
+  }
 }
 </style>

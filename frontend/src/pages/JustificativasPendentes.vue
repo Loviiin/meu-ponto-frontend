@@ -119,6 +119,7 @@
 <script>
 import api from "../axios";
 import { toast } from "../toast";
+import { getUserPermissions, hasPerm as hasPermission } from '../utils/permissions'
 
 export default {
   name: "JustificativasPendentes",
@@ -132,10 +133,25 @@ export default {
       motivoReprovacao: ""
     };
   },
-  async mounted() {
-    await this.fetchJustificativas();
+  computed: {
+    userPermissions() {
+      return getUserPermissions()
+    }
+  },
+  mounted() {
+    // Verificar se tem permissão para aprovar justificativas
+    if (!this.hasPerm('APROVAR_JUSTIFICATIVAS')) {
+      toast.error('❌ Você não tem permissão para aprovar justificativas')
+      this.$router.push('/home')
+      return
+    }
+    
+    this.fetchJustificativas();
   },
   methods: {
+    hasPerm(permission) {
+      return hasPermission(this.userPermissions, permission)
+    },
     async fetchJustificativas() {
       try {
         this.carregando = true;
@@ -156,6 +172,11 @@ export default {
       }
     },
     async aprovar(id) {
+      if (!this.hasPerm('APROVAR_JUSTIFICATIVAS')) {
+        toast.error('❌ Você não tem permissão para aprovar justificativas')
+        return
+      }
+      
       const justificativa = this.justificativas.find(j => j.id === id);
       const acao = justificativa?.tipo === 'CORRECAO_PONTO' 
         ? 'O ponto será atualizado para o novo horário.' 
@@ -193,6 +214,11 @@ export default {
       this.motivoReprovacao = "";
     },
     async reprovar() {
+      if (!this.hasPerm('APROVAR_JUSTIFICATIVAS')) {
+        toast.error('❌ Você não tem permissão para reprovar justificativas')
+        return
+      }
+      
       if (!this.motivoReprovacao || this.motivoReprovacao.trim().length < 10) {
         toast.error("❌ O motivo da reprovação deve ter no mínimo 10 caracteres.");
         return;

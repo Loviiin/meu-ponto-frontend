@@ -27,11 +27,13 @@
       <div class="modal-card">
         <h3>Ajuste sua localização</h3>
         <p class="modal-subtitle">A precisão atual é de {{ displayAccuracy }}. Arraste o marcador para a sua posição exata e confirme.</p>
-        <LocationPickerMap
-          v-if="selectedLocation"
-          :initialPosition="selectedLocation"
-          @position-changed="onMapPositionChanged"
-        />
+        <div class="map-container">
+          <LocationPickerMap
+            v-if="selectedLocation"
+            :initialPosition="selectedLocation"
+            @position-changed="onMapPositionChanged"
+          />
+        </div>
         <div class="modal-actions">
           <button class="btn-secondary" @click="cancelarAjuste" :disabled="posting">Cancelar</button>
           <button class="btn-primary" @click="confirmarAjuste" :disabled="posting">
@@ -207,9 +209,11 @@
   align-items: center;
   justify-content: center;
   z-index: 10000;
+  padding: 16px;
 }
 .modal-card {
   width: min(92vw, 720px);
+  max-height: 92vh;
   background: #0b1320cc;
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
@@ -218,12 +222,34 @@
   padding: 16px;
   color: #fff;
   box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
 }
+
+.modal-card h3 {
+  margin-top: 0;
+  margin-bottom: 8px;
+  font-size: 1.25rem;
+  color: rgba(212, 175, 55, 1);
+  flex-shrink: 0;
+}
+
 .modal-subtitle {
   font-size: 0.9rem;
   color: #e5e7eb;
-  margin-bottom: 8px;
+  margin-bottom: 12px;
+  flex-shrink: 0;
 }
+
+.map-container {
+  flex: 1;
+  min-height: 300px;
+  margin-bottom: 12px;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
 .modal-actions {
   display: flex;
   justify-content: flex-end;
@@ -237,6 +263,10 @@
   padding: 8px 12px;
   border-radius: 8px;
   cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-secondary:hover {
+  background: rgba(156, 163, 175, 0.1);
 }
 .btn-primary {
   background: rgba(212, 175, 55, 1);
@@ -246,6 +276,109 @@
   border-radius: 8px;
   cursor: pointer;
   font-weight: 600;
+  transition: all 0.2s;
+}
+.btn-primary:hover {
+  background: rgba(212, 175, 55, 0.9);
+}
+
+/* Responsividade do modal */
+@media (max-width: 768px) {
+  .modal-overlay {
+    padding: 8px;
+    padding-bottom: 55vh; /* espaço extra para os botões não ficarem no footer */
+  }
+  
+  .modal-card {
+    width: 100%;
+    max-width: 100%;
+    max-height: 90vh;
+    height: auto;
+    padding: 12px;
+    padding-bottom: 55vh;
+    border-radius: 8px;
+  }
+  
+  .modal-card h3 {
+    font-size: 1.1rem;
+    margin-bottom: 6px;
+  }
+  
+  .modal-subtitle {
+    font-size: 0.85rem;
+    margin-bottom: 8px;
+  }
+  
+  .map-container {
+    flex: 1;
+    min-height: 250px;
+    max-height: calc(90vh - 200px); /* deixa espaço para título + botões */
+    margin-bottom: 10px;
+  }
+  
+  .modal-actions {
+    flex-direction: column-reverse;
+    gap: 8px;
+    margin-top: auto;
+    padding-top: 12px;
+    flex-shrink: 0;
+  }
+  
+  .btn-secondary,
+  .btn-primary {
+    width: 100%;
+    padding: 12px;
+  }
+}
+
+@media (max-width: 576px) {
+  .modal-overlay {
+    padding: 6px;
+    padding-bottom: 55vh; /* ainda mais espaço em telas menores */
+  }
+  
+  .modal-card {
+    padding: 10px;
+    padding-bottom: 55vh;
+    max-height: 88vh;
+    height: auto;
+  }
+  
+  .map-container {
+    min-height: 200px;
+    max-height: calc(88vh - 180px);
+  }
+}
+
+@media (max-width: 375px) {
+  .modal-overlay {
+    padding: 4px;
+    padding-bottom: 55vh; /* máximo espaço para telas pequenas */
+  }
+  
+  .modal-card {
+    padding: 8px;
+    padding-bottom: 55vh;
+    border-radius: 6px;
+    max-height: 85vh;
+    height: auto;
+  }
+  
+  .modal-card h3 {
+    font-size: 1rem;
+    margin-bottom: 4px;
+  }
+  
+  .modal-subtitle {
+    font-size: 0.8rem;
+    margin-bottom: 6px;
+  }
+  
+  .map-container {
+    min-height: 180px;
+    max-height: calc(85vh - 160px);
+    margin-bottom: 8px;
+  }
 }
 </style>
 
