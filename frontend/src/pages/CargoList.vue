@@ -6,6 +6,7 @@
         Gerenciamento de Cargos
       </h2>
       <button
+        v-if="podeGerenciarCargos"
         class="btn btn-primary"
         @click="$router.push('/cargo/new')"
       >
@@ -27,7 +28,11 @@
       <i class="bi bi-inbox display-1 text-muted"></i>
       <h4 class="mt-3">Nenhum cargo cadastrado</h4>
       <p class="text-muted">Comece criando seu primeiro cargo</p>
-      <button class="btn btn-primary mt-2" @click="$router.push('/cargo/new')">
+      <button 
+        v-if="podeGerenciarCargos"
+        class="btn btn-primary mt-2" 
+        @click="$router.push('/cargo/new')"
+      >
         <i class="bi bi-plus-circle me-1"></i>
         Criar Primeiro Cargo
       </button>
@@ -72,6 +77,7 @@
                   <i class="bi bi-eye"></i>
                 </button>
                 <button
+                  v-if="podeGerenciarCargos"
                   class="btn btn-sm btn-outline-warning"
                   title="Editar Cargo"
                   @click="$router.push(`/cargo/edit/${cargo.id}`)"
@@ -79,6 +85,7 @@
                   <i class="bi bi-pencil-square"></i>
                 </button>
                 <button
+                  v-if="podeGerenciarCargos"
                   class="btn btn-sm btn-outline-danger"
                   title="Excluir Cargo"
                   @click="confirmDelete(cargo)"
@@ -97,6 +104,7 @@
 <script>
 import api from '../axios'
 import { toast } from '../toast'
+import { PERMISSIONS, getUserPermissions, hasPerm } from '../utils/permissions'
 
 export default {
   name: 'CargoList',
@@ -104,6 +112,12 @@ export default {
     return {
       cargos: [],
       loading: false
+    }
+  },
+  computed: {
+    podeGerenciarCargos() {
+      const userPerms = getUserPermissions()
+      return hasPerm(userPerms, PERMISSIONS.GERENCIAR_CARGOS)
     }
   },
   async mounted() {

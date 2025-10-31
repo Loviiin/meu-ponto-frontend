@@ -27,11 +27,33 @@ body {
   min-width: 320px;
   min-height: 100vh;
   padding-top: 64px; /* account for fixed navbar */
+  padding-bottom: 55px; /* espaço para o footer fixo (reduzido) */
 }
 
 /* remove navbar offset on login/signup */
 body.theme-login {
   padding-top: 0;
+  padding-bottom: 0; /* remove padding do footer no login */
+}
+
+/* Ajuste responsivo do padding do footer */
+@media (max-width: 576px) {
+  body {
+    padding-bottom: 60px; /* footer compacto no mobile */
+    padding-top: 56px; /* navbar um pouco menor no mobile */
+  }
+}
+
+@media (max-width: 375px) {
+  body {
+    padding-bottom: 55px; /* ainda mais compacto em telas pequenas */
+  }
+}
+
+@media (min-width: 577px) and (max-width: 991px) {
+  body {
+    padding-bottom: 58px; /* espaço intermediário no tablet */
+  }
 }
 
 /* Use Bootstrap heading scales by default; avoid global h1 overrides */
@@ -141,5 +163,52 @@ button:focus-visible {
     border-radius: 0.5rem;
     margin: 0.5rem 0;
     background-color: rgba(255, 255, 255, 0.06);
+  }
+}
+
+/* =============================================
+   Espaçamento adicional em containers principais
+   ============================================= */
+.container,
+.container-fluid,
+.card,
+.table-responsive {
+  margin-bottom: 1rem;
+}
+
+/* Ajuste para conteúdo principal não grudar no footer */
+#app > div:not(.navbar):not(.footer) {
+  min-height: calc(100vh - 119px); /* 64px navbar + 55px footer */
+}
+
+@media (max-width: 576px) {
+  #app > div:not(.navbar):not(.footer) {
+    min-height: calc(100vh - 116px); /* 56px navbar + 60px footer */
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+  
+  .container,
+  .container-fluid {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+  
+  /* Margens reduzidas no mobile */
+  .card {
+    margin-bottom: 0.75rem;
+    margin-left: 0.25rem;
+    margin-right: 0.25rem;
+  }
+  
+  /* Scroll suave e sem bounce */
+  body {
+    overscroll-behavior-y: contain;
+  }
+}
+
+@media (max-width: 375px) {
+  #app > div:not(.navbar):not(.footer) {
+    min-height: calc(100vh - 111px); /* 56px navbar + 55px footer */
   }
 }

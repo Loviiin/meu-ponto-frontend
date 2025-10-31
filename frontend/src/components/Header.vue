@@ -21,66 +21,90 @@
         <ul class="navbar-nav me-auto mb-2 mb-lg-0">
           <!-- Direct links -->
           <li class="nav-item">
-            <router-link class="nav-link" to="/home"><i class="bi bi-house-fill me-1"></i>Home</router-link>
+            <router-link class="nav-link" to="/home" @click="closeMobileMenu"><i class="bi bi-house-fill me-1"></i>Home</router-link>
           </li>
           <li class="nav-item">
-            <router-link class="nav-link" to="/dashboard"><i class="bi bi-speedometer2 me-1"></i>Dashboard</router-link>
+            <router-link class="nav-link" to="/dashboard" @click="closeMobileMenu"><i class="bi bi-speedometer2 me-1"></i>Dashboard</router-link>
           </li>
           <li class="nav-item">
-            <router-link class="nav-link" to="/calendario"><i class="bi bi-calendar3 me-1"></i>Calendário</router-link>
+            <router-link class="nav-link" to="/calendario" @click="closeMobileMenu"><i class="bi bi-calendar3 me-1"></i>Calendário</router-link>
           </li>
           <li class="nav-item">
-            <router-link class="nav-link" to="/meu-banco-horas"><i class="bi bi-clock-history me-1"></i>Meu Banco de Horas</router-link>
+            <router-link class="nav-link" to="/meu-banco-horas" @click="closeMobileMenu"><i class="bi bi-clock-history me-1"></i>Meu Banco de Horas</router-link>
           </li>
 
           <!-- Cadastros -->
-          <li class="nav-item dropdown" ref="cadastrosDropdown">
-            <a class="nav-link dropdown-toggle" href="#" role="button" @click.prevent="toggleDropdown($event)">
+          <li class="nav-item dropdown">
+            <a 
+              class="nav-link dropdown-toggle" 
+              href="#" 
+              role="button" 
+              @click.prevent="toggleDropdown('cadastros')"
+              :class="{ active: openDropdown === 'cadastros' }"
+            >
               <i class="bi bi-ui-checks-grid me-1"></i>Cadastros
             </a>
-            <ul class="dropdown-menu">
-              <li><router-link class="dropdown-item" to="/usuario/list" @click="closeAllDropdowns">Listar Funcionários</router-link></li>
-              <li><router-link class="dropdown-item" to="/usuario/new" @click="closeAllDropdowns">Novo Funcionário</router-link></li>
+            <ul class="dropdown-menu" :class="{ show: openDropdown === 'cadastros' }">
+              <li><router-link class="dropdown-item" to="/usuario/list" @click="closeMobileMenu">Listar Funcionários</router-link></li>
+              <li><router-link class="dropdown-item" to="/usuario/new" @click="closeMobileMenu">Novo Funcionário</router-link></li>
               <li><hr class="dropdown-divider" /></li>
-              <li><router-link class="dropdown-item" to="/cargo/list" @click="closeAllDropdowns">Listar Cargos</router-link></li>
-              <li><router-link class="dropdown-item" to="/cargo/new" @click="closeAllDropdowns">Novo Cargo</router-link></li>
+              <li><router-link class="dropdown-item" to="/cargo/list" @click="closeMobileMenu">Listar Cargos</router-link></li>
+              <li><router-link class="dropdown-item" to="/cargo/new" @click="closeMobileMenu">Novo Cargo</router-link></li>
             </ul>
           </li>
 
           <!-- Administrativo -->
-          <li class="nav-item dropdown" ref="administrativoDropdown">
-            <a class="nav-link dropdown-toggle" href="#" role="button" @click.prevent="toggleDropdown($event)">
+          <li class="nav-item dropdown">
+            <a 
+              class="nav-link dropdown-toggle" 
+              href="#" 
+              role="button" 
+              @click.prevent="toggleDropdown('administrativo')"
+              :class="{ active: openDropdown === 'administrativo' }"
+            >
               <i class="bi bi-building-gear me-1"></i>Administrativo
             </a>
-            <ul class="dropdown-menu">
-              <li><router-link class="dropdown-item" to="/empresa/list" @click="closeAllDropdowns">Listar Empresas</router-link></li>
-              <li><router-link class="dropdown-item" to="/empresa/new" @click="closeAllDropdowns">Nova Empresa</router-link></li>
+            <ul class="dropdown-menu" :class="{ show: openDropdown === 'administrativo' }">
+              <li><router-link class="dropdown-item" to="/empresa/list" @click="closeMobileMenu">Listar Empresas</router-link></li>
+              <li><router-link class="dropdown-item" to="/empresa/new" @click="closeMobileMenu">Nova Empresa</router-link></li>
               <li><hr class="dropdown-divider" /></li>
-              <li><router-link class="dropdown-item" to="/permissoes" @click="closeAllDropdowns">Gerenciar Permissões</router-link></li>
-              <li><router-link class="dropdown-item" to="/Solicitacoes/Ajuste-Ponto" @click="closeAllDropdowns">Justificativas Pendentes</router-link></li>
+              <li><router-link class="dropdown-item" to="/permissoes" @click="closeMobileMenu">Gerenciar Permissões</router-link></li>
+              <li><router-link class="dropdown-item" to="/Solicitacoes/Ajuste-Ponto" @click="closeMobileMenu">Justificativas Pendentes</router-link></li>
             </ul>
           </li>
 
           <!-- Relatórios -->
-          <li class="nav-item dropdown" ref="relatoriosDropdown">
-            <a class="nav-link dropdown-toggle" href="#" role="button" @click.prevent="toggleDropdown($event)">
+          <li class="nav-item dropdown">
+            <a 
+              class="nav-link dropdown-toggle" 
+              href="#" 
+              role="button" 
+              @click.prevent="toggleDropdown('relatorios')"
+              :class="{ active: openDropdown === 'relatorios' }"
+            >
               <i class="bi bi-bar-chart-line me-1"></i>Relatórios
             </a>
-            <ul class="dropdown-menu">
-              <li><router-link class="dropdown-item" :to="{ name: 'RelatorioProprio' }" @click="closeAllDropdowns">Exportar Relatório de Ponto</router-link></li>
-              <li><router-link class="dropdown-item" :to="{ name: 'RelatorioGeral' }" @click="closeAllDropdowns">Relatório Geral de Ponto</router-link></li>
+            <ul class="dropdown-menu" :class="{ show: openDropdown === 'relatorios' }">
+              <li><router-link class="dropdown-item" :to="{ name: 'RelatorioProprio' }" @click="closeMobileMenu">Exportar Relatório de Ponto</router-link></li>
+              <li><router-link class="dropdown-item" :to="{ name: 'RelatorioGeral' }" @click="closeMobileMenu">Relatório Geral de Ponto</router-link></li>
             </ul>
           </li>
 
           <!-- Ponto (colaborador) -->
-          <li class="nav-item dropdown" ref="pontoDropdown">
-            <a class="nav-link dropdown-toggle" href="#" role="button" @click.prevent="toggleDropdown($event)">
+          <li class="nav-item dropdown">
+            <a 
+              class="nav-link dropdown-toggle" 
+              href="#" 
+              role="button" 
+              @click.prevent="toggleDropdown('ponto')"
+              :class="{ active: openDropdown === 'ponto' }"
+            >
               <i class="bi bi-clock me-1"></i>Ponto
             </a>
-            <ul class="dropdown-menu">
-              <li><router-link class="dropdown-item" to="/Meus-Pontos" @click="closeAllDropdowns">Meus Registros</router-link></li>
-              <li><router-link class="dropdown-item" to="/Ajuste-Ponto" @click="closeAllDropdowns">Solicitar Ajuste</router-link></li>
-              <li><router-link class="dropdown-item" to="/minhas-justificativas" @click="closeAllDropdowns">Minhas Solicitações</router-link></li>
+            <ul class="dropdown-menu" :class="{ show: openDropdown === 'ponto' }">
+              <li><router-link class="dropdown-item" to="/Meus-Pontos" @click="closeMobileMenu">Meus Registros</router-link></li>
+              <li><router-link class="dropdown-item" to="/Ajuste-Ponto" @click="closeMobileMenu">Solicitar Ajuste</router-link></li>
+              <li><router-link class="dropdown-item" to="/minhas-justificativas" @click="closeMobileMenu">Minhas Solicitações</router-link></li>
             </ul>
           </li>
         </ul>
@@ -106,6 +130,7 @@ import { ref, onMounted, onUnmounted } from 'vue'
 
 const router = useRouter()
 const isMobileMenuOpen = ref(false)
+const openDropdown = ref(null)
 
 const logoutUser = () => {
   // Chama a função logout do auth.js que limpa o cache e todos os tokens
@@ -121,45 +146,36 @@ const logoutUser = () => {
 // Toggle menu mobile
 const toggleMobileMenu = () => {
   isMobileMenuOpen.value = !isMobileMenuOpen.value
+  // Fecha todos os dropdowns ao abrir/fechar menu mobile
+  openDropdown.value = null
+}
+
+// Fecha menu mobile ao navegar
+const closeMobileMenu = () => {
+  isMobileMenuOpen.value = false
+  openDropdown.value = null
 }
 
 // Função para abrir/fechar dropdown
-const toggleDropdown = (event) => {
-  const dropdownElement = event.target.closest('.dropdown')
-  if (!dropdownElement) return
-  
-  const isOpen = dropdownElement.classList.contains('show')
-  
-  // Fecha todos os dropdowns primeiro
-  closeAllDropdowns()
-  
-  // Se não estava aberto, abre este
-  if (!isOpen) {
-    dropdownElement.classList.add('show')
-    const menu = dropdownElement.querySelector('.dropdown-menu')
-    if (menu) {
-      menu.classList.add('show')
-    }
+const toggleDropdown = (dropdownName) => {
+  if (openDropdown.value === dropdownName) {
+    openDropdown.value = null
+  } else {
+    openDropdown.value = dropdownName
   }
-}
-
-// Função para fechar todos os dropdowns
-const closeAllDropdowns = () => {
-  document.querySelectorAll('.dropdown.show').forEach(dropdown => {
-    dropdown.classList.remove('show')
-    const menu = dropdown.querySelector('.dropdown-menu')
-    if (menu) {
-      menu.classList.remove('show')
-    }
-  })
-  // Fecha menu mobile também ao navegar
-  isMobileMenuOpen.value = false
 }
 
 // Fecha dropdowns ao clicar fora
 const handleClickOutside = (event) => {
-  if (!event.target.closest('.dropdown')) {
-    closeAllDropdowns()
+  // Não fecha se clicou no menu mobile ou dentro de um dropdown
+  if (!event.target.closest('.navbar-collapse') && !event.target.closest('.navbar-toggler')) {
+    openDropdown.value = null
+  }
+  
+  // Fecha menu mobile se clicou fora
+  if (!event.target.closest('.navbar') && isMobileMenuOpen.value) {
+    isMobileMenuOpen.value = false
+    openDropdown.value = null
   }
 }
 
@@ -234,6 +250,11 @@ onUnmounted(() => {
   color: rgba(255, 255, 255, 0.85) !important;
 }
 
+/* Active dropdown indicator */
+.nav-link.active {
+  color: rgba(255, 255, 255, 0.95) !important;
+}
+
 /* Mobile menu improvements */
 @media (max-width: 991.98px) {
   .navbar-collapse {
@@ -241,13 +262,34 @@ onUnmounted(() => {
     margin-top: 0.5rem;
     padding: 1rem;
     border-radius: 0.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
   }
   
   .dropdown-menu {
+    position: static !important;
+    transform: none !important;
     border: none;
     background: rgba(255, 255, 255, 0.05);
+    margin-top: 0.25rem;
+    margin-left: 1rem;
+    border-radius: 0.375rem;
+  }
+  
+  .dropdown-menu.show {
+    display: block;
+  }
+  
+  .nav-item.dropdown {
+    margin-bottom: 0.25rem;
+  }
+  
+  .nav-link.dropdown-toggle {
+    display: block;
+    width: 100%;
+    padding: 0.5rem 1rem;
   }
 }
+
 .dropdown-item:hover,
 .dropdown-item:focus {
   background: rgba(255, 255, 255, 0.12);

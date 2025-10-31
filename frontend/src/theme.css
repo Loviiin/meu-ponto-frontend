@@ -56,3 +56,26 @@ body.theme-login {
     --stop2: 90%;
   }
 }
+
+/* Modal backdrop fixes */
+.modal-backdrop {
+  z-index: 1040;
+}
+
+.modal-backdrop.show {
+  opacity: 0.5;
+}
+
+/* Prevenir múltiplos backdrops empilhados */
+body > .modal-backdrop ~ .modal-backdrop {
+  display: none !important;
+}
+
+/* Fix para modal aparecer acima do backdrop */
+.modal {
+  z-index: 1050;
+}
+
+.modal.fade .modal-dialog {
+  transition: transform 0.3s ease-out;
+}

@@ -96,6 +96,12 @@ const routes = [
     meta: { requiresAuth: true }
   },
   {
+    path: '/cargo/:id/permissoes',
+    name: 'CargoPermissoes',
+    component: () => import('../src/pages/CargoPermissoes.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
     path: '/permissoes',
     component: Permissoes,
     meta: { requiresAuth: true }

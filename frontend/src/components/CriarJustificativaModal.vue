@@ -258,7 +258,18 @@ export default {
     this.modalElement = this.$refs.modalElement;
     // Garante uma única instância e limpa backdrops em transições
     this.modal = new Modal(this.modalElement, { backdrop: true, keyboard: true, focus: true });
-    this.modalElement.addEventListener('hidden.bs.modal', this.cleanupBackdrop);
+    
+    // Eventos de limpeza
+    this.modalElement.addEventListener('hidden.bs.modal', () => {
+      this.cleanupBackdrop();
+    });
+    
+    this.modalElement.addEventListener('hide.bs.modal', () => {
+      // Limpeza preventiva ao começar a fechar
+      setTimeout(() => {
+        this.cleanupBackdrop();
+      }, 150);
+    });
   },
   beforeUnmount() {
     try {
@@ -289,19 +300,41 @@ export default {
   methods: {
     cleanupBackdrop() {
       try {
+        // Remove TODOS os backdrops (pode haver múltiplos se bug)
         document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+        
+        // Remove classes e estilos do body
         document.body.classList.remove('modal-open');
         if (document.body.style) {
           document.body.style.removeProperty('padding-right');
+          document.body.style.removeProperty('overflow');
         }
-      } catch (_) {}
+        
+        // Limpa qualquer fade show que ficou preso
+        document.querySelectorAll('.modal.show, .modal.fade.show').forEach(modal => {
+          if (modal !== this.modalElement) {
+            modal.classList.remove('show', 'fade');
+            modal.style.display = 'none';
+          }
+        });
+      } catch (error) {
+        console.warn('Erro ao limpar backdrop:', error);
+      }
     },
 
     handleCancelar() {
-      try { this.modal?.hide(); } catch (_) {}
+      try { 
+        if (this.modal) {
+          this.modal.hide(); 
+        }
+      } catch (_) {}
+      
       this.limparFormulario();
-      // Se por algum motivo o evento hidden não disparar, faz limpeza manual
-      this.cleanupBackdrop();
+      
+      // Limpeza garantida após animação de fade
+      setTimeout(() => {
+        this.cleanupBackdrop();
+      }, 300);
     },
     toInputDateTimeLocal(ts) {
       if (!ts) return '';
@@ -424,7 +457,17 @@ export default {
         this.$emit('justificativa-criada', response);
 
         this.limparFormulario();
-        this.modal.hide();
+        
+        // Fecha o modal e garante limpeza
+        try {
+          this.modal.hide();
+        } catch (_) {}
+        
+        // Limpeza adicional após um delay
+        setTimeout(() => {
+          this.cleanupBackdrop();
+        }, 300);
+        
       } catch (error) {
         console.error('Erro ao criar justificativa:', error);
         
@@ -456,10 +499,32 @@ export default {
     },
 
     abrir() {
-      this.limparFormulario();
-      // Se existir backdrop preso de uma interação anterior, remove antes de abrir
+      // Limpa qualquer backdrop existente antes de abrir
       this.cleanupBackdrop();
-      this.modal.show();
+      
+      // Aguarda um tick para garantir que o DOM está limpo
+      this.$nextTick(() => {
+        this.limparFormulario();
+        
+        try {
+          // Se o modal já estava aberto, fecha primeiro
+          if (this.modal._isShown) {
+            this.modal.hide();
+            // Aguarda um pouco antes de reabrir
+            setTimeout(() => {
+              this.cleanupBackdrop();
+              this.modal.show();
+            }, 100);
+          } else {
+            this.modal.show();
+          }
+        } catch (error) {
+          console.error('Erro ao abrir modal:', error);
+          // Tenta criar uma nova instância se falhou
+          this.modal = new Modal(this.modalElement, { backdrop: true, keyboard: true, focus: true });
+          this.modal.show();
+        }
+      });
     }
   }
 };

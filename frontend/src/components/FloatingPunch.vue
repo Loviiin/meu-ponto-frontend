@@ -51,28 +51,52 @@
   left: 10px;
   z-index: 999;
   margin-top: 50px;
-  
 }
 
 .floating-btn {
-  background: #2563eb;
+  background: rgba(26, 36, 45, 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   color: rgba(212, 175, 55, 1);
   font-weight: bold;
-  border: none;
+  border: 1px solid rgba(212, 175, 55, 1);
   padding: 15px 20px;
   border-radius: 10px;
   cursor: pointer;
   transition: all 0.3s;
-  background: rgba(26, 36, 45, 0.6); /* translúcido */
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(212, 175, 55, 1);
   box-shadow: 0 4px 16px rgba(0,0,0,0.3);
 }
 
 .floating-btn:hover {
-    color: white;
-    background: rgba(212, 175, 55, 1);
+  color: white;
+  background: rgba(212, 175, 55, 1);
+}
+
+/* Responsividade do botão flutuante */
+@media (max-width: 768px) {
+  .floating-container {
+    top: auto;
+    bottom: 90px; /* acima do footer */
+    left: 50%;
+    transform: translateX(-50%);
+    margin-top: 0;
+  }
+  
+  .floating-btn {
+    padding: 12px 16px;
+    font-size: 0.9rem;
+  }
+  
+  .expanded-card {
+    width: 90vw;
+    max-width: 280px;
+  }
+}
+
+@media (max-width: 576px) {
+  .floating-container {
+    bottom: 95px; /* mais espaço no mobile pequeno */
+  }
 }
 
 .expanded-card {

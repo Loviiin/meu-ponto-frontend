@@ -186,6 +186,75 @@ class ProfileService {
       return false
     }
   }
+
+  /**
+   * 9. Listar Todas as Permissões Disponíveis
+   * Endpoint: GET /api/v1/permissoes
+   * Retorna todas as permissões cadastradas no sistema
+   * @returns {Promise<Array>} Lista de permissões
+   */
+  async listAllPermissions() {
+    try {
+      const response = await api.get('/permissoes')
+      return response.data
+    } catch (error) {
+      console.error('Erro ao listar permissões:', error)
+      throw error
+    }
+  }
+
+  /**
+   * 10. Listar Permissões de um Cargo
+   * Endpoint: GET /api/v1/cargos/:id/permissoes
+   * Requer permissão: GERENCIAR_CARGOS
+   * @param {number} cargoId - ID do cargo
+   * @returns {Promise<Array>} Lista de permissões do cargo
+   */
+  async getCargoPermissions(cargoId) {
+    try {
+      const response = await api.get(`/cargos/${cargoId}/permissoes`)
+      return response.data
+    } catch (error) {
+      console.error('Erro ao buscar permissões do cargo:', error)
+      throw error
+    }
+  }
+
+  /**
+   * 11. Atribuir Permissão a um Cargo
+   * Endpoint: POST /api/v1/cargos/:id/permissoes/:permissaoId
+   * Requer permissão: GERENCIAR_CARGOS
+   * @param {number} cargoId - ID do cargo
+   * @param {number} permissaoId - ID da permissão
+   * @returns {Promise<Object>} Confirmação
+   */
+  async addPermissionToCargo(cargoId, permissaoId) {
+    try {
+      const response = await api.post(`/cargos/${cargoId}/permissoes/${permissaoId}`)
+      return response.data
+    } catch (error) {
+      console.error('Erro ao adicionar permissão ao cargo:', error)
+      throw error
+    }
+  }
+
+  /**
+   * 12. Remover Permissão de um Cargo
+   * Endpoint: DELETE /api/v1/cargos/:id/permissoes/:permissaoId
+   * Requer permissão: GERENCIAR_CARGOS
+   * @param {number} cargoId - ID do cargo
+   * @param {number} permissaoId - ID da permissão
+   * @returns {Promise<Object>} Confirmação
+   */
+  async removePermissionFromCargo(cargoId, permissaoId) {
+    try {
+      const response = await api.delete(`/cargos/${cargoId}/permissoes/${permissaoId}`)
+      return response.data
+    } catch (error) {
+      console.error('Erro ao remover permissão do cargo:', error)
+      throw error
+    }
+  }
 }
 
 // Exporta uma instância única do serviço (Singleton)

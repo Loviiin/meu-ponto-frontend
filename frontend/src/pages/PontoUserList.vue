@@ -112,9 +112,13 @@ export default {
     CriarJustificativaModal
   },
   data() {
+    const hoje = new Date();
+    // Define hora para meio-dia para evitar problemas de timezone
+    hoje.setHours(12, 0, 0, 0);
+    
     return {
       pontos: [],
-      dataSelecionada: new Date(),
+      dataSelecionada: hoje,
       usarAlmoco: true, // toggle almoço ativado por padrão
       pontoSelecionado: null
     };
@@ -125,7 +129,7 @@ export default {
         return this.dataSelecionada.toISOString().split("T")[0];
       },
       set(val) {
-        this.dataSelecionada = new Date(val);
+        this.dataSelecionada = new Date(val + "T12:00:00"); // Força meio-dia para evitar problemas de timezone
       },
     },
     horasTrabalhadas() {
@@ -182,12 +186,18 @@ export default {
       }
     },
     alterarDia(dias) {
-      this.dataSelecionada.setDate(this.dataSelecionada.getDate() + dias);
-      this.fetchPontos();
+      const novaData = new Date(this.dataSelecionada);
+      novaData.setDate(novaData.getDate() + dias);
+      this.dataSelecionada = novaData;
+      this.$nextTick(() => {
+        this.fetchPontos();
+      });
     },
     resetarHoje() {
       this.dataSelecionada = new Date();
-      this.fetchPontos();
+      this.$nextTick(() => {
+        this.fetchPontos();
+      });
     },
     ajustarPonto() {
       this.$router.push("/ajuste-ponto");

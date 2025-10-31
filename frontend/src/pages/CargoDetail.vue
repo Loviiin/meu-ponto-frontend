@@ -110,6 +110,53 @@
           <i class="bi bi-exclamation-triangle me-2"></i>
           <strong>Atenção:</strong> Este cargo foi excluído em {{ formatDate(cargo.deletedAt) }}
         </div>
+
+        <hr class="my-4" />
+
+        <!-- Permissions Section -->
+        <div class="row">
+          <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h5 class="mb-0">
+                <i class="bi bi-shield-lock me-2"></i>
+                Permissões do Cargo
+              </h5>
+              <button
+                v-if="podeGerenciarPermissoes"
+                class="btn btn-sm btn-primary"
+                @click="$router.push(`/cargo/${cargo.id}/permissoes`)"
+              >
+                <i class="bi bi-gear me-1"></i>
+                Gerenciar Permissões
+              </button>
+            </div>
+
+            <!-- Loading permissoes -->
+            <div v-if="loadingPermissoes" class="text-center py-3">
+              <div class="spinner-border spinner-border-sm text-muted" role="status">
+                <span class="visually-hidden">Carregando permissões...</span>
+              </div>
+            </div>
+
+            <!-- Lista de permissões -->
+            <div v-else-if="permissoes.length > 0" class="permissions-list">
+              <div 
+                v-for="perm in permissoes" 
+                :key="perm.id"
+                class="permission-badge"
+              >
+                <i class="bi bi-check-circle me-1"></i>
+                {{ getPermissionLabel(perm.nome) }}
+              </div>
+            </div>
+
+            <!-- Nenhuma permissão -->
+            <div v-else class="alert alert-info mb-0">
+              <i class="bi bi-info-circle me-2"></i>
+              Este cargo ainda não possui permissões atribuídas.
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- Action Footer -->
@@ -153,13 +200,23 @@
 <script>
 import api from '../axios'
 import { toast } from '../toast'
+import ProfileService from '../services/ProfileService'
+import { PERMISSIONS, PERMISSION_LABELS, getUserPermissions, hasPerm } from '../utils/permissions'
 
 export default {
   name: 'CargoDetail',
   data() {
     return {
       cargo: null,
-      loading: false
+      loading: false,
+      permissoes: [],
+      loadingPermissoes: false
+    }
+  },
+  computed: {
+    podeGerenciarPermissoes() {
+      const userPerms = getUserPermissions()
+      return hasPerm(userPerms, PERMISSIONS.GERENCIAR_CARGOS)
     }
   },
   async mounted() {
@@ -170,8 +227,28 @@ export default {
       return
     }
     await this.fetchCargo(id)
+    await this.fetchPermissoes(id)
   },
   methods: {
+    async fetchPermissoes(cargoId) {
+      this.loadingPermissoes = true
+      try {
+        const data = await ProfileService.getCargoPermissions(cargoId)
+        this.permissoes = data || []
+      } catch (error) {
+        console.error('Erro ao carregar permissões do cargo:', error)
+        // Não exibir erro se for 403 (sem permissão), apenas deixar vazio
+        if (error.response?.status !== 403) {
+          toast.error('Erro ao carregar permissões do cargo')
+        }
+      } finally {
+        this.loadingPermissoes = false
+      }
+    },
+    
+    getPermissionLabel(nome) {
+      return PERMISSION_LABELS[nome] || nome
+    },
     async fetchCargo(id) {
       this.loading = true
       try {
@@ -268,6 +345,28 @@ export default {
 
 .card-header {
   border-radius: 12px 12px 0 0 !important;
+}
+
+.permissions-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.permission-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  background: rgba(13, 110, 253, 0.1);
+  border: 1px solid rgba(13, 110, 253, 0.3);
+  border-radius: 6px;
+  color: #0d6efd;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.permission-badge i {
+  color: #198754;
   padding: 1.5rem;
 }
 
