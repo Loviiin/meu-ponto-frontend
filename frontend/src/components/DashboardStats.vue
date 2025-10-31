@@ -133,6 +133,7 @@ const loadStats = async () => {
   try {
     loading.value = true
     stats.value = await ProfileService.getStats()
+    console.log('Stats do dashboard:', stats.value)
   } catch (err) {
     console.error('Erro ao carregar estatísticas:', err)
   } finally {

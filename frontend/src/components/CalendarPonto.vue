@@ -247,6 +247,7 @@ const loadCalendar = async () => {
   try {
     loading.value = true
     calendar.value = await ProfileService.getCalendar(currentMonth.value, currentYear.value)
+    console.log('Dados do calendário:', calendar.value)
   } catch (err) {
     console.error('Erro ao carregar calendário:', err)
   } finally {

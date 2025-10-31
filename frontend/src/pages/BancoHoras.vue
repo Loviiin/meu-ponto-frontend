@@ -322,10 +322,22 @@ onMounted(async () => {
   aplicarFiltro();
 
   try {
-    const resp = await getDashboardData();
-    dashboardData.value = resp;
+    // Carregar dados completos do banco de horas com filtros opcionais
+    const resp = await getDashboardData(dataInicio.value, dataFim.value);
+    console.log('Dados do banco de horas:', resp);
+    
+    // Estrutura esperada do backend conforme documentação:
+    // {
+    //   saldo_total_minutos: number,
+    //   historico: array de { data, valor_alterado_minutos, saldo_resultante_minutos, motivo }
+    // }
+    dashboardData.value = {
+      saldo_total_minutos: resp.saldo_total_minutos || 0,
+      historico: resp.historico || [],
+    };
+    
   } catch (e) {
-    console.error(e);
+    console.error('Erro ao carregar banco de horas:', e);
     // Fallback de mock para demonstrar a funcionalidade quando o backend não estiver disponível
     isMock.value = true;
     error.value = 'Não foi possível carregar do servidor. Exibindo dados de demonstração.';
@@ -380,8 +392,12 @@ async function toggleDemo() {
     isMock.value = false;
     error.value = null;
     try {
-      const resp = await getDashboardData();
-      dashboardData.value = resp;
+      const resp = await getDashboardData(dataInicio.value, dataFim.value);
+      
+      dashboardData.value = {
+        saldo_total_minutos: resp.saldo_total_minutos || 0,
+        historico: resp.historico || [],
+      };
     } catch (e) {
       console.error(e);
       isMock.value = true;

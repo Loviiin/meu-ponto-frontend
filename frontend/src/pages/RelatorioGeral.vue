@@ -503,26 +503,157 @@ export default {
             }
             
             // Normalizar os dados dos usuários para o formato esperado
-            this.relatorioData = usuariosArray.map(user => ({
-              usuario_id: user.usuario?.id || user.id,
-              usuario_nome: user.usuario?.nome || user.nome,
-              usuario_cargo: user.usuario?.cargo_nome || user.cargo_nome,
-              total_horas_trabalhadas: this.converterMinutosParaHoras(user.resumo?.total_horas_trabalhadas_minutos || 0),
-              total_horas_extras: this.converterMinutosParaHoras(user.resumo?.total_horas_extras_minutos || 0),
-              total_horas_faltantes: this.converterMinutosParaHoras(user.resumo?.total_horas_faltantes_minutos || 0),
-              banco_horas_periodo: this.converterMinutosParaHoras(user.resumo?.banco_horas_minutos || 0),
-              detalhes_dias: user.dias || []
-            }))
+            this.relatorioData = usuariosArray.map((user, idx) => {
+              // Tentar encontrar os detalhes dos dias em várias propriedades possíveis
+              const diasOriginais = user.dias || 
+                                   user.detalhes_dias || 
+                                   user.detalhes || 
+                                   user.registros_dias ||
+                                   user.days ||
+                                   []
+              
+              console.log(`👤 Usuário ${idx + 1}:`, {
+                nome: user.usuario?.nome || user.nome,
+                detalhes_encontrados: diasOriginais.length,
+                propriedades_user: Object.keys(user)
+              })
+              
+              // Mapear os dias para o formato esperado pelo template
+              const detalhes = diasOriginais.map(dia => {
+                // Extrair entrada e saída das marcações
+                let primeiroRegistro = '-'
+                let ultimoRegistro = '-'
+                let diaSemana = '-'
+                
+                if (dia.marcacoes && Array.isArray(dia.marcacoes) && dia.marcacoes.length > 0) {
+                  // Pegar primeira entrada e última saída
+                  const primeira = dia.marcacoes[0]
+                  const ultima = dia.marcacoes[dia.marcacoes.length - 1]
+                  
+                  if (primeira?.entrada) {
+                    primeiroRegistro = this.formatarHorario(primeira.entrada)
+                  }
+                  if (ultima?.saida) {
+                    ultimoRegistro = this.formatarHorario(ultima.saida)
+                  }
+                }
+                
+                // Determinar o dia da semana
+                if (dia.data) {
+                  const date = new Date(dia.data + 'T00:00:00')
+                  diaSemana = date.toLocaleDateString('pt-BR', { weekday: 'long' })
+                }
+                
+                // Determinar status
+                let status = 'AUSENTE'
+                if (dia.inconsistente) {
+                  status = 'INCOMPLETO'
+                } else if (dia.total_trabalhado_minutos > 0) {
+                  status = 'COMPLETO'
+                } else if (dia.carga_esperada_minutos === 0) {
+                  status = 'FOLGA'
+                }
+                
+                return {
+                  data: dia.data,
+                  dia_semana: diaSemana,
+                  primeiro_registro: primeiroRegistro,
+                  ultimo_registro: ultimoRegistro,
+                  horas_esperadas_dia: this.converterMinutosParaHoras(dia.carga_esperada_minutos || 0),
+                  total_horas_dia: this.converterMinutosParaHoras(dia.total_trabalhado_minutos || 0),
+                  status: status
+                }
+              })
+              
+              return {
+                usuario_id: user.usuario?.id || user.id || user.usuario_id,
+                usuario_nome: user.usuario?.nome || user.nome || user.usuario_nome || 'Nome não informado',
+                usuario_cargo: user.usuario?.cargo_nome || user.cargo_nome || user.usuario_cargo || 'Cargo não informado',
+                total_horas_trabalhadas: this.converterMinutosParaHoras(user.resumo?.total_horas_trabalhadas_minutos || user.total_horas_trabalhadas_minutos || 0),
+                total_horas_extras: this.converterMinutosParaHoras(user.resumo?.total_horas_extras_minutos || user.total_horas_extras_minutos || 0),
+                total_horas_faltantes: this.converterMinutosParaHoras(user.resumo?.total_horas_faltantes_minutos || user.total_horas_faltantes_minutos || 0),
+                banco_horas_periodo: this.converterMinutosParaHoras(user.resumo?.banco_horas_minutos || user.banco_horas_minutos || user.banco_horas_periodo || 0),
+                detalhes_dias: detalhes
+              }
+            })
             
             console.log(`✅ Dados normalizados: ${this.relatorioData.length} usuários`)
+            console.log(`📋 Primeiro usuário completo:`, this.relatorioData[0])
           } else {
             this.relatorioData = resultado ? [resultado] : []
             console.warn('⚠️ Estrutura inesperada para "Todos"')
           }
         } else {
           // Quando usuário específico, pode ser objeto ou array com 1 item
+          console.log('📊 Dados de usuário específico:', {
+            tipo: typeof resultado,
+            isArray: Array.isArray(resultado),
+            keys: typeof resultado === 'object' ? Object.keys(resultado) : 'N/A',
+            temDetalhes: !!(resultado?.detalhes_dias || resultado?.dias || resultado?.detalhes),
+            quantidadeDetalhes: (resultado?.detalhes_dias || resultado?.dias || resultado?.detalhes || []).length
+          })
+          
+          // Normalizar estrutura se necessário
+          if (typeof resultado === 'object' && !Array.isArray(resultado)) {
+            // Pegar dias originais
+            const diasOriginais = resultado.detalhes_dias || 
+                                 resultado.dias || 
+                                 resultado.detalhes || 
+                                 resultado.registros_dias ||
+                                 resultado.days ||
+                                 []
+            
+            console.log(`🔧 Processando ${diasOriginais.length} dias para usuário específico`)
+            
+            // Mapear os dias para o formato esperado
+            resultado.detalhes_dias = diasOriginais.map(dia => {
+              // Extrair entrada e saída das marcações
+              let primeiroRegistro = '-'
+              let ultimoRegistro = '-'
+              let diaSemana = '-'
+              
+              if (dia.marcacoes && Array.isArray(dia.marcacoes) && dia.marcacoes.length > 0) {
+                const primeira = dia.marcacoes[0]
+                const ultima = dia.marcacoes[dia.marcacoes.length - 1]
+                
+                if (primeira?.entrada) {
+                  primeiroRegistro = this.formatarHorario(primeira.entrada)
+                }
+                if (ultima?.saida) {
+                  ultimoRegistro = this.formatarHorario(ultima.saida)
+                }
+              }
+              
+              // Determinar o dia da semana
+              if (dia.data) {
+                const date = new Date(dia.data + 'T00:00:00')
+                diaSemana = date.toLocaleDateString('pt-BR', { weekday: 'long' })
+              }
+              
+              // Determinar status
+              let status = 'AUSENTE'
+              if (dia.inconsistente) {
+                status = 'INCOMPLETO'
+              } else if (dia.total_trabalhado_minutos > 0) {
+                status = 'COMPLETO'
+              } else if (dia.carga_esperada_minutos === 0) {
+                status = 'FOLGA'
+              }
+              
+              return {
+                data: dia.data,
+                dia_semana: diaSemana,
+                primeiro_registro: primeiroRegistro,
+                ultimo_registro: ultimoRegistro,
+                horas_esperadas_dia: this.converterMinutosParaHoras(dia.carga_esperada_minutos || 0),
+                total_horas_dia: this.converterMinutosParaHoras(dia.total_trabalhado_minutos || 0),
+                status: status
+              }
+            })
+          }
+          
           this.relatorioData = resultado
-          console.log('✅ Dados de usuário específico recebidos')
+          console.log('✅ Dados de usuário específico processados:', this.relatorioData)
         }
         
         // Inicializar controle de visibilidade dos detalhes
@@ -600,6 +731,18 @@ export default {
       if (!dataISO) return '-'
       const [ano, mes, dia] = dataISO.split('-')
       return `${dia}/${mes}/${ano}`
+    },
+    
+    formatarHorario(isoString) {
+      if (!isoString) return '-'
+      try {
+        const date = new Date(isoString)
+        const horas = String(date.getHours()).padStart(2, '0')
+        const minutos = String(date.getMinutes()).padStart(2, '0')
+        return `${horas}:${minutos}`
+      } catch (e) {
+        return '-'
+      }
     },
     
     formatarHoras(horas) {
