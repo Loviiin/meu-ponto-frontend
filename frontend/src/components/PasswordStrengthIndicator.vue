@@ -30,13 +30,14 @@ const requisitos = computed(() => [
   { nome: 'Letra maiúscula (A-Z)', cumprido: /[A-Z]/.test(props.senha) },
   { nome: 'Letra minúscula (a-z)', cumprido: /[a-z]/.test(props.senha) },
   { nome: 'Número (0-9)', cumprido: /[0-9]/.test(props.senha) },
+  { nome: 'Caractere especial (!@#$%...)', cumprido: /[!@#$%^&*(),.?":{}|<>]/.test(props.senha) },
 ])
 
 const cumpridos = computed(() => requisitos.value.filter(r => r.cumprido).length)
 
 const forca = computed(() => {
-  if (cumpridos.value === 4) return 'forte'
-  if (cumpridos.value >= 2) return 'media'
+  if (cumpridos.value === 5) return 'forte'
+  if (cumpridos.value >= 3) return 'media'
   return 'fraca'
 })
 </script>

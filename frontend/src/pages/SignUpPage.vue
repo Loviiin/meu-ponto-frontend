@@ -98,13 +98,14 @@
             <FieldError :error="errors['usuario.email']" />
 
             <div class="input-group" :class="fieldClass('usuario.password')">
-              <input type="password" placeholder="Senha (mín. 6)" v-model="formData.usuario.password" @blur="touch('usuario.password')" />
+              <input type="password" placeholder="Crie uma senha forte" v-model="formData.usuario.password" @blur="touch('usuario.password')" />
               <span class="input-icon"><i class="bi bi-lock"></i></span>
             </div>
+            <PasswordStrengthIndicator v-if="formData.usuario.password" :senha="formData.usuario.password" />
             <FieldError :error="errors['usuario.password']" />
 
             <div class="input-group" :class="fieldClass('usuario.password_confirm')">
-              <input type="password" placeholder="Confirmar Senha" v-model="passwordConfirm" @blur="touch('usuario.password_confirm')" />
+              <input type="password" placeholder="Confirme sua senha" v-model="passwordConfirm" @blur="touch('usuario.password_confirm')" />
               <span class="input-icon"><i class="bi bi-lock-fill"></i></span>
             </div>
             <FieldError :error="errors['usuario.password_confirm']" />
@@ -159,12 +160,13 @@
 
 <script setup>
 import { reactive, ref, watch, computed, onMounted, onUnmounted } from 'vue';
-import { REGEX, onlyDigits as digitsOnlyExternal, normalizeEmail, isFutureDate } from '../utils/validators.js';
+import { REGEX, onlyDigits as digitsOnlyExternal, normalizeEmail, isFutureDate, validarCPF, validarCNPJ } from '../utils/validators.js';
 import { toast } from '../toast.js';
 import { useRouter } from 'vue-router';
 import api from '../axios';
 import { getAddressByCEP } from '../services/locationService.js';
 import LocationPickerMap from '../components/LocationPickerMap.vue';
+import PasswordStrengthIndicator from '../components/PasswordStrengthIndicator.vue';
 
 const router = useRouter();
 
@@ -283,7 +285,8 @@ function validateStep(stepIndex) {
     if (!formData.empresa.nome_fantasia) stepErrors['empresa.nome_fantasia'] = 'Nome fantasia é obrigatório';
     if (!formData.empresa.razao_social) stepErrors['empresa.razao_social'] = 'Razão social é obrigatória';
     if (!formData.empresa.cnpj) stepErrors['empresa.cnpj'] = 'CNPJ é obrigatório';
-    else if (!/^\d{14}$/.test(formData.empresa.cnpj)) stepErrors['empresa.cnpj'] = 'CNPJ deve ter 14 dígitos numéricos';
+    else if (!/^\d{14}$/.test(formData.empresa.cnpj)) stepErrors['empresa.cnpj'] = 'CNPJ deve ter 14 dígitos';
+    else if (!validarCNPJ(formData.empresa.cnpj)) stepErrors['empresa.cnpj'] = 'CNPJ inválido. Verifique os números digitados';
     if (stepKey === 'usuario') {
       if (passwordConfirm.value && formData.usuario.password && passwordConfirm.value !== formData.usuario.password) {
         stepErrors['usuario.password_confirm'] = 'Senhas não conferem';
@@ -304,10 +307,25 @@ function validateStep(stepIndex) {
     if (!formData.usuario.nome) stepErrors['usuario.nome'] = 'Nome é obrigatório';
     if (!formData.usuario.email) stepErrors['usuario.email'] = 'Email é obrigatório';
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.usuario.email)) stepErrors['usuario.email'] = 'Formato de email inválido';
-    if (!formData.usuario.password) stepErrors['usuario.password'] = 'Senha é obrigatória';
-    else if (formData.usuario.password.length < 6) stepErrors['usuario.password'] = 'Senha deve ter pelo menos 6 caracteres';
+    
+    // Validação detalhada de senha
+    if (!formData.usuario.password) {
+      stepErrors['usuario.password'] = 'Senha é obrigatória';
+    } else if (formData.usuario.password.length < 8) {
+      stepErrors['usuario.password'] = 'Senha deve ter pelo menos 8 caracteres';
+    } else if (!/[A-Z]/.test(formData.usuario.password)) {
+      stepErrors['usuario.password'] = 'Senha deve conter pelo menos 1 letra maiúscula';
+    } else if (!/[a-z]/.test(formData.usuario.password)) {
+      stepErrors['usuario.password'] = 'Senha deve conter pelo menos 1 letra minúscula';
+    } else if (!/[0-9]/.test(formData.usuario.password)) {
+      stepErrors['usuario.password'] = 'Senha deve conter pelo menos 1 número';
+    } else if (!/[!@#$%^&*(),.?":{}|<>]/.test(formData.usuario.password)) {
+      stepErrors['usuario.password'] = 'Senha deve conter pelo menos 1 caractere especial (!@#$%^&*...)';
+    }
+    
     if (!formData.usuario.cpf) stepErrors['usuario.cpf'] = 'CPF é obrigatório';
     else if (!/^\d{11}$/.test(formData.usuario.cpf)) stepErrors['usuario.cpf'] = 'CPF deve ter 11 dígitos';
+    else if (!validarCPF(formData.usuario.cpf)) stepErrors['usuario.cpf'] = 'CPF inválido. Verifique os números digitados';
     if (formData.usuario.salario == null || formData.usuario.salario < 0) stepErrors['usuario.salario'] = 'Salário deve ser >= 0';
   if (!formData.usuario.data_admissao) stepErrors['usuario.data_admissao'] = 'Data de admissão é obrigatória';
   if (usuarioDataAdmissao.value && isFutureDate(usuarioDataAdmissao.value)) stepErrors['usuario.data_admissao'] = 'Data não pode ser futura';
@@ -392,7 +410,19 @@ async function handleNext() {
     });
 
     const token = response.data.token;
-    if (token) localStorage.setItem('token', token);
+    if (token) {
+      localStorage.setItem('token', token);
+      localStorage.setItem('access', token); // Para compatibilidade com auth.js
+      
+      // Extrair empresa_id e cargo_id do usuário retornado
+      const usuario = response.data.usuario;
+      if (usuario?.contrato) {
+        const contrato = usuario.contrato;
+        if (contrato.empresa_id) localStorage.setItem('empresa_id', String(contrato.empresa_id));
+        if (contrato.cargo_id) localStorage.setItem('cargo_id', String(contrato.cargo_id));
+      }
+    }
+    
     localStorage.removeItem(DRAFT_KEY);
     formData.usuario.password = '';
     passwordConfirm.value = '';
@@ -522,7 +552,7 @@ button { cursor:pointer; }
 .success-msg { margin-top:15px; color:#b5ffb3; font-size:14px; font-weight:500; }
 .login-switch { margin-top:20px; text-align:center; font-size:14px; }
 .login-switch a { color:#ffe27a; cursor:pointer; text-decoration:underline; }
-.field-error { color:#ff9b9b; font-size:12px; margin-top:-6px; margin-bottom:6px; }
+.field-error { color: #ff9b9b; font-size: 12px; margin-top: 4px; }
 .map-section { margin-top: 8px; }
 .map-hint { font-size: 12px; color: #e5e7eb; margin: 6px 0; }
 

@@ -69,10 +69,10 @@
               type="password" 
               v-model="form.senha" 
               @blur="touch('senha')" 
-              placeholder="Mínimo 8 caracteres"
+              placeholder="Crie uma senha forte"
               :disabled="submitting"
             />
-            <small class="hint">A senha deve ter no mínimo 8 caracteres</small>
+            <PasswordStrengthIndicator v-if="form.senha" :senha="form.senha" />
             <FieldError :error="errors.senha" />
           </div>
         </section>
@@ -316,6 +316,7 @@ import { useRouter } from 'vue-router';
 import api from '../axios';
 import { toast } from '../toast.js';
 import { REGEX } from '../utils/validators.js';
+import PasswordStrengthIndicator from '../components/PasswordStrengthIndicator.vue';
 
 // ---- Estado principal ----
 const router = useRouter();
@@ -333,11 +334,14 @@ function getEmpresaIdFromToken() {
   }
 }
 
-const empresaId = Number(localStorage.getItem('empresa_id')) || getEmpresaIdFromToken() || null;
+// Prioriza empresa_id do token JWT (mais seguro)
+const empresaId = getEmpresaIdFromToken() || Number(localStorage.getItem('empresa_id')) || null;
 
 // Log para debug
 if (!empresaId) {
-  console.warn('empresa_id não encontrado no localStorage. O funcionário será criado sem vínculo com empresa específica.');
+  console.warn('empresa_id não encontrado no token JWT. Verifique a autenticação.');
+} else {
+  console.log('Empresa ID carregada:', empresaId);
 }
 
 const form = reactive({
@@ -584,6 +588,14 @@ function validateField(field) {
         errors.senha = 'Senha é obrigatória';
       } else if (form.senha.length < 8) {
         errors.senha = 'Senha deve ter pelo menos 8 caracteres';
+      } else if (!/[A-Z]/.test(form.senha)) {
+        errors.senha = 'Senha deve conter pelo menos 1 letra maiúscula';
+      } else if (!/[a-z]/.test(form.senha)) {
+        errors.senha = 'Senha deve conter pelo menos 1 letra minúscula';
+      } else if (!/[0-9]/.test(form.senha)) {
+        errors.senha = 'Senha deve conter pelo menos 1 número';
+      } else if (!/[!@#$%^&*(),.?":{}|<>]/.test(form.senha)) {
+        errors.senha = 'Senha deve conter pelo menos 1 caractere especial (!@#$%^&*...)';
       } else {
         delete errors.senha;
       }
@@ -690,40 +702,35 @@ async function loadCargos() {
 }
 
 async function loadLocalidades() {
-  // Tenta endpoint escopado por empresa se disponível; caso contrário, usa o genérico
   loadingLocalidades.value = true;
   try {
-    const endpoints = [];
-    if (empresaId) endpoints.push(`/empresas/${empresaId}/localidades`);
-    endpoints.push('/localidades');
+    // Se temos empresaId, usa APENAS o endpoint escopado (mais seguro)
+    if (empresaId) {
+      const res = await api.get(`/empresas/${empresaId}/localidades`);
+      const data = res.data;
+      const lista = Array.isArray(data) ? data : (Array.isArray(data?.localidades) ? data.localidades : []);
+      localidades.value = (lista || []).map(l => ({
+        id: l.id || l.ID,
+        nome: l.nome || l.Nome,
+        cidade: l.cidade || l.Cidade || '',
+        estado: l.estado || l.Estado || ''
+      })).filter(l => l.id && l.nome);
 
-    let loaded = false;
-    for (const path of endpoints) {
-      try {
-        const res = await api.get(path);
-        const data = res.data;
-        const lista = Array.isArray(data) ? data : (Array.isArray(data?.localidades) ? data.localidades : []);
-        localidades.value = (lista || []).map(l => ({
-          id: l.id || l.ID,
-          nome: l.nome || l.Nome,
-          cidade: l.cidade || l.Cidade || '',
-          estado: l.estado || l.Estado || ''
-        })).filter(l => l.id && l.nome);
-
-        loaded = true;
-        break;
-      } catch (errTry) {
-        const statusTry = errTry.response?.status;
-        // Se 401/403/404, tenta o próximo endpoint; outros erros: relança
-        if (![401, 403, 404].includes(statusTry)) throw errTry;
-        // Continua para tentar o próximo
+      if (localidades.value.length === 0) {
+        toast.info('Nenhuma localidade cadastrada. Você pode adicionar localidades depois.');
       }
-    }
-
-    if (!loaded) {
-      toast.warning('Não foi possível carregar as localidades deste usuário.');
-    } else if (localidades.value.length === 0) {
-      toast.info('Nenhuma localidade cadastrada. Você pode adicionar localidades depois.');
+    } else {
+      // Fallback: tenta endpoint genérico (menos seguro, mas mantém compatibilidade)
+      toast.warning('Empresa não identificada. Carregando localidades genéricas.');
+      const res = await api.get('/localidades');
+      const data = res.data;
+      const lista = Array.isArray(data) ? data : (Array.isArray(data?.localidades) ? data.localidades : []);
+      localidades.value = (lista || []).map(l => ({
+        id: l.id || l.ID,
+        nome: l.nome || l.Nome,
+        cidade: l.cidade || l.Cidade || '',
+        estado: l.estado || l.Estado || ''
+      })).filter(l => l.id && l.nome);
     }
   } catch(err) {
     const status = err.response?.status;
@@ -737,6 +744,9 @@ async function loadLocalidades() {
       toast.warning('Você não tem permissão para acessar as localidades.');
     } else if (status === 403) {
       toast.warning('Você não tem permissão para acessar as localidades.');
+    } else if (status === 404) {
+      toast.info('Nenhuma localidade encontrada para esta empresa.');
+      localidades.value = [];
     } else {
       toast.error('Falha ao carregar localidades. Tente novamente.');
     }
