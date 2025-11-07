@@ -519,10 +519,13 @@ export default {
         loading.value = true;
         error.value = null;
         profile.value = await ProfileService.getProfile();
+        console.log('Profile loaded:', profile.value);
         
         // Carregar stats em paralelo
         stats.value = await ProfileService.getStats();
+        console.log('Stats loaded:', stats.value);
       } catch (err) {
+        console.error('Error loading profile:', err);
         error.value = err.response?.data?.error || 'Erro ao carregar perfil';
         showToast(error.value, 'error');
       } finally {
@@ -555,8 +558,9 @@ export default {
     
     const startEditProfile = () => {
       editingProfile.value = true;
-      profileForm.nome = profile.value.nome;
-      profileForm.telefone = profile.value.telefone || '';
+      profileForm.nome = profile.value?.nome || '';
+      profileForm.telefone = profile.value?.telefone || '';
+      console.log('Iniciando edição com dados:', { nome: profileForm.nome, telefone: profileForm.telefone });
     };
     
     const cancelEditProfile = () => {
@@ -574,22 +578,33 @@ export default {
         if (profileForm.nome && profileForm.nome.trim()) {
           updateData.nome = profileForm.nome.trim();
         }
-        if (profileForm.telefone && profileForm.telefone.trim()) {
+        if (profileForm.telefone) {
           updateData.telefone = profileForm.telefone.trim();
         }
+        
+        console.log('Dados a serem enviados:', updateData);
         
         // Não enviar se não houver nada para atualizar
         if (Object.keys(updateData).length === 0) {
           showToast('Nenhuma alteração para salvar', 'warning');
+          savingProfile.value = false;
           return;
         }
         
         const updated = await ProfileService.updateProfile(updateData);
+        console.log('Perfil atualizado:', updated);
         
-        profile.value = updated;
+        // Atualizar dados do perfil com os dados retornados
+        profile.value = { ...profile.value, ...updated };
         editingProfile.value = false;
+        
+        // Limpar form
+        profileForm.nome = '';
+        profileForm.telefone = '';
+        
         showToast('Perfil atualizado com sucesso!', 'success');
       } catch (err) {
+        console.error('Erro ao salvar perfil:', err);
         showToast(err.response?.data?.error || 'Erro ao atualizar perfil', 'error');
       } finally {
         savingProfile.value = false;
@@ -803,6 +818,8 @@ export default {
       // Utilities
       formatDate,
       formatDateTime,
+      getInitials,
+      minutesToHours,
       getMonthName,
       getBancoHorasClass,
       getDayCardClass,

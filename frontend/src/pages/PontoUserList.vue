@@ -99,7 +99,10 @@
             </td>
           </tr>
           <tr v-if="pontos.length === 0">
-            <td colspan="6">Nenhum ponto registrado nesse dia.</td>
+            <td colspan="6" class="text-center py-4">
+              <i class="bi bi-inbox fs-3 d-block mb-2"></i>
+              <span>Nenhum ponto registrado em {{ formatarDataBR(dataSelecionadaStr) }}</span>
+            </td>
           </tr>
         </tbody>
       </table>
@@ -194,11 +197,18 @@ export default {
     async fetchPontos() {
       try {
         const dia = this.dataSelecionadaStr;
+        console.log('Buscando pontos para o dia:', dia);
+        
         const response = await api.get(`/pontos/meus-registros`, {
           params: { dia }
         });
 
+        console.log('Pontos retornados:', response.data);
         this.pontos = response.data || [];
+        
+        if (this.pontos.length === 0) {
+          console.log('Nenhum ponto encontrado para este dia');
+        }
       } catch (error) {
         console.error("Erro ao carregar pontos:", error.response?.data || error);
         this.pontos = [];
@@ -208,12 +218,20 @@ export default {
       const novaData = new Date(this.dataSelecionada);
       novaData.setDate(novaData.getDate() + dias);
       this.dataSelecionada = novaData;
+      
+      console.log('Data alterada para:', this.dataSelecionadaStr);
+      
       this.$nextTick(() => {
         this.fetchPontos();
       });
     },
     resetarHoje() {
-      this.dataSelecionada = new Date();
+      const hoje = new Date();
+      hoje.setHours(12, 0, 0, 0); // Define meio-dia para evitar problemas de timezone
+      this.dataSelecionada = hoje;
+      
+      console.log('Resetado para hoje:', this.dataSelecionadaStr);
+      
       this.$nextTick(() => {
         this.fetchPontos();
       });
@@ -227,6 +245,11 @@ export default {
         minute: "2-digit",
         second: "2-digit"
       });
+    },
+    formatarDataBR(dateStr) {
+      if (!dateStr) return '';
+      const [ano, mes, dia] = dateStr.split('-');
+      return `${dia}/${mes}/${ano}`;
     },
     irParaRelatorio() {
       const dia = this.dataSelecionadaStr

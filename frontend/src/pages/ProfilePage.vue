@@ -137,7 +137,7 @@
                     </div>
                     <div class="col-md-6">
                       <label class="form-label text-muted small">Telefone</label>
-                      <p class="fw-bold">{{ profile.telefone || 'Não informado' }}</p>
+                      <p class="fw-bold">{{ formatPhoneDisplay(profile.telefone) }}</p>
                     </div>
                   </div>
 
@@ -238,11 +238,14 @@
                       <i class="bi bi-info-circle me-1"></i>
                       CPF não pode ser alterado. Para alterá-lo, entre em contato com o administrador.
                     </div>
-                    <button type="submit" class="btn btn-primary" :disabled="updating || emailError || phoneError">
+                    <button type="submit" class="btn btn-primary" :disabled="updating || !!emailError || !!phoneError">
                       <span v-if="updating" class="spinner-border spinner-border-sm me-2"></span>
                       <i v-else class="bi bi-check-lg me-1"></i>
                       Salvar Alterações
                     </button>
+                    <small v-if="emailError || phoneError" class="text-danger d-block mt-2">
+                      Corrija os erros acima para salvar
+                    </small>
                   </form>
                 </div>
               </div>
@@ -385,19 +388,17 @@ const handlePhoneInput = (event) => {
   const formatted = formatPhoneBR(value)
   editForm.value.telefone = formatted
   
-  // Validar telefone brasileiro
-  if (digits.length > 0 && !validarTelefoneBR(value)) {
-    if (digits.length < 11) {
-      phoneError.value = 'Telefone deve ter 11 dígitos'
+  // Apenas validar se tiver digitado algo
+  if (digits.length > 0 && digits.length < 11) {
+    phoneError.value = 'Telefone deve ter 11 dígitos'
+  } else if (digits.length > 0 && !validarTelefoneBR(value)) {
+    const ddd = parseInt(digits.substring(0, 2))
+    if (ddd < 11 || ddd > 99) {
+      phoneError.value = 'DDD inválido (deve ser entre 11 e 99)'
+    } else if (digits[2] !== '9') {
+      phoneError.value = 'Número de celular deve começar com 9'
     } else {
-      const ddd = parseInt(digits.substring(0, 2))
-      if (ddd < 11 || ddd > 99) {
-        phoneError.value = 'DDD inválido (deve ser entre 11 e 99)'
-      } else if (digits[2] !== '9') {
-        phoneError.value = 'Número de celular deve começar com 9'
-      } else {
-        phoneError.value = 'Telefone inválido'
-      }
+      phoneError.value = 'Telefone inválido'
     }
   } else {
     phoneError.value = ''
@@ -406,7 +407,7 @@ const handlePhoneInput = (event) => {
 
 // Validar email
 const handleEmailBlur = () => {
-  if (!editForm.value.email) {
+  if (!editForm.value.email || editForm.value.email.trim() === '') {
     emailError.value = 'Email é obrigatório'
     return
   }
@@ -420,6 +421,7 @@ const handleEmailBlur = () => {
     return
   }
   
+  // Limpar erro se está tudo OK
   emailError.value = ''
 }
 
@@ -431,15 +433,21 @@ const loadProfile = async () => {
   try {
     loading.value = true
     profile.value = await ProfileService.getProfile()
+    console.log('Profile loaded:', profile.value)
     
     // Populate edit form
     editForm.value.nome = profile.value.nome
     editForm.value.email = profile.value.email || ''
     editForm.value.telefone = profile.value.telefone || ''
     
+    // Limpar erros ao carregar
+    emailError.value = ''
+    phoneError.value = ''
+    
     error.value = null
     isInitialized.value = true
   } catch (err) {
+    console.error('Error loading profile:', err)
     error.value = err.response?.data?.error || 'Erro ao carregar perfil'
     toast.error('Erro ao carregar perfil')
   } finally {
@@ -472,6 +480,9 @@ const loadRecentActivity = async () => {
 
 // Update profile
 const updateProfile = async () => {
+  console.log('Update profile called')
+  console.log('Errors:', { emailError: emailError.value, phoneError: phoneError.value })
+  
   try {
     updating.value = true
     
@@ -487,17 +498,22 @@ const updateProfile = async () => {
       updateData.telefone = editForm.value.telefone.trim()
     }
     
+    console.log('Data to send:', updateData)
+    
     // Não enviar se não houver nada para atualizar
     if (Object.keys(updateData).length === 0) {
       toast.warning('Nenhuma alteração para salvar')
+      updating.value = false
       return
     }
     
     await ProfileService.updateProfile(updateData)
+    console.log('Profile updated successfully')
     
     toast.success('Perfil atualizado com sucesso!')
     await loadProfile()
   } catch (err) {
+    console.error('Error updating profile:', err)
     const errorMsg = err.response?.data?.error || 'Erro ao atualizar perfil'
     
     // Tratar erro de email duplicado
@@ -602,6 +618,29 @@ const formatDateTime = (dateString) => {
 const minutesToHours = (minutes) => {
   if (!minutes) return 0
   return (minutes / 60).toFixed(1)
+}
+
+// Format phone for display
+const formatPhoneDisplay = (phone) => {
+  if (!phone) return 'Não informado'
+  
+  // Remove tudo que não é dígito
+  const digits = phone.replace(/\D/g, '')
+  
+  // Se já está formatado, retorna como está
+  if (phone.includes('(') && phone.includes(')')) {
+    return phone
+  }
+  
+  // Formatar: (XX) XXXXX-XXXX ou (XX) XXXX-XXXX
+  if (digits.length === 11) {
+    return `(${digits.substring(0, 2)}) ${digits.substring(2, 7)}-${digits.substring(7)}`
+  } else if (digits.length === 10) {
+    return `(${digits.substring(0, 2)}) ${digits.substring(2, 6)}-${digits.substring(6)}`
+  }
+  
+  // Se não tem formato válido, retorna como está
+  return phone || 'Não informado'
 }
 
 // Get activity icon
