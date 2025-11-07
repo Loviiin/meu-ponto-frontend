@@ -380,6 +380,87 @@
     margin-bottom: 8px;
   }
 }
+
+/* Light Mode Styles */
+body.light-mode .floating-btn {
+  background: rgba(255, 255, 255, 0.95);
+  color: #696000;
+  border-color: #FFD700;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+body.light-mode .floating-btn:hover {
+  background: #FFD700;
+  color: #333333;
+}
+
+body.light-mode .expanded-card {
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(105, 96, 0, 0.2);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+}
+
+body.light-mode .expanded-card h2 {
+  color: #333333;
+}
+
+body.light-mode .time {
+  color: #333333;
+}
+
+body.light-mode .date {
+  color: #666666;
+}
+
+body.light-mode .punch-btn {
+  background: #16a34a;
+}
+
+body.light-mode .punch-btn:hover {
+  background: #15803d;
+}
+
+body.light-mode .close-btn {
+  color: #666666;
+}
+
+body.light-mode .close-btn:hover {
+  color: #333333;
+}
+
+body.light-mode .modal-card {
+  background: rgba(255, 255, 255, 0.98);
+  border-color: rgba(105, 96, 0, 0.3);
+  color: #333333;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+body.light-mode .modal-card h3 {
+  color: #696000;
+}
+
+body.light-mode .modal-subtitle {
+  color: #666666;
+}
+
+body.light-mode .btn-secondary {
+  color: #333333;
+  border-color: #666666;
+}
+
+body.light-mode .btn-secondary:hover {
+  background: rgba(102, 102, 102, 0.1);
+}
+
+body.light-mode .btn-primary {
+  background: #FFD700;
+  color: #333333;
+  border-color: #FFD700;
+}
+
+body.light-mode .btn-primary:hover {
+  background: #E6C200;
+}
 </style>
 
 <script setup>

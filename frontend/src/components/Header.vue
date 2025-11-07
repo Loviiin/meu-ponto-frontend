@@ -111,6 +111,14 @@
 
         <!-- Right side: account actions -->
         <div class="d-flex align-items-center gap-2">
+          <button 
+            class="btn btn-outline-light btn-sm" 
+            title="Alternar modo escuro"
+            @click="toggleDarkMode"
+          >
+            <i :class="isDarkMode ? 'bi bi-sun-fill' : 'bi bi-moon-fill'" class="me-1"></i>
+            {{ isDarkMode ? 'Claro' : 'Escuro' }}
+          </button>
           <router-link to="/perfil" class="btn btn-outline-light btn-sm" title="Meu Perfil">
             <i class="bi bi-person-circle me-1"></i> Perfil
           </router-link>
@@ -128,10 +136,12 @@ import { useRouter } from 'vue-router'
 import { logout } from '../auth'
 import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { getUserPermissions, hasPerm as hasPermission, anyPerm } from '../utils/permissions'
+import { toggleDarkMode as toggleDarkModeUtil, isDarkMode as isDarkModeUtil } from '../utils/preferences'
 
 const router = useRouter()
 const isMobileMenuOpen = ref(false)
 const openDropdown = ref(null)
+const isDarkMode = ref(false)
 
 // Obter permissões do usuário
 const userPermissions = computed(() => getUserPermissions())
@@ -150,6 +160,10 @@ const canAccessCadastros = computed(() => {
 const canAccessAdministrativo = computed(() => {
   return anyPerm(userPermissions.value, ['EDITAR_EMPRESA', 'GERENCIAR_CARGOS', 'APROVAR_JUSTIFICATIVAS'])
 })
+
+const toggleDarkMode = () => {
+  isDarkMode.value = toggleDarkModeUtil()
+}
 
 const logoutUser = () => {
   // Chama a função logout do auth.js que limpa o cache e todos os tokens
@@ -200,6 +214,7 @@ const handleClickOutside = (event) => {
 
 onMounted(() => {
   document.addEventListener('click', handleClickOutside)
+  isDarkMode.value = isDarkModeUtil()
 })
 
 onUnmounted(() => {
@@ -313,6 +328,78 @@ onUnmounted(() => {
 .dropdown-item:focus {
   background: rgba(255, 255, 255, 0.12);
   color: #fff;
+}
+
+/* Light Mode Styles */
+body.light-mode .custom-navbar {
+  background: rgba(255, 255, 255, 0.95);
+  border-bottom: 1px solid rgba(105, 96, 0, 0.15);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+body.light-mode .navbar-brand,
+body.light-mode .nav-link {
+  color: #333333 !important;
+}
+
+body.light-mode .nav-link:hover {
+  color: #696000 !important;
+}
+
+body.light-mode .nav-link.active {
+  color: #696000 !important;
+  font-weight: 600;
+}
+
+body.light-mode .dropdown-menu {
+  background: rgba(255, 255, 255, 0.98);
+  border-color: rgba(105, 96, 0, 0.15);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+body.light-mode .dropdown-item {
+  color: #333333;
+}
+
+body.light-mode .dropdown-item:hover,
+body.light-mode .dropdown-item:focus {
+  background: rgba(255, 215, 0, 0.15);
+  color: #333333;
+}
+
+body.light-mode .dropdown-divider {
+  border-top-color: rgba(105, 96, 0, 0.15);
+}
+
+body.light-mode .btn-outline-light {
+  color: #333333;
+  border-color: rgba(105, 96, 0, 0.3);
+  background: rgba(255, 255, 255, 0.5);
+}
+
+body.light-mode .btn-outline-light:hover {
+  background: rgba(255, 215, 0, 0.2);
+  border-color: #FFD700;
+  color: #333333;
+}
+
+body.light-mode .navbar-toggler {
+  border-color: rgba(105, 96, 0, 0.3);
+}
+
+body.light-mode .navbar-toggler-icon {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(51, 51, 51, 0.75)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+}
+
+@media (max-width: 991.98px) {
+  body.light-mode .navbar-collapse {
+    background: rgba(255, 255, 255, 0.98);
+    border-color: rgba(105, 96, 0, 0.2);
+  }
+  
+  body.light-mode .dropdown-menu {
+    background: rgba(248, 248, 248, 0.8);
+  }
 }
 </style>
 

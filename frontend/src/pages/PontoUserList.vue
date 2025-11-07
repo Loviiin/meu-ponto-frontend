@@ -275,4 +275,21 @@ export default {
   padding: 14px;
   vertical-align: middle;
 }
+
+/* Light Mode Styles */
+body.light-mode .card {
+  background: rgba(255, 255, 255, 0.9);
+  color: #333333;
+  border: 1px solid rgba(105, 96, 0, 0.15);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+body.light-mode .table thead {
+  background: rgba(255, 215, 0, 0.15);
+}
+
+body.light-mode .table td,
+body.light-mode .table th {
+  color: #333333;
+}
 </style>

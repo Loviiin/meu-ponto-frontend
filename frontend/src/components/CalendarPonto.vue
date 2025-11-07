@@ -820,4 +820,153 @@ defineExpose({
   border-color: #d4af37;
   border-right-color: transparent;
 }
+
+/* Light Mode Styles */
+body.light-mode .calendar-header {
+  background: rgba(255, 255, 255, 0.8);
+  border-color: rgba(105, 96, 0, 0.15);
+}
+
+body.light-mode .calendar-title h4 {
+  background: linear-gradient(90deg, #696000, #333333);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+body.light-mode .btn-icon {
+  background: rgba(255, 255, 255, 0.8);
+  color: #696000;
+  border-color: rgba(105, 96, 0, 0.3);
+}
+
+body.light-mode .btn-icon:hover:not(:disabled) {
+  background: linear-gradient(135deg, #FFD700, #696000);
+  color: #333333;
+}
+
+body.light-mode .btn-nav {
+  background: rgba(255, 255, 255, 0.8);
+  color: #696000;
+  border-color: rgba(105, 96, 0, 0.3);
+}
+
+body.light-mode .btn-nav:hover:not(:disabled) {
+  background: #FFD700;
+  border-color: #FFD700;
+  color: #333333;
+}
+
+body.light-mode .weekday {
+  color: #696000;
+}
+
+body.light-mode .calendar-grid,
+body.light-mode .calendar-summary {
+  background: rgba(255, 255, 255, 0.8);
+  border-color: rgba(105, 96, 0, 0.15);
+}
+
+body.light-mode .calendar-day {
+  background: rgba(255, 255, 255, 0.6);
+  border-color: rgba(105, 96, 0, 0.1);
+}
+
+body.light-mode .calendar-day.has-day:hover {
+  background: rgba(255, 215, 0, 0.2);
+  border-color: rgba(255, 215, 0, 0.5);
+}
+
+body.light-mode .calendar-day.today {
+  border-color: #FFD700;
+  box-shadow: 0 0 12px rgba(255, 215, 0, 0.5);
+}
+
+body.light-mode .calendar-day.weekend {
+  background: rgba(255, 100, 100, 0.1);
+}
+
+body.light-mode .day-number {
+  color: #333333;
+}
+
+body.light-mode .day-times {
+  color: rgba(51, 51, 51, 0.7);
+}
+
+body.light-mode .day-balance {
+  color: #666666;
+}
+
+body.light-mode .day-header,
+body.light-mode .summary-item {
+  background: rgba(255, 215, 0, 0.15);
+  color: #333333;
+  border-color: rgba(105, 96, 0, 0.2);
+}
+
+body.light-mode .day-cell {
+  background: rgba(255, 255, 255, 0.6);
+  border-color: rgba(105, 96, 0, 0.1);
+  color: #333333;
+}
+
+body.light-mode .day-cell:hover:not(.outside):not(.loading) {
+  background: rgba(255, 215, 0, 0.2);
+  border-color: rgba(255, 215, 0, 0.4);
+}
+
+body.light-mode .day-cell.today {
+  border-color: #FFD700;
+  box-shadow: 0 0 0 2px rgba(255, 215, 0, 0.3);
+}
+
+body.light-mode .outside {
+  background: rgba(248, 248, 248, 0.5);
+  color: #999999;
+}
+
+body.light-mode .outside .day-number {
+  color: #999999;
+}
+
+body.light-mode .ponto-indicator {
+  color: white !important;
+  font-weight: 600;
+}
+
+body.light-mode .status-completo {
+  background: linear-gradient(135deg, #2ecc71, #27ae60);
+  color: white !important;
+}
+
+body.light-mode .status-incompleto {
+  background: linear-gradient(135deg, #f39c12, #e67e22);
+  color: white !important;
+}
+
+body.light-mode .status-andamento {
+  background: linear-gradient(135deg, #3498db, #2980b9);
+  color: white !important;
+}
+
+body.light-mode .status-sem-ponto {
+  background: rgba(150, 150, 150, 0.5);
+  color: white !important;
+}
+
+body.light-mode .day-balance.positive {
+  color: #27ae60 !important;
+  background: rgba(46, 204, 113, 0.15);
+}
+
+body.light-mode .day-balance.negative {
+  color: #c0392b !important;
+  background: rgba(231, 76, 60, 0.15);
+}
+
+body.light-mode .spinner-border {
+  border-color: #FFD700;
+  border-right-color: transparent;
+}
 </style>

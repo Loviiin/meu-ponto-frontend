@@ -53,6 +53,43 @@
             <FieldError :error="errors.email" />
           </div>
 
+          <!-- CPF (Admin apenas) -->
+          <div v-if="canEditCPF" class="form-row" :class="fieldClass('cpf')">
+            <label>
+              CPF * 
+              <i class="bi bi-shield-lock text-warning ms-1" title="Apenas administradores podem editar"></i>
+            </label>
+            <input 
+              type="text" 
+              v-model="form.cpf" 
+              @input="formatCPFInput"
+              @blur="touch('cpf')" 
+              placeholder="000.000.000-00"
+              maxlength="14"
+              :disabled="submitting || updatingCPF"
+            />
+            <FieldError :error="errors.cpf" />
+            <small class="form-text text-muted">
+              <i class="bi bi-info-circle me-1"></i>
+              Validação completa com algoritmo da Receita Federal
+            </small>
+          </div>
+
+          <!-- CPF (Apenas visualização) -->
+          <div v-else class="form-row">
+            <label>CPF</label>
+            <input 
+              type="text" 
+              :value="form.cpf || 'Não disponível'" 
+              disabled
+              class="form-control-plaintext"
+            />
+            <small class="form-text text-muted">
+              <i class="bi bi-lock-fill me-1"></i>
+              Apenas administradores podem editar o CPF
+            </small>
+          </div>
+
           <!-- Cargo -->
           <div class="form-row" :class="fieldClass('cargoId')">
             <label>Cargo *</label>
@@ -86,11 +123,12 @@
 </template>
 
 <script setup>
-import { reactive, ref, onMounted } from 'vue';
+import { reactive, ref, onMounted, computed } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import api from '../axios';
 import { toast } from '../toast.js';
-import { REGEX } from '../utils/validators.js';
+import { REGEX, formatCPF, validateCPF } from '../utils/validators.js';
+import ProfileService from '../services/ProfileService.js';
 
 // ---- Estado principal ----
 const router = useRouter();
@@ -127,6 +165,7 @@ onMounted(() => {
 const form = reactive({
   nome: '',
   email: '',
+  cpf: '',
   cargoId: ''
 });
 
@@ -134,6 +173,7 @@ const form = reactive({
 const formOriginal = ref({
   nome: '',
   email: '',
+  cpf: '',
   cargoId: ''
 });
 
@@ -141,6 +181,13 @@ const cargos = ref([]);
 const loading = ref(false);
 const loadingCargos = ref(false);
 const loadError = ref(null);
+const updatingCPF = ref(false);
+
+// Verificar se usuário tem permissão para editar CPF
+const canEditCPF = computed(() => {
+  const permissions = JSON.parse(localStorage.getItem('user_permissions') || '[]');
+  return permissions.includes('EDITAR_USUARIO');
+});
 const submitting = ref(false);
 const errors = reactive({});
 const touched = reactive(new Set());
@@ -178,6 +225,15 @@ function validateField(field) {
         delete errors.email;
       }
       break;
+    case 'cpf':
+      if (!form.cpf) {
+        errors.cpf = 'CPF é obrigatório';
+      } else if (!validateCPF(form.cpf)) {
+        errors.cpf = 'CPF inválido. Verifique os números digitados.';
+      } else {
+        delete errors.cpf;
+      }
+      break;
     case 'cargoId':
       if (!form.cargoId) {
         errors.cargoId = 'Selecione um cargo';
@@ -189,7 +245,14 @@ function validateField(field) {
 }
 
 function validateAll() {
-  ['nome', 'email', 'cargoId'].forEach(f => { 
+  const fieldsToValidate = ['nome', 'email', 'cargoId'];
+  
+  // Adicionar CPF à validação se usuário tem permissão e campo foi preenchido
+  if (canEditCPF.value && form.cpf) {
+    fieldsToValidate.push('cpf');
+  }
+  
+  fieldsToValidate.forEach(f => { 
     if (!touched.has(f)) touch(f); 
     else validateField(f); 
   });
@@ -240,12 +303,14 @@ async function loadEmployee() {
     // Preencher formulário com dados do usuário
     form.nome = usuario.nome || usuario.Nome || '';
     form.email = usuario.email || usuario.Email || '';
+    form.cpf = usuario.cpf || usuario.CPF || '';
     form.cargoId = usuario.contrato?.cargo?.id || usuario.contrato?.cargo?.ID || '';
     
     // ✨ NOVO: Guardar valores originais
     formOriginal.value = {
       nome: form.nome,
       email: form.email,
+      cpf: form.cpf,
       cargoId: form.cargoId
     };
     
@@ -293,10 +358,13 @@ async function handleSubmit() {
   
   submitting.value = true;
   try {
+    // ✅ Atualizar CPF primeiro (se modificado e usuário tem permissão)
+    await updateCPFIfChanged();
+    
     // ✅ Obter apenas os campos que foram modificados
     const payload = getModificadosPayload();
     
-    // Se nada foi modificado, avisa o usuário
+    // Se nada foi modificado (e CPF também não foi), avisa o usuário
     if (Object.keys(payload).length === 0) {
       toast.info('Nenhuma alteração foi feita.');
       liveMessage.value = 'Nenhuma alteração foi feita.';
@@ -378,6 +446,49 @@ function getModificadosPayload() {
 
   console.log('Payload com campos modificados:', payload);
   return payload;
+}
+
+// Formatar CPF enquanto digita
+function formatCPFInput(event) {
+  form.cpf = formatCPF(event.target.value);
+}
+
+// Atualizar CPF (endpoint separado para admin)
+async function updateCPFIfChanged() {
+  // Só tentar atualizar se tiver permissão e o CPF foi modificado
+  if (!canEditCPF.value) return;
+  
+  const cpfAtual = form.cpf.replace(/\D/g, '');
+  const cpfOriginal = formOriginal.value.cpf.replace(/\D/g, '');
+  
+  if (cpfAtual === cpfOriginal) return; // Não mudou
+  
+  try {
+    updatingCPF.value = true;
+    await ProfileService.updateUserCPF(userId.value, form.cpf);
+    console.log('✅ CPF atualizado com sucesso');
+    toast.success('CPF atualizado com sucesso!');
+    
+    // Atualizar valor original
+    formOriginal.value.cpf = form.cpf;
+  } catch (err) {
+    console.error('❌ Erro ao atualizar CPF:', err);
+    const errorMsg = err.response?.data?.error || err.message || 'Erro ao atualizar CPF';
+    
+    if (errorMsg.includes('já está em uso')) {
+      errors.cpf = 'Este CPF já está cadastrado para outro usuário';
+      toast.error('CPF já está em uso. Verifique o número digitado.');
+    } else if (errorMsg.includes('inválido')) {
+      errors.cpf = 'CPF inválido. Verifique os números digitados.';
+      toast.error('CPF inválido.');
+    } else {
+      toast.error(errorMsg);
+    }
+    
+    throw err; // Propagar erro para interromper o fluxo
+  } finally {
+    updatingCPF.value = false;
+  }
 }
 
 function goBack() { 

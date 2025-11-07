@@ -327,6 +327,123 @@ select.form-select:focus, .form-control:focus { border-color:#66afe9; box-shadow
 .fade-enter-from,.fade-leave-to { opacity:0; }
 .export-cta-wrapper { text-align:center; }
 .export-cta { font-size:1.05rem; letter-spacing:.4px; box-shadow:0 4px 18px -4px rgba(0,123,255,0.5); white-space:nowrap; }
+
+/* Light Mode Styles */
+body.light-mode .relatorio-container {
+  color: #333333;
+}
+
+body.light-mode .card {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(105, 96, 0, 0.15);
+  color: #333333;
+}
+
+body.light-mode .calendar-picker .form-control {
+  background: #FFFFFF;
+  border-color: rgba(105, 96, 0, 0.25);
+  color: #333333;
+}
+
+body.light-mode .calendar-picker .form-control:focus {
+  border-color: #FFD700;
+  box-shadow: 0 0 0 0.15rem rgba(255, 215, 0, 0.25);
+}
+
+body.light-mode .input-group-text {
+  background: rgba(255, 215, 0, 0.15);
+  border-color: rgba(105, 96, 0, 0.2);
+  color: #333333;
+}
+
+body.light-mode select.form-select,
+body.light-mode .form-control {
+  background: #FFFFFF;
+  color: #333333;
+  border-color: rgba(105, 96, 0, 0.2);
+}
+
+body.light-mode select.form-select:focus,
+body.light-mode .form-control:focus {
+  border-color: #FFD700;
+  box-shadow: 0 0 0 0.2rem rgba(255, 215, 0, 0.3);
+}
+
+body.light-mode .btn-outline-secondary {
+  border-color: rgba(105, 96, 0, 0.3);
+  color: #696000;
+}
+
+body.light-mode .btn-outline-secondary:hover {
+  background: rgba(255, 215, 0, 0.2);
+  color: #333333;
+}
+
+body.light-mode .btn-outline-warning {
+  border-color: #FFD700;
+  color: #696000;
+}
+
+body.light-mode .btn-outline-warning:hover {
+  background: #FFD700;
+  color: #333333;
+}
+
+body.light-mode .btn-success {
+  background: #28a745;
+  border-color: #28a745;
+  color: white;
+}
+
+body.light-mode .btn-success:hover {
+  background: #218838;
+  border-color: #1e7e34;
+}
+
+body.light-mode .btn-primary {
+  background: #696000;
+  border-color: #696000;
+  color: white;
+}
+
+body.light-mode .btn-primary:hover {
+  background: #504700;
+  border-color: #504700;
+}
+
+body.light-mode .btn-outline-light {
+  border-color: rgba(105, 96, 0, 0.3);
+  color: #696000;
+}
+
+body.light-mode .btn-outline-light:hover {
+  background: rgba(255, 215, 0, 0.2);
+  border-color: #FFD700;
+  color: #333333;
+}
+
+body.light-mode .export-cta {
+  background: linear-gradient(90deg, #696000, #504700);
+  box-shadow: 0 4px 18px -4px rgba(105, 96, 0, 0.5);
+}
+
+body.light-mode .helper-text {
+  color: #666666;
+}
+
+body.light-mode .periodo-badge {
+  background: rgba(255, 215, 0, 0.2);
+  color: #333333;
+  border: 1px solid rgba(105, 96, 0, 0.3);
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  display: inline-block;
+}
+
+body.light-mode .nome-skeleton {
+  background: linear-gradient(90deg, #e0e0e0 25%, #f0f0f0 50%, #e0e0e0 75%);
+}
+
 .export-cta:disabled { opacity:.7; }
 .export-cta.btn-primary { background: linear-gradient(90deg,#2563eb,#1d4ed8); border:none; }
 .export-cta.btn-primary:hover:not(:disabled) { background: linear-gradient(90deg,#1d4ed8,#1e40af); }

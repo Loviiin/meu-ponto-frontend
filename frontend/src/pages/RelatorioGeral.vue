@@ -1472,4 +1472,56 @@ p, span, label, small {
     max-width: 1600px;
   }
 }
+
+/* Light Mode Styles */
+body.light-mode .relatorio-geral-container {
+  color: #333333;
+}
+
+body.light-mode .table {
+  color: #333333;
+}
+
+body.light-mode .table thead th {
+  background: rgba(255, 215, 0, 0.15);
+  border-color: rgba(105, 96, 0, 0.2);
+  color: #333333;
+}
+
+body.light-mode .table tbody td {
+  border-color: rgba(105, 96, 0, 0.1);
+  color: #333333;
+}
+
+body.light-mode .table-striped tbody tr:nth-of-type(odd) {
+  background: rgba(255, 215, 0, 0.05);
+}
+
+body.light-mode .table-hover tbody tr:hover {
+  background: rgba(255, 215, 0, 0.1);
+}
+
+body.light-mode .alert {
+  background: rgba(255, 215, 0, 0.1);
+  border-color: rgba(105, 96, 0, 0.2);
+  color: #333333;
+}
+
+body.light-mode .alert-warning {
+  background: rgba(255, 193, 7, 0.15);
+  border-color: rgba(255, 193, 7, 0.4);
+  color: #856404;
+}
+
+body.light-mode .alert-danger {
+  background: rgba(220, 53, 69, 0.15);
+  border-color: rgba(220, 53, 69, 0.4);
+  color: #721c24;
+}
+
+body.light-mode .alert-info {
+  background: rgba(23, 162, 184, 0.15);
+  border-color: rgba(23, 162, 184, 0.4);
+  color: #0c5460;
+}
 </style>

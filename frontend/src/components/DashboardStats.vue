@@ -357,4 +357,37 @@ defineExpose({
   border-color: #d4af37;
   border-right-color: transparent;
 }
+
+/* Light Mode Styles */
+body.light-mode .stat-card {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(105, 96, 0, 0.15);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+body.light-mode .stat-card::before {
+  background: linear-gradient(90deg, #FFD700, transparent);
+}
+
+body.light-mode .stat-card:hover {
+  box-shadow: 0 12px 40px rgba(255, 215, 0, 0.3);
+  border-color: rgba(255, 215, 0, 0.4);
+}
+
+body.light-mode .stat-label {
+  color: rgba(51, 51, 51, 0.7);
+}
+
+body.light-mode .stat-value {
+  color: #333333;
+}
+
+body.light-mode .stat-change {
+  color: rgba(51, 51, 51, 0.6);
+}
+
+body.light-mode .spinner-border {
+  border-color: #FFD700;
+  border-right-color: transparent;
+}
 </style>

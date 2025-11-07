@@ -568,10 +568,23 @@ export default {
     const saveProfile = async () => {
       try {
         savingProfile.value = true;
-        const updated = await ProfileService.updateProfile({
-          nome: profileForm.nome,
-          telefone: profileForm.telefone,
-        });
+        
+        // Enviar apenas campos que foram preenchidos/alterados
+        const updateData = {};
+        if (profileForm.nome && profileForm.nome.trim()) {
+          updateData.nome = profileForm.nome.trim();
+        }
+        if (profileForm.telefone && profileForm.telefone.trim()) {
+          updateData.telefone = profileForm.telefone.trim();
+        }
+        
+        // Não enviar se não houver nada para atualizar
+        if (Object.keys(updateData).length === 0) {
+          showToast('Nenhuma alteração para salvar', 'warning');
+          return;
+        }
+        
+        const updated = await ProfileService.updateProfile(updateData);
         
         profile.value = updated;
         editingProfile.value = false;
@@ -620,6 +633,12 @@ export default {
     };
     
     const changePassword = async () => {
+      // Verificar se todos os campos foram preenchidos
+      if (!passwordForm.senhaAtual || !passwordForm.senhaNova || !passwordForm.confirmarSenha) {
+        showToast('Preencha todos os campos de senha', 'error');
+        return;
+      }
+
       if (passwordForm.senhaNova !== passwordForm.confirmarSenha) {
         showToast('As senhas não coincidem', 'error');
         return;

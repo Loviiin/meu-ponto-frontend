@@ -227,4 +227,57 @@ export default {
     grid-template-columns: 1fr;
   }
 }
+
+/* Light Mode Styles */
+body.light-mode .container {
+  color: #333333;
+}
+
+body.light-mode .permission-card {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(105, 96, 0, 0.2);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+body.light-mode .permission-card:hover {
+  background: rgba(255, 215, 0, 0.1);
+  border-color: rgba(255, 215, 0, 0.4);
+}
+
+body.light-mode .permission-info strong {
+  color: #333333;
+}
+
+body.light-mode .permission-info small {
+  color: #696000;
+}
+
+body.light-mode .badge {
+  background: rgba(255, 215, 0, 0.3) !important;
+  color: #696000 !important;
+  border-color: rgba(255, 215, 0, 0.5);
+}
+
+body.light-mode .form-select {
+  background: #FFFFFF;
+  border-color: rgba(105, 96, 0, 0.3);
+  color: #333333;
+}
+
+body.light-mode .form-select:focus {
+  background: #FFFFFF;
+  border-color: #FFD700;
+  color: #333333;
+}
+
+body.light-mode .form-select option {
+  background: #FFFFFF;
+  color: #333333;
+}
+
+body.light-mode .alert {
+  background: rgba(255, 215, 0, 0.1);
+  border-color: rgba(105, 96, 0, 0.2);
+  color: #333333;
+}
 </style>

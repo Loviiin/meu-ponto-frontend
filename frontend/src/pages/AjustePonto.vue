@@ -314,4 +314,61 @@ export default {
 .table-wrapper {
   overflow-x: auto;
 }
+
+/* Light Mode Styles */
+body.light-mode .card {
+  background: rgba(255, 255, 255, 0.9);
+  color: #333333;
+  border: 1px solid rgba(105, 96, 0, 0.15);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+body.light-mode .form-control,
+body.light-mode .form-select {
+  background: #FFFFFF;
+  border-color: rgba(105, 96, 0, 0.25);
+  color: #333333;
+}
+
+body.light-mode .form-control::placeholder {
+  color: #888888;
+}
+
+body.light-mode .form-control:focus,
+body.light-mode .form-select:focus {
+  background: #FFFFFF;
+  border-color: #FFD700;
+  color: #333333;
+}
+
+body.light-mode .list-group-item.ponto-item {
+  background: rgba(255, 255, 255, 0.8);
+  border-color: rgba(105, 96, 0, 0.15);
+  color: #333333;
+}
+
+body.light-mode .list-group-item.ponto-item:hover {
+  background: rgba(255, 215, 0, 0.15);
+  border-color: rgba(255, 215, 0, 0.4);
+}
+
+body.light-mode .list-group-item.ponto-item.active {
+  background: rgba(255, 215, 0, 0.3);
+  border-color: #FFD700;
+  color: #333333;
+}
+
+body.light-mode .table {
+  color: #333333;
+}
+
+body.light-mode .table thead {
+  background: rgba(255, 215, 0, 0.15);
+  color: #333333;
+}
+
+body.light-mode .table td,
+body.light-mode .table th {
+  color: #333333;
+}
 </style>

@@ -552,4 +552,87 @@ h1 {
     color: white;
   }
 }
+
+/* Light Mode Styles */
+body.light-mode .glass-card {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(105, 96, 0, 0.15);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  color: #333333;
+}
+
+body.light-mode .glass-card .card-header {
+  background: rgba(255, 215, 0, 0.15);
+  border-bottom-color: rgba(105, 96, 0, 0.15);
+  color: #333333;
+}
+
+body.light-mode h1 {
+  background: linear-gradient(90deg, #696000, #333333);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+body.light-mode .content-narrow {
+  color: #333333;
+}
+
+body.light-mode .card-title {
+  color: #333333;
+}
+
+body.light-mode .table-mobile thead th {
+  color: #333333;
+}
+
+body.light-mode .glass-card .btn-outline-dark {
+  color: #696000;
+  border-color: rgba(105, 96, 0, 0.5);
+}
+
+body.light-mode .glass-card .btn-outline-dark:hover,
+body.light-mode .glass-card .btn-outline-dark:focus {
+  color: #333333;
+  background-color: rgba(255, 215, 0, 0.2);
+  border-color: #FFD700;
+}
+
+body.light-mode .glass-card .alert {
+  background: rgba(255, 215, 0, 0.1);
+  border-color: rgba(105, 96, 0, 0.2);
+  color: #333333;
+  --bs-table-color: #333333;
+  --bs-table-border-color: rgba(105, 96, 0, 0.15);
+}
+
+body.light-mode .glass-card .table {
+  color: #333333;
+}
+
+body.light-mode .glass-card .table thead th {
+  color: #333333;
+}
+
+body.light-mode .glass-card .table tbody td {
+  color: #333333;
+}
+
+body.light-mode .glass-card .table-hover > tbody > tr:hover > * {
+  background-color: rgba(255, 215, 0, 0.1) !important;
+}
+
+body.light-mode .glass-card .table .table-active > * {
+  background-color: rgba(255, 215, 0, 0.1) !important;
+}
+
+body.light-mode .glass-card .table .group-row {
+  background-color: rgba(255, 215, 0, 0.08);
+}
+
+@media (max-width: 576px) {
+  body.light-mode .table-mobile tbody tr td {
+    color: #333333;
+  }
+}
 </style>

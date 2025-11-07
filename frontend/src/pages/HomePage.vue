@@ -41,4 +41,21 @@ p {
   font-size: 1.2rem;
   letter-spacing: 1px;
 }
+
+/* Light Mode Styles */
+body.light-mode .home-page {
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(105, 96, 0, 0.15);
+}
+
+body.light-mode h1 {
+  background: linear-gradient(90deg, #696000, #333333);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+body.light-mode p {
+  color: rgba(51, 51, 51, 0.8);
+}
 </style>

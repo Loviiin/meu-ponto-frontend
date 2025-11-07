@@ -1,5 +1,14 @@
 <template>
   <div class="login-page d-flex align-items-center justify-content-center">
+    <!-- Theme Toggle Button -->
+    <button 
+      @click="toggleTheme" 
+      class="theme-toggle-btn" 
+      :title="isDarkMode ? 'Modo escuro (azul/dourado)' : 'Modo claro'"
+    >
+      <i :class="isDarkMode ? 'bi bi-sun-fill' : 'bi bi-moon-fill'"></i>
+    </button>
+    
     <div class="login-card card shadow-lg">
       <div class="card-body p-4 p-md-5 text-center">
         <img src="../assets/Icon_vertical_nexora-removebg-preview.png" alt="Nexora" class="brand-logo mb-2" />
@@ -31,11 +40,26 @@
             </div>
           </transition>
           
+          <!-- Alerta de Rate Limiting -->
+          <transition name="fade">
+            <div v-if="isBlocked" class="rate-limit-alert">
+              <i class="bi bi-shield-lock me-2"></i>
+              <div>
+                <strong>Muitas tentativas falhadas</strong>
+                <p class="mb-0">Aguarde {{ formatTime(retryAfter) }} para tentar novamente</p>
+              </div>
+            </div>
+          </transition>
+          
           <div class="button-wrapper">
-            <button class="btn btn-primary mt-2" type="submit" :disabled="loading">
-              <span v-if="!loading">
+            <button class="btn btn-primary mt-2" type="submit" :disabled="loading || isBlocked">
+              <span v-if="!loading && !isBlocked">
                 <i class="bi bi-door-open-fill"></i>
                 Acessar
+              </span>
+              <span v-else-if="isBlocked">
+                <i class="bi bi-lock-fill"></i>
+                Bloqueado
               </span>
               <span v-else>
                 <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
@@ -180,6 +204,30 @@ button.btn-primary:disabled {
   justify-content: center;
 }
 
+.rate-limit-alert {
+  background: rgba(231, 76, 60, 0.15);
+  border: 1px solid rgba(231, 76, 60, 0.3);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin: 8px 0;
+  font-size: 0.875rem;
+  color: #ff6b6b;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.rate-limit-alert strong {
+  display: block;
+  font-size: 0.9rem;
+  margin-bottom: 2px;
+}
+
+.rate-limit-alert p {
+  font-size: 0.8rem;
+  opacity: 0.9;
+}
+
 .fade-enter-active, .fade-leave-active {
   transition: opacity 0.3s ease;
 }
@@ -190,13 +238,143 @@ button.btn-primary:disabled {
 .signup-redirect { margin-top: 10px; font-size: 13px; }
 .signup-redirect a { color: #ffe27a; text-decoration: underline; cursor: pointer; margin-left: 4px; }
 .signup-redirect a:hover { color: #fff2b3; }
+
+/* Theme Toggle Button */
+.theme-toggle-btn {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: var(--color-white);
+  font-size: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  z-index: 1030;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.theme-toggle-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+}
+
+.theme-toggle-btn:active {
+  transform: translateY(0);
+}
+
+/* Ajustes para o modo claro */
+body.light-mode .theme-toggle-btn {
+  border-color: rgba(105, 96, 0, 0.3);
+  background: rgba(255, 255, 255, 0.15);
+  color: rgba(105, 96, 0, 0.9);
+}
+
+body.light-mode .theme-toggle-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  color: rgba(105, 96, 0, 1);
+}
+
+/* Login card no modo claro */
+body.light-mode .login-card {
+  background: rgba(255, 255, 255, 0.8);
+  border-color: rgba(105, 96, 0, 0.15);
+  color: rgba(0, 0, 0, 0.95);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+}
+
+body.light-mode .login-box-msg2 {
+  color: rgba(0, 0, 0, 0.65);
+}
+
+body.light-mode .input-group input {
+  background: rgba(255, 255, 255, 0.9);
+  color: rgba(0, 0, 0, 0.95);
+  border: 1px solid rgba(105, 96, 0, 0.2);
+}
+
+body.light-mode .input-group input::placeholder {
+  color: rgba(0, 0, 0, 0.55);
+}
+
+body.light-mode .input-group .input-icon {
+  background: rgba(255, 255, 255, 0.9);
+  border-left-color: rgba(105, 96, 0, 0.25);
+  color: #696000;
+}
+
+body.light-mode button.btn-primary {
+  background: #696000;
+  color: white;
+  border: none;
+}
+
+body.light-mode button.btn-primary:hover:not(:disabled) {
+  background: #504700;
+}
+
+body.light-mode .signup-redirect {
+  color: rgba(0, 0, 0, 0.85);
+}
+
+body.light-mode .signup-redirect a {
+  color: #696000;
+  font-weight: 600;
+}
+
+body.light-mode .signup-redirect a:hover {
+  color: #504700;
+}
+
+body.light-mode .server-waking-info {
+  background: rgba(105, 96, 0, 0.15);
+  border-color: rgba(105, 96, 0, 0.4);
+  color: #504700;
+}
+
+body.light-mode .cold-start-info {
+  background: rgba(255, 193, 7, 0.2);
+  border-color: rgba(255, 193, 7, 0.5);
+  color: #664d03;
+}
+
+body.light-mode .rate-limit-alert {
+  background: rgba(220, 53, 69, 0.15);
+  border-color: rgba(220, 53, 69, 0.4);
+  color: #721c24;
+}
 </style>
 
 <script>
 import api from '../axios'
+import { normalizeEmail } from '../utils/validators'
+import { isDarkMode, toggleDarkMode } from '../utils/preferences'
+import { ref } from 'vue'
 
 export default {
   name: 'LoginPage',
+  setup() {
+    const darkMode = ref(isDarkMode())
+    
+    const toggleTheme = () => {
+      toggleDarkMode()
+      darkMode.value = isDarkMode()
+    }
+    
+    return {
+      isDarkMode: darkMode,
+      toggleTheme
+    }
+  },
   data() {
     return {
       email: '',
@@ -204,7 +382,10 @@ export default {
       loading: false,
       serverWakingUp: false,
       wakeUpTimeout: null,
-      serverAwake: false
+      serverAwake: false,
+      isBlocked: false,
+      retryAfter: 0,
+      countdownInterval: null
     }
   },
   watch: {
@@ -222,8 +403,33 @@ export default {
     if (this.wakeUpTimeout) {
       clearTimeout(this.wakeUpTimeout)
     }
+    if (this.countdownInterval) {
+      clearInterval(this.countdownInterval)
+    }
   },
   methods: {
+    formatTime(seconds) {
+      const mins = Math.floor(seconds / 60)
+      const secs = seconds % 60
+      return `${mins}:${secs.toString().padStart(2, '0')}`
+    },
+    
+    startCountdown(seconds) {
+      this.retryAfter = seconds
+      this.isBlocked = true
+      
+      if (this.countdownInterval) {
+        clearInterval(this.countdownInterval)
+      }
+      
+      this.countdownInterval = setInterval(() => {
+        this.retryAfter--
+        if (this.retryAfter <= 0) {
+          clearInterval(this.countdownInterval)
+          this.isBlocked = false
+        }
+      }, 1000)
+    },
     scheduleServerWakeUp() {
       // Se o servidor já está acordado ou já está fazendo login, não faz nada
       if (this.serverAwake || this.loading) return
@@ -275,11 +481,11 @@ export default {
     async loginUser() {
       this.loading = true
       try {
-        // 1. Fazer login
+        // 1. Fazer login (normalizar email)
         const response = await api.post(
           "/auth/login",
           {
-            email: this.email,
+            email: normalizeEmail(this.email),
             password: this.password
           },
           {
@@ -339,8 +545,25 @@ export default {
         console.log('✅ Redirecionamento concluído');
       } catch (error) {
         console.error("❌ Erro no login:", error.response?.data || error.message);
+        
+        // Rate Limiting - Status 429
+        if (error.response?.status === 429) {
+          const data = error.response.data
+          const errorMsg = data.error || data.erro || 'Muitas tentativas de login. Aguarde alguns minutos.'
+          
+          // Extrair minutos do erro se possível
+          const minutesMatch = errorMsg.match(/(\d+)\s+minuto/i)
+          const retryAfterMinutes = minutesMatch ? parseInt(minutesMatch[1]) : 15
+          
+          this.startCountdown(retryAfterMinutes * 60) // Converter minutos para segundos
+          
+          alert(`🚫 Limite de tentativas excedido!\n\n${errorMsg}\n\nPor favor, aguarde ${retryAfterMinutes} minutos antes de tentar novamente.`)
+          return
+        }
+        
         const errorMessage = error.response?.data?.message 
           || error.response?.data?.error 
+          || error.response?.data?.erro
           || "Não foi possível fazer login. Verifique suas credenciais.";
         alert(errorMessage);
       } finally {

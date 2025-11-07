@@ -24,16 +24,17 @@ class ProfileService {
 
   /**
    * 2. Atualizar Perfil
-   * Endpoint: PUT /api/v1/profile/me
-   * Atualiza informações editáveis do perfil (nome e telefone)
+   * Endpoint: PATCH /api/v1/profile/me (ATUALIZADO v2.0)
+   * Atualiza informações editáveis do perfil (nome, telefone e email)
    * @param {Object} data - Dados a serem atualizados
    * @param {string} [data.nome] - Nome completo do usuário
    * @param {string} [data.telefone] - Telefone do usuário
+   * @param {string} [data.email] - Email do usuário (NOVO: editável)
    * @returns {Promise<Object>} Perfil completo atualizado
    */
   async updateProfile(data) {
     try {
-      const response = await api.put('/profile/me', data)
+      const response = await api.patch('/profile/me', data)
       return response.data
     } catch (error) {
       console.error('Erro ao atualizar perfil:', error)
@@ -43,20 +44,38 @@ class ProfileService {
 
   /**
    * 3. Alterar Senha
-   * Endpoint: PUT /api/v1/profile/me/password
+   * Endpoint: PATCH /api/v1/profile/me/password (ATUALIZADO v2.0)
    * Permite o usuário alterar sua própria senha
    * @param {Object} data - Dados da alteração de senha
    * @param {string} data.senha_atual - Senha atual (obrigatório)
-   * @param {string} data.senha_nova - Nova senha (mínimo 6 caracteres)
+   * @param {string} data.senha_nova - Nova senha (mínimo 8 caracteres, 1 maiúscula, 1 minúscula, 1 número)
    * @param {string} data.confirmar_senha - Confirmação da nova senha
    * @returns {Promise<Object>} Mensagem de sucesso
    */
   async changePassword(data) {
     try {
-      const response = await api.put('/profile/me/password', data)
+      const response = await api.patch('/profile/me/password', data)
       return response.data
     } catch (error) {
       console.error('Erro ao alterar senha:', error)
+      throw error
+    }
+  }
+
+  /**
+   * 13. Atualizar CPF de Usuário (Admin)
+   * Endpoint: PATCH /api/v1/admin/users/:user_id/cpf (NOVO v2.0)
+   * Requer permissão: EDITAR_USUARIO
+   * @param {number} userId - ID do usuário
+   * @param {string} cpf - Novo CPF (formato: 999.999.999-99)
+   * @returns {Promise<Object>} Mensagem de sucesso
+   */
+  async updateUserCPF(userId, cpf) {
+    try {
+      const response = await api.patch(`/admin/users/${userId}/cpf`, { cpf })
+      return response.data
+    } catch (error) {
+      console.error('Erro ao atualizar CPF:', error)
       throw error
     }
   }

@@ -107,4 +107,34 @@ const calendarComponent = ref(null)
     grid-template-columns: 1fr;
   }
 }
+
+/* Light Mode Styles */
+body.light-mode .page-header h2 {
+  background: linear-gradient(90deg, #696000, #333333);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+body.light-mode .subtitle {
+  color: rgba(51, 51, 51, 0.7);
+}
+
+body.light-mode .info-card {
+  background: rgba(255, 255, 255, 0.8);
+  border-color: rgba(105, 96, 0, 0.15);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+body.light-mode .info-card i {
+  color: #696000;
+}
+
+body.light-mode .info-card p {
+  color: rgba(51, 51, 51, 0.8);
+}
+
+body.light-mode .info-card strong {
+  color: #333333;
+}
 </style>

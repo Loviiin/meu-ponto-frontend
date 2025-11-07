@@ -262,4 +262,37 @@ export default {
     margin-right: 1rem;
   }
 }
+
+/* Light Mode Styles */
+body.light-mode .card {
+  background: rgba(255, 255, 255, 0.9);
+  color: #333333;
+  border: 1px solid rgba(105, 96, 0, 0.15);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+body.light-mode .table {
+  color: #333333;
+}
+
+body.light-mode .table thead {
+  background: rgba(255, 215, 0, 0.15);
+  color: #333333;
+}
+
+body.light-mode .table td,
+body.light-mode .table th {
+  color: #333333;
+}
+
+@media (max-width: 768px) {
+  body.light-mode .table-mobile tbody tr {
+    border-color: rgba(105, 96, 0, 0.15);
+    background: rgba(255, 255, 255, 0.8);
+  }
+  
+  body.light-mode .table-mobile tbody td {
+    color: #333333;
+  }
+}
 </style>

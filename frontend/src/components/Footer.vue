@@ -100,6 +100,19 @@
   }
 }
 
+/* Light Mode Styles */
+body.light-mode .footer {
+  background: rgba(255, 255, 255, 0.95);
+  border-top: 1px solid rgba(105, 96, 0, 0.15);
+  color: #333333;
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.08);
+}
+
+body.light-mode .version-text {
+  background: rgba(255, 215, 0, 0.2);
+  color: #333333;
+}
+
 </style>
 
 <script>

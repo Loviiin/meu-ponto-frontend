@@ -205,20 +205,40 @@
                       />
                     </div>
                     <div class="mb-3">
+                      <label for="email" class="form-label">Email</label>
+                      <input 
+                        type="email" 
+                        class="form-control" 
+                        id="email" 
+                        v-model="editForm.email"
+                        @blur="handleEmailBlur"
+                        placeholder="seu@email.com"
+                        required
+                      />
+                      <small v-if="emailError" class="text-danger d-block mt-1">{{ emailError }}</small>
+                      <small v-else class="form-text">
+                        <i class="bi bi-info-circle me-1"></i>
+                        Seu email será normalizado automaticamente
+                      </small>
+                    </div>
+                    <div class="mb-3">
                       <label for="telefone" class="form-label">Telefone</label>
                       <input 
                         type="tel" 
                         class="form-control" 
                         id="telefone" 
                         v-model="editForm.telefone"
+                        @input="handlePhoneInput"
                         placeholder="(00) 00000-0000"
+                        maxlength="15"
                       />
+                      <small v-if="phoneError" class="text-danger d-block mt-1">{{ phoneError }}</small>
                     </div>
                     <div class="alert alert-info small">
                       <i class="bi bi-info-circle me-1"></i>
-                      Email e CPF não podem ser alterados. Entre em contato com o administrador.
+                      CPF não pode ser alterado. Para alterá-lo, entre em contato com o administrador.
                     </div>
-                    <button type="submit" class="btn btn-primary" :disabled="updating">
+                    <button type="submit" class="btn btn-primary" :disabled="updating || emailError || phoneError">
                       <span v-if="updating" class="spinner-border spinner-border-sm me-2"></span>
                       <i v-else class="bi bi-check-lg me-1"></i>
                       Salvar Alterações
@@ -252,9 +272,10 @@
                         id="senha_nova" 
                         v-model="passwordForm.senha_nova"
                         required
-                        minlength="6"
+                        minlength="8"
                       />
-                      <div class="form-text">Mínimo de 6 caracteres</div>
+                      <PasswordStrengthIndicator :senha="passwordForm.senha_nova" />
+                      <div class="form-text">Mínimo de 8 caracteres, com maiúscula, minúscula e número</div>
                     </div>
                     <div class="mb-3">
                       <label for="confirmar_senha" class="form-label">Confirmar Nova Senha</label>
@@ -264,7 +285,7 @@
                         id="confirmar_senha" 
                         v-model="passwordForm.confirmar_senha"
                         required
-                        minlength="6"
+                        minlength="8"
                       />
                     </div>
                     <button type="submit" class="btn btn-primary" :disabled="changingPassword">
@@ -330,6 +351,8 @@
 import { ref, onMounted } from 'vue'
 import ProfileService from '../services/ProfileService'
 import { toast } from '../toast'
+import { onlyDigits, formatPhoneBR, validarTelefoneBR, validarSenhaForte, normalizeEmail, validateEmail } from '../utils/validators'
+import PasswordStrengthIndicator from '../components/PasswordStrengthIndicator.vue'
 
 const profile = ref(null)
 const stats = ref(null)
@@ -340,9 +363,12 @@ const updating = ref(false)
 const changingPassword = ref(false)
 const error = ref(null)
 const isInitialized = ref(false) // Previne múltiplos carregamentos
+const phoneError = ref('')
+const emailError = ref('')
 
 const editForm = ref({
   nome: '',
+  email: '',
   telefone: ''
 })
 
@@ -351,6 +377,51 @@ const passwordForm = ref({
   senha_nova: '',
   confirmar_senha: ''
 })
+
+// Validar e formatar telefone
+const handlePhoneInput = (event) => {
+  const value = event.target.value
+  const digits = onlyDigits(value)
+  const formatted = formatPhoneBR(value)
+  editForm.value.telefone = formatted
+  
+  // Validar telefone brasileiro
+  if (digits.length > 0 && !validarTelefoneBR(value)) {
+    if (digits.length < 11) {
+      phoneError.value = 'Telefone deve ter 11 dígitos'
+    } else {
+      const ddd = parseInt(digits.substring(0, 2))
+      if (ddd < 11 || ddd > 99) {
+        phoneError.value = 'DDD inválido (deve ser entre 11 e 99)'
+      } else if (digits[2] !== '9') {
+        phoneError.value = 'Número de celular deve começar com 9'
+      } else {
+        phoneError.value = 'Telefone inválido'
+      }
+    }
+  } else {
+    phoneError.value = ''
+  }
+}
+
+// Validar email
+const handleEmailBlur = () => {
+  if (!editForm.value.email) {
+    emailError.value = 'Email é obrigatório'
+    return
+  }
+  
+  // Normalizar email
+  editForm.value.email = normalizeEmail(editForm.value.email)
+  
+  // Validar formato
+  if (!validateEmail(editForm.value.email)) {
+    emailError.value = 'Formato de email inválido'
+    return
+  }
+  
+  emailError.value = ''
+}
 
 // Load profile data with cache
 const loadProfile = async () => {
@@ -363,6 +434,7 @@ const loadProfile = async () => {
     
     // Populate edit form
     editForm.value.nome = profile.value.nome
+    editForm.value.email = profile.value.email || ''
     editForm.value.telefone = profile.value.telefone || ''
     
     error.value = null
@@ -402,12 +474,39 @@ const loadRecentActivity = async () => {
 const updateProfile = async () => {
   try {
     updating.value = true
-    await ProfileService.updateProfile(editForm.value)
+    
+    // Enviar apenas campos que foram preenchidos/alterados
+    const updateData = {}
+    if (editForm.value.nome && editForm.value.nome.trim()) {
+      updateData.nome = editForm.value.nome.trim()
+    }
+    if (editForm.value.email && editForm.value.email.trim()) {
+      updateData.email = normalizeEmail(editForm.value.email.trim())
+    }
+    if (editForm.value.telefone && editForm.value.telefone.trim()) {
+      updateData.telefone = editForm.value.telefone.trim()
+    }
+    
+    // Não enviar se não houver nada para atualizar
+    if (Object.keys(updateData).length === 0) {
+      toast.warning('Nenhuma alteração para salvar')
+      return
+    }
+    
+    await ProfileService.updateProfile(updateData)
     
     toast.success('Perfil atualizado com sucesso!')
     await loadProfile()
   } catch (err) {
-    toast.error(err.response?.data?.error || 'Erro ao atualizar perfil')
+    const errorMsg = err.response?.data?.error || 'Erro ao atualizar perfil'
+    
+    // Tratar erro de email duplicado
+    if (errorMsg.includes('email já está em uso')) {
+      emailError.value = 'Este email já está sendo usado por outro usuário'
+      toast.error('Email já está em uso. Tente outro.')
+    } else {
+      toast.error(errorMsg)
+    }
   } finally {
     updating.value = false
   }
@@ -415,8 +514,21 @@ const updateProfile = async () => {
 
 // Change password
 const changePassword = async () => {
+  // Verificar se todos os campos foram preenchidos
+  if (!passwordForm.value.senha_atual || !passwordForm.value.senha_nova || !passwordForm.value.confirmar_senha) {
+    toast.error('Preencha todos os campos de senha')
+    return
+  }
+
   if (passwordForm.value.senha_nova !== passwordForm.value.confirmar_senha) {
     toast.error('As senhas não coincidem')
+    return
+  }
+
+  // Validar força da senha
+  const senhaValidacao = validarSenhaForte(passwordForm.value.senha_nova)
+  if (!senhaValidacao.valido) {
+    toast.error(senhaValidacao.erros[0])
     return
   }
 
@@ -847,5 +959,156 @@ h2, h4, h5, .card-title {
     width: 120px;
     height: 120px;
   }
+}
+
+/* Light Mode Styles */
+body.light-mode .card {
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(105, 96, 0, 0.15);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  color: #333333;
+}
+
+body.light-mode .card-header {
+  background: rgba(255, 215, 0, 0.15);
+  border-bottom-color: rgba(105, 96, 0, 0.15);
+  color: #333333;
+}
+
+body.light-mode .card-body {
+  color: #333333;
+}
+
+body.light-mode .avatar-image {
+  border-color: rgba(255, 215, 0, 0.6);
+  box-shadow: 0 8px 16px rgba(255, 215, 0, 0.3);
+}
+
+body.light-mode .avatar-upload-btn {
+  background: linear-gradient(135deg, #FFD700, #696000);
+  border-color: rgba(255, 255, 255, 0.8);
+}
+
+body.light-mode .avatar-upload-btn:hover {
+  box-shadow: 0 4px 12px rgba(255, 215, 0, 0.5);
+}
+
+body.light-mode .avatar-initials {
+  background: linear-gradient(135deg, #FFD700, #696000);
+  border-color: rgba(255, 215, 0, 0.6);
+}
+
+body.light-mode .form-label {
+  color: #333333;
+}
+
+body.light-mode .form-control {
+  background: #FFFFFF;
+  border-color: rgba(105, 96, 0, 0.2);
+  color: #333333;
+}
+
+body.light-mode .form-control:disabled,
+body.light-mode .form-control[readonly] {
+  background: rgba(248, 248, 248, 0.8);
+  color: #666666;
+}
+
+body.light-mode .btn-outline-warning {
+  border-color: #FFD700;
+  color: #696000;
+}
+
+body.light-mode .btn-outline-warning:hover {
+  background: #FFD700;
+  border-color: #FFD700;
+  color: #333333;
+}
+
+body.light-mode .btn-outline-warning:hover {
+  background: #FFD700;
+  border-color: #FFD700;
+  color: #333333;
+}
+
+body.light-mode .stat-item {
+  border-bottom-color: rgba(105, 96, 0, 0.1);
+}
+
+body.light-mode .stat-label {
+  color: #666666;
+}
+
+body.light-mode .stat-value {
+  color: #696000;
+  font-weight: 700;
+}
+
+body.light-mode .activity-timeline::before {
+  background: linear-gradient(180deg, rgba(255, 215, 0, 0.5), transparent);
+}
+
+body.light-mode .activity-content {
+  background: rgba(255, 215, 0, 0.08);
+  border-color: rgba(105, 96, 0, 0.15);
+}
+
+body.light-mode .activity-description {
+  color: #333333;
+}
+
+body.light-mode .activity-date {
+  color: #666666;
+}
+
+body.light-mode .activity-details {
+  border-top-color: rgba(105, 96, 0, 0.15);
+  color: #666666;
+}
+
+body.light-mode .nav-tabs {
+  border-bottom-color: rgba(105, 96, 0, 0.2);
+}
+
+body.light-mode .nav-tabs .nav-link {
+  color: #666666;
+}
+
+body.light-mode .nav-tabs .nav-link.active {
+  color: #696000;
+  border-bottom-color: #FFD700;
+}
+
+body.light-mode .nav-tabs .nav-link:hover {
+  color: #696000;
+}
+
+body.light-mode h4 {
+  color: #333333 !important;
+}
+
+body.light-mode p.fw-bold {
+  color: #333333 !important;
+}
+
+body.light-mode .text-muted {
+  color: #666666 !important;
+}
+
+body.light-mode .fw-bold.text-primary {
+  color: #696000 !important;
+}
+
+body.light-mode .fw-bold.text-success {
+  color: #28a745 !important;
+}
+
+body.light-mode small.text-muted {
+  color: #888888 !important;
+}
+
+body.light-mode .spinner-border {
+  border-color: #FFD700;
+  border-right-color: transparent;
 }
 </style>

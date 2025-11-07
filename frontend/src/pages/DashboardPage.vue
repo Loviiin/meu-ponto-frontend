@@ -19,23 +19,39 @@
           <i v-else class="bi bi-arrow-clockwise me-2"></i>
           Atualizar Estatísticas
         </button>
+        <div v-if="lastUpdateTime" class="text-muted small mt-2">
+          <i class="bi bi-clock me-1"></i>
+          Última atualização em: <strong>{{ lastUpdateTime }}</strong>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import DashboardStats from '../components/DashboardStats.vue'
 import { toast } from '../toast'
 
 const statsComponent = ref(null)
 const refreshing = ref(false)
+const lastUpdateTime = ref('')
+let updateInterval = null
+
+const updateTimestamp = () => {
+  const now = new Date()
+  lastUpdateTime.value = now.toLocaleTimeString('pt-BR', {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit'
+  })
+}
 
 const reloadStats = async () => {
   try {
     refreshing.value = true
     await statsComponent.value?.reload()
+    updateTimestamp()
     toast.success('Estatísticas atualizadas!')
   } catch (err) {
     toast.error('Erro ao atualizar estatísticas')
@@ -43,6 +59,18 @@ const reloadStats = async () => {
     refreshing.value = false
   }
 }
+
+onMounted(() => {
+  updateTimestamp()
+  // Atualizar timestamp a cada segundo
+  updateInterval = setInterval(updateTimestamp, 1000)
+})
+
+onUnmounted(() => {
+  if (updateInterval) {
+    clearInterval(updateInterval)
+  }
+})
 </script>
 
 <style scoped>
@@ -99,5 +127,28 @@ const reloadStats = async () => {
   .dashboard-page {
     padding-top: 60px;
   }
+}
+
+/* Light Mode Styles */
+body.light-mode .page-header h2 {
+  background: linear-gradient(90deg, #696000, #333333);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+body.light-mode .subtitle {
+  color: rgba(51, 51, 51, 0.7);
+}
+
+body.light-mode .btn-outline-primary {
+  border-color: #FFD700;
+  color: #696000;
+}
+
+body.light-mode .btn-outline-primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #FFD700, #696000);
+  color: #333333;
+  box-shadow: 0 4px 12px rgba(255, 215, 0, 0.4);
 }
 </style>

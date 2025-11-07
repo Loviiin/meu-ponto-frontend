@@ -2,6 +2,7 @@
 
   <div id="app">
     <Header v-if="!$route.meta.hideNavbar" />
+    <ReconnectionBanner />
     <router-view />
     <Footer/>
     <FloatingPunch v-if="!$route.meta.hidePunchButton" />
@@ -14,6 +15,7 @@ import Footer from './components/Footer.vue';
 import Header from './components/Header.vue'
 import FloatingPunch from './components/FloatingPunch.vue';
 import ToastContainer from './components/ToastContainer.vue';
+import ReconnectionBanner from './components/ReconnectionBanner.vue';
 </script>
 
 <style>

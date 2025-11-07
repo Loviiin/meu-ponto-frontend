@@ -1287,4 +1287,87 @@ form {
     gap: 12px;
   }
 }
+
+/* Light Mode Styles */
+body.light-mode .employee-new-page {
+  color: #333333;
+}
+
+body.light-mode .glass-card {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(105, 96, 0, 0.15);
+  color: #333333;
+}
+
+body.light-mode .glass-card .card-header {
+  background: rgba(255, 215, 0, 0.15);
+  border-bottom-color: rgba(105, 96, 0, 0.15);
+  color: #333333;
+}
+
+body.light-mode .form-row label {
+  color: #333333;
+}
+
+body.light-mode .form-row input,
+body.light-mode .form-row select {
+  background: #FFFFFF;
+  border-color: rgba(105, 96, 0, 0.25);
+  color: #333333;
+}
+
+body.light-mode .form-row input::placeholder {
+  color: #888888;
+}
+
+body.light-mode .form-row select {
+  color: #333333;
+}
+
+body.light-mode .form-row select option {
+  background: #FFFFFF;
+  color: #333333;
+}
+
+body.light-mode .form-row input:focus,
+body.light-mode .form-row select:focus {
+  border-color: #FFD700;
+  box-shadow: 0 0 0 2px rgba(255, 215, 0, 0.25);
+}
+
+body.light-mode .hint,
+body.light-mode .info {
+  color: #666666;
+}
+
+body.light-mode .info {
+  color: #0066cc;
+}
+
+body.light-mode .info-box {
+  background: rgba(135, 206, 250, 0.15);
+  border-color: rgba(135, 206, 250, 0.4);
+  color: #333333;
+}
+
+body.light-mode .btn-preset {
+  border-color: rgba(105, 96, 0, 0.3);
+  background: rgba(255, 255, 255, 0.8);
+  color: #333333;
+}
+
+body.light-mode .btn-preset:hover {
+  background: rgba(255, 215, 0, 0.2);
+  border-color: #FFD700;
+}
+
+body.light-mode .btn-preset.active {
+  background: linear-gradient(135deg, #FFD700, #696000);
+  border-color: #FFD700;
+  color: #333333;
+}
+
+body.light-mode .section-header h3 {
+  color: #333333;
+}
 </style>

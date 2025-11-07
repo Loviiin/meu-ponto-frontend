@@ -868,4 +868,178 @@ export default {
     width: 100%;
   }
 }
+
+/* Light Mode Styles */
+body.light-mode .employee-list-page {
+  color: #333333;
+}
+
+body.light-mode .glass-card {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(105, 96, 0, 0.15);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  color: #333333;
+}
+
+body.light-mode .card-header {
+  background: rgba(255, 215, 0, 0.15);
+  border-bottom-color: rgba(105, 96, 0, 0.15);
+}
+
+body.light-mode .card-header h2 {
+  color: #333333;
+}
+
+body.light-mode .btn-new {
+  background: #FFD700;
+  color: #333333;
+}
+
+body.light-mode .btn-new:hover:not(:disabled) {
+  background: #E6C200;
+  box-shadow: 0 4px 12px rgba(255, 215, 0, 0.4);
+}
+
+body.light-mode .employee-table thead th {
+  color: #333333;
+  border-bottom-color: rgba(105, 96, 0, 0.2);
+}
+
+body.light-mode .employee-table tbody tr {
+  border-bottom-color: rgba(105, 96, 0, 0.1);
+}
+
+body.light-mode .employee-table tbody tr:hover {
+  background: rgba(255, 215, 0, 0.1);
+}
+
+body.light-mode .employee-table tbody td {
+  color: #333333;
+}
+
+body.light-mode .form-control,
+body.light-mode .form-select {
+  background: #FFFFFF;
+  border-color: rgba(105, 96, 0, 0.2);
+  color: #333333;
+}
+
+body.light-mode .form-control::placeholder {
+  color: #888888;
+}
+
+body.light-mode .btn-toggle {
+  background: rgba(255, 255, 255, 0.9);
+  color: #696000;
+  border-color: rgba(105, 96, 0, 0.3);
+}
+
+body.light-mode .btn-toggle:hover:not(:disabled) {
+  background: rgba(255, 215, 0, 0.2);
+  color: #333333;
+  border-color: #FFD700;
+}
+
+body.light-mode .btn-toggle.active {
+  background: linear-gradient(135deg, #FFD700, #696000);
+  color: #333333;
+  border-color: #FFD700;
+}
+
+body.light-mode .btn-toggle.active:hover:not(:disabled) {
+  background: linear-gradient(135deg, #E6C200, #504700);
+  border-color: #E6C200;
+}
+
+body.light-mode .badge-id {
+  background: rgba(255, 215, 0, 0.2);
+  color: #696000;
+  border: 1px solid rgba(105, 96, 0, 0.3);
+}
+
+body.light-mode .user-info i {
+  color: #696000;
+}
+
+body.light-mode .text-email {
+  color: #666666;
+}
+
+body.light-mode .badge-cargo {
+  background: rgba(255, 215, 0, 0.25);
+  border-color: rgba(105, 96, 0, 0.4);
+  color: #696000;
+}
+
+body.light-mode .badge-hours.positive {
+  background: rgba(40, 167, 69, 0.15);
+  border-color: rgba(40, 167, 69, 0.4);
+  color: #28a745;
+}
+
+body.light-mode .badge-hours.negative {
+  background: rgba(220, 53, 69, 0.15);
+  border-color: rgba(220, 53, 69, 0.4);
+  color: #dc3545;
+}
+
+body.light-mode .badge-hours.neutral {
+  background: rgba(108, 117, 125, 0.15);
+  border-color: rgba(108, 117, 125, 0.3);
+  color: #6c757d;
+}
+
+body.light-mode .btn-action {
+  background: #FFFFFF;
+  border-color: rgba(105, 96, 0, 0.3);
+  color: #333333;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+body.light-mode .btn-action:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+body.light-mode .btn-view {
+  background: #FFFFFF;
+  border-color: rgba(13, 110, 253, 0.3);
+  color: #0d6efd;
+}
+
+body.light-mode .btn-view:hover {
+  background: rgba(13, 110, 253, 0.1);
+  border-color: #0d6efd;
+  color: #0d6efd;
+}
+
+body.light-mode .btn-edit {
+  background: #FFFFFF;
+  border-color: rgba(255, 193, 7, 0.4);
+  color: #856404;
+}
+
+body.light-mode .btn-edit:hover {
+  background: rgba(255, 193, 7, 0.15);
+  border-color: #ffc107;
+  color: #856404;
+}
+
+body.light-mode .btn-delete {
+  background: #FFFFFF;
+  border-color: rgba(220, 53, 69, 0.3);
+  color: #dc3545;
+}
+
+body.light-mode .btn-delete:hover {
+  background: rgba(220, 53, 69, 0.1);
+  border-color: #dc3545;
+  color: #dc3545;
+}
+
+@media (max-width: 768px) {
+  body.light-mode .employee-table tbody td::before {
+    color: #666666;
+  }
+}
 </style>
