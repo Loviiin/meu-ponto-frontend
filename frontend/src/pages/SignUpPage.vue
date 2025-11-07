@@ -167,6 +167,10 @@ import api from '../axios';
 import { getAddressByCEP } from '../services/locationService.js';
 import LocationPickerMap from '../components/LocationPickerMap.vue';
 import PasswordStrengthIndicator from '../components/PasswordStrengthIndicator.vue';
+import { mask } from 'vue-the-mask';
+
+// Registrar a diretiva v-mask localmente
+const vMask = mask;
 
 const router = useRouter();
 
@@ -402,9 +406,32 @@ async function handleNext() {
     // Normalizar dados (tirar máscaras) e remover campos auxiliares
     payload.empresa.cnpj = onlyDigits(payload.empresa.cnpj);
     payload.localidade.cep = onlyDigits(payload.localidade.cep);
-  payload.usuario.cpf = onlyDigits(payload.usuario.cpf);
-  payload.usuario.email = normalizeEmail(payload.usuario.email);
+    payload.usuario.cpf = onlyDigits(payload.usuario.cpf);
+    payload.usuario.email = normalizeEmail(payload.usuario.email);
+    
+    // IMPORTANTE: Garantir que latitude e longitude são números, não strings
+    // Isso resolve o problema de coordenadas com vírgula enviadas do backend
+    if (payload.localidade.latitude !== null && payload.localidade.latitude !== undefined) {
+      payload.localidade.latitude = typeof payload.localidade.latitude === 'number' 
+        ? payload.localidade.latitude 
+        : parseFloat(String(payload.localidade.latitude).replace(',', '.'));
+    }
+    if (payload.localidade.longitude !== null && payload.localidade.longitude !== undefined) {
+      payload.localidade.longitude = typeof payload.localidade.longitude === 'number' 
+        ? payload.localidade.longitude 
+        : parseFloat(String(payload.localidade.longitude).replace(',', '.'));
+    }
+    
     delete payload.usuario.password_confirm;
+    
+    // DEBUG: Log das coordenadas que estão sendo enviadas
+    console.log('📍 COORDENADAS ENVIADAS:', {
+      latitude: payload.localidade.latitude,
+      longitude: payload.localidade.longitude,
+      tipo_latitude: typeof payload.localidade.latitude,
+      tipo_longitude: typeof payload.localidade.longitude
+    });
+    
     const response = await api.post('/auth/signup', payload, {
       headers: { 'Content-Type': 'application/json', Accept: 'application/json' }
     });
@@ -478,16 +505,51 @@ async function searchCEP(){
   try {
     const address = await getAddressByCEP(cleanedCep);
     if (address) {
+      // DEBUG: Log da resposta do CEP
+      console.log('🔍 RESPOSTA DO CEP (BRUTO):', {
+        raw_address: address,
+        latitude_type: typeof address.latitude,
+        longitude_type: typeof address.longitude,
+        lat_type: typeof address.lat,
+        lng_type: typeof address.lng
+      });
+      
       formData.localidade.logradouro = address.Street || '';
       formData.localidade.bairro = address.Neighborhood || '';
       formData.localidade.cidade = address.City || '';
       formData.localidade.estado = address.State || '';
 
       // Se o backend fornecer coordenadas aproximadas para o CEP, centralizar o mapa
-      const lat = address.latitude ?? address.lat ?? address.Latitude ?? address.Lat;
-      const lng = address.longitude ?? address.lon ?? address.lng ?? address.Longitude ?? address.Lng ?? address.Lon;
-      if (typeof lat === 'number' && typeof lng === 'number' && !Number.isNaN(lat) && !Number.isNaN(lng)) {
+      let lat = address.latitude ?? address.lat ?? address.Latitude ?? address.Lat;
+      let lng = address.longitude ?? address.lon ?? address.lng ?? address.Longitude ?? address.Lng ?? address.Lon;
+      
+      // Converter para number caso venham como string com vírgula ou ponto
+      if (typeof lat === 'string') {
+        lat = parseFloat(lat.replace(',', '.'));
+      }
+      if (typeof lng === 'string') {
+        lng = parseFloat(lng.replace(',', '.'));
+      }
+      
+      // Converter para number se necessário
+      if (typeof lat !== 'number') {
+        lat = Number(lat);
+      }
+      if (typeof lng !== 'number') {
+        lng = Number(lng);
+      }
+      
+      if (!Number.isNaN(lat) && !Number.isNaN(lng)) {
+        // Atualizar APENAS o centro do mapa
+        // As coordenadas serão salvas no formData quando o LocationPickerMap emitir o evento position-changed
         localidadeMapCenter.value = { lat, lng };
+        
+        // DEBUG: Log das coordenadas do CEP (apenas para referência, NÃO são salvas automaticamente)
+        console.log('🗺️ MAPA CENTRALIZADO COM CEP:', {
+          latitude: lat,
+          longitude: lng,
+          nota: 'Essas coordenadas NÃO foram salvas ainda - aguardando usuário ajustar no mapa'
+        });
       }
     } else {
       toast.error('CEP não encontrado.');
@@ -511,8 +573,20 @@ const FieldError = {
 
 // Quando o usuário ajusta o marcador no mapa, atualiza as coordenadas no formulário
 function onLocalidadePositionChanged(pos) {
-  formData.localidade.latitude = pos.lat;
-  formData.localidade.longitude = pos.lng;
+  // Garantir que os valores são numbers, nunca strings
+  const lat = typeof pos.lat === 'number' ? pos.lat : parseFloat(String(pos.lat).replace(',', '.'));
+  const lng = typeof pos.lng === 'number' ? pos.lng : parseFloat(String(pos.lng).replace(',', '.'));
+  
+  formData.localidade.latitude = lat;
+  formData.localidade.longitude = lng;
+  
+  // DEBUG: Log quando as coordenadas são salvas (seja pelo CEP ou arrastando o marcador)
+  console.log('📌 COORDENADAS SALVAS NO FORMULÁRIO:', {
+    latitude: lat,
+    longitude: lng,
+    origem: 'LocationPickerMap (mapa)',
+    tipo: 'number'
+  });
 }
 
 </script>

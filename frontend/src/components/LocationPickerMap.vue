@@ -90,7 +90,11 @@ onUnmounted(() => {
 watch(() => props.initialPosition, (pos) => {
   if (!map || !pos) return
   map.setView([pos.lat, pos.lng])
-  if (marker) marker.setLatLng([pos.lat, pos.lng])
+  if (marker) {
+    marker.setLatLng([pos.lat, pos.lng])
+    // IMPORTANTE: Emitir evento quando a posição inicial muda (ex: após busca de CEP)
+    emit('position-changed', { lat: pos.lat, lng: pos.lng })
+  }
   updateCircle()
 })
 
