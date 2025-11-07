@@ -1182,3 +1182,109 @@ body.light-mode .btn-lg {
   border-radius: 12px;
 }
 
+/* ============================================
+   TEXTO E LABELS - GARANTIR VISIBILIDADE NO LIGHT MODE
+   ============================================ */
+
+body.light-mode .profile-page-complete {
+  color: #333333 !important;
+}
+
+body.light-mode .profile-page-complete h1,
+body.light-mode .profile-page-complete h2,
+body.light-mode .profile-page-complete h3,
+body.light-mode .profile-page-complete h4,
+body.light-mode .profile-page-complete h5,
+body.light-mode .profile-page-complete h6 {
+  color: #333333 !important;
+}
+
+body.light-mode .profile-page-complete p,
+body.light-mode .profile-page-complete span,
+body.light-mode .profile-page-complete div {
+  color: #333333 !important;
+}
+
+body.light-mode .profile-page-complete .card-body {
+  color: #333333 !important;
+}
+
+body.light-mode .profile-page-complete .text-muted {
+  color: #666666 !important;
+}
+
+body.light-mode .profile-page-complete .form-label {
+  color: #333333 !important;
+  font-weight: 500;
+}
+
+body.light-mode .profile-page-complete .form-control::placeholder,
+body.light-mode .profile-page-complete input::placeholder,
+body.light-mode .profile-page-complete textarea::placeholder {
+  color: #888888 !important;
+}
+
+body.light-mode .profile-page-complete .nav-tabs .nav-link {
+  color: #333333 !important;
+}
+
+body.light-mode .profile-page-complete .nav-tabs .nav-link:hover {
+  color: #696000 !important;
+}
+
+body.light-mode .profile-page-complete .nav-tabs .nav-link.active {
+  color: #696000 !important;
+  font-weight: 600;
+}
+
+body.light-mode .profile-page-complete strong {
+  color: #333333 !important;
+}
+
+/* ============================================
+   EMPLOYEE EDIT PAGE - LIGHT MODE
+   ============================================ */
+
+body.light-mode .employee-page {
+  color: #333333 !important;
+}
+
+body.light-mode .glass-card h2,
+body.light-mode .glass-card h4 {
+  color: #333333 !important;
+}
+
+body.light-mode .glass-card .subtitle {
+  color: #666666 !important;
+}
+
+body.light-mode .glass-card .form-row label {
+  color: #333333 !important;
+  font-weight: 600;
+}
+
+body.light-mode .glass-card .form-row input,
+body.light-mode .glass-card .form-row select {
+  background: rgba(255, 255, 255, 0.8);
+  border-color: rgba(105, 96, 0, 0.2);
+  color: #333333 !important;
+}
+
+body.light-mode .glass-card .form-row input::placeholder {
+  color: #888888 !important;
+}
+
+body.light-mode .glass-card .form-row select option {
+  background: #FFFFFF;
+  color: #333333;
+}
+
+body.light-mode .glass-card .field-error {
+  color: #d9534f !important;
+}
+
+body.light-mode .glass-card .form-text,
+body.light-mode .glass-card small {
+  color: #666666 !important;
+}
+

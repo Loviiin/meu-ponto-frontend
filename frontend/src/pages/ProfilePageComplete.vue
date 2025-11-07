@@ -518,10 +518,10 @@ export default {
       try {
         loading.value = true;
         error.value = null;
-        profile.value = await ProfileService.getMyProfile();
+        profile.value = await ProfileService.getProfile();
         
         // Carregar stats em paralelo
-        stats.value = await ProfileService.getMyStats();
+        stats.value = await ProfileService.getStats();
       } catch (err) {
         error.value = err.response?.data?.error || 'Erro ao carregar perfil';
         showToast(error.value, 'error');
@@ -646,11 +646,12 @@ export default {
       
       try {
         changingPassword.value = true;
-        await ProfileService.changePassword(
-          passwordForm.senhaAtual,
-          passwordForm.senhaNova,
-          passwordForm.confirmarSenha
-        );
+        // Corrigir as chaves do objeto para bater com o esperado pelo backend
+        await ProfileService.changePassword({
+          senha_atual: passwordForm.senhaAtual,
+          senha_nova: passwordForm.senhaNova,
+          confirmar_senha: passwordForm.confirmarSenha
+        });
         
         // Limpar form
         passwordForm.senhaAtual = '';
