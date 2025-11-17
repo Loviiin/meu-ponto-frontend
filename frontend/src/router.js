@@ -1,23 +1,31 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import Login from './pages/LoginPage.vue'
-import Home from './pages/HomePage.vue'
-import EmployeeList from './pages/EmployeeList.vue'
-import EmployeeNew from './pages/EmployeeNew.vue'
-import EmployeeEdit from './pages/EmployeeEdit.vue'
-import CargoList from './pages/CargoList.vue'
-import EmpresaNew from './pages/EmpresaNew.vue'
-import EmpresaList from './pages/EmpresaList.vue'
-import CargoNew from './pages/CargoNew.vue'
-import Permissoes from './pages/Permissoes.vue'
-import PontoUserList from './pages/PontoUserList.vue'
-import AjustePonto from './pages/AjustePonto.vue'
-import JustificativasPendentes from './pages/JustificativasPendentes.vue'
-import MinhasJustificativas from './pages/MinhasJustificativas.vue'
-import SignUp from './pages/SignUpPage.vue'
-import BancoHoras from './pages/BancoHoras.vue';
-import ProfilePage from './pages/ProfilePage.vue';
-import DashboardPage from './pages/DashboardPage.vue';
-import CalendarioPage from './pages/CalendarioPage.vue';
+
+// Lazy load todas as pages para melhor chunking
+const Login = () => import('./pages/LoginPage.vue')
+const Home = () => import('./pages/HomePage.vue')
+const EmployeeList = () => import('./pages/EmployeeList.vue')
+const EmployeeNew = () => import('./pages/EmployeeNew.vue')
+const EmployeeEdit = () => import('./pages/EmployeeEdit.vue')
+const CargoList = () => import('./pages/CargoList.vue')
+const EmpresaNew = () => import('./pages/EmpresaNew.vue')
+const EmpresaList = () => import('./pages/EmpresaList.vue')
+const CargoNew = () => import('./pages/CargoNew.vue')
+const Permissoes = () => import('./pages/Permissoes.vue')
+const PontoUserList = () => import('./pages/PontoUserList.vue')
+const AjustePonto = () => import('./pages/AjustePonto.vue')
+const JustificativasPendentes = () => import('./pages/JustificativasPendentes.vue')
+const MinhasJustificativas = () => import('./pages/MinhasJustificativas.vue')
+const SignUp = () => import('./pages/SignUpPage.vue')
+const BancoHoras = () => import('./pages/BancoHoras.vue')
+const ProfilePage = () => import('./pages/ProfilePage.vue')
+const DashboardPage = () => import('./pages/DashboardPage.vue')
+const CalendarioPage = () => import('./pages/CalendarioPage.vue')
+const CargoDetail = () => import('./pages/CargoDetail.vue')
+const CargoEdit = () => import('./pages/CargoEdit.vue')
+const CargoPermissoes = () => import('./pages/CargoPermissoes.vue')
+const RelatorioPonto = () => import('./pages/RelatorioPonto.vue')
+const RelatorioGeral = () => import('./pages/RelatorioGeral.vue')
+const EmpresaEdit = () => import('./pages/EmpresaEdit.vue')
 
 const routes = [
 
@@ -86,19 +94,19 @@ const routes = [
   {
     path: '/cargo/detail/:id',
     name: 'CargoDetail',
-    component: () => import('../src/pages/CargoDetail.vue'),
+    component: CargoDetail,
     meta: { requiresAuth: true, permission: 'GERENCIAR_CARGOS' }
   },
   {
     path: '/cargo/edit/:id',
     name: 'CargoEdit',
-    component: () => import('../src/pages/CargoEdit.vue'),
+    component: CargoEdit,
     meta: { requiresAuth: true, permission: 'GERENCIAR_CARGOS' }
   },
   {
     path: '/cargo/:id/permissoes',
     name: 'CargoPermissoes',
-    component: () => import('../src/pages/CargoPermissoes.vue'),
+    component: CargoPermissoes,
     meta: { requiresAuth: true, permission: 'GERENCIAR_CARGOS' }
   },
   {
@@ -132,19 +140,19 @@ const routes = [
   {
     path: '/ponto/relatorios/me',
     name: 'RelatorioProprio',
-    component: () => import('./pages/RelatorioPonto.vue'),
+    component: RelatorioPonto,
     meta: { requiresAuth: true }
   },
   {
     path: '/ponto/relatorios/usuario/:id',
     name: 'RelatorioFuncionario',
-    component: () => import('./pages/RelatorioPonto.vue'),
+    component: RelatorioPonto,
     meta: { requiresAuth: true, permission: 'VISUALIZAR_PONTO_FUNCIONARIOS' }
   },
   {
     path: '/relatorio-geral',
     name: 'RelatorioGeral',
-    component: () => import('./pages/RelatorioGeral.vue'),
+    component: RelatorioGeral,
     meta: { requiresAuth: true, permission: 'VISUALIZAR_RELATORIOS_GERAIS' }
   },
 
@@ -179,6 +187,13 @@ const routes = [
     meta: { requiresAuth: true }
   },
   
+  // Empresa
+  {
+    path: '/empresa/edit/:id',
+    name: 'EmpresaEdit',
+    component: EmpresaEdit,
+    meta: { requiresAuth: true }
+  }
 ] 
 
 const router = createRouter({

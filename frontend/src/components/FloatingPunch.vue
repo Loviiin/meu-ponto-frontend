@@ -552,6 +552,7 @@ async function baterPonto() {
       const resp = await api.post("/pontos", payload, { timeout: 8000 });
       const duration = Math.round(performance.now() - start);
       toast.success(`Ponto registrado automaticamente (${duration}ms)`);
+      expanded.value = false; // fecha o card após sucesso
     } catch (error) {
       console.error("Erro ao bater ponto", error.response?.data || error);
       const msg = error.response?.data?.message || 'Erro ao registrar ponto.';
@@ -649,6 +650,7 @@ async function confirmarAjuste() {
     await api.post('/pontos', payload, { timeout: 8000 });
     toast.success('Ponto registrado com ajuste pelo mapa');
     showAdjustModal.value = false;
+    expanded.value = false; // fecha o card após sucesso
   } catch (error) {
     console.error('Erro ao registrar ajuste', error.response?.data || error);
     const msg = error.response?.data?.message || 'Erro ao registrar ponto ajustado.';

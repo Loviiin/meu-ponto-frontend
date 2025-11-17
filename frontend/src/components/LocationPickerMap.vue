@@ -25,77 +25,175 @@ const props = defineProps({
 const emit = defineEmits(['position-changed'])
 
 const mapEl = ref(null)
+const mapInitialized = ref(false)
 let map = null
 let marker = null
 let circle = null
+let tileLayer = null
+let leafletScriptLoaded = false
 
-// Lazy load Leaflet via CDN sem instalar dependência
+// Lazy load Leaflet via CDN com cache seguro
 function ensureLeafletLoaded() {
   return new Promise((resolve, reject) => {
-    if (window.L) return resolve(window.L)
+    if (window.L && leafletScriptLoaded) return resolve(window.L)
 
-    const link = document.createElement('link')
-    link.rel = 'stylesheet'
-    link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'
-    document.head.appendChild(link)
+    // Se Leaflet já existe mas o script não foi marcado, só retorna
+    if (window.L) {
+      leafletScriptLoaded = true
+      return resolve(window.L)
+    }
 
-    const script = document.createElement('script')
-    script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'
-    script.onload = () => resolve(window.L)
-    script.onerror = () => reject(new Error('Falha ao carregar Leaflet'))
-    document.body.appendChild(script)
+    // Verifica se CSS já existe
+    if (!document.querySelector('link[href*="leaflet.css"]')) {
+      const link = document.createElement('link')
+      link.rel = 'stylesheet'
+      link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'
+      link.onerror = () => {
+        console.warn('Erro ao carregar CSS Leaflet, continuando mesmo assim')
+      }
+      document.head.appendChild(link)
+    }
+
+    // Verifica se script já está carregando
+    if (!document.querySelector('script[src*="leaflet.js"]')) {
+      const script = document.createElement('script')
+      script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'
+      script.async = true
+      script.onload = () => {
+        leafletScriptLoaded = true
+        resolve(window.L)
+      }
+      script.onerror = () => {
+        leafletScriptLoaded = false
+        reject(new Error('Falha ao carregar Leaflet'))
+      }
+      document.body.appendChild(script)
+    } else {
+      // Script já existe, esperar que carregue
+      const checkLeaflet = setInterval(() => {
+        if (window.L) {
+          clearInterval(checkLeaflet)
+          leafletScriptLoaded = true
+          resolve(window.L)
+        }
+      }, 100)
+      setTimeout(() => clearInterval(checkLeaflet), 5000)
+    }
   })
 }
 
 function setupMap(L) {
-  if (!mapEl.value) return
-  map = L.map(mapEl.value, { zoomControl: true })
-  map.setView([props.initialPosition.lat, props.initialPosition.lng], props.zoom)
+  try {
+    if (!mapEl.value) {
+      console.error('mapEl.value não existe')
+      return
+    }
 
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; OpenStreetMap contributors'
-  }).addTo(map)
+    // Se o mapa já existe, destruir primeiro
+    if (map) {
+      cleanupMap()
+    }
 
-  marker = L.marker([props.initialPosition.lat, props.initialPosition.lng], { draggable: true }).addTo(map)
-  marker.on('dragend', () => {
-    const p = marker.getLatLng()
-    emit('position-changed', { lat: p.lat, lng: p.lng })
+    // Criar novo mapa
+    map = L.map(mapEl.value, { 
+      zoomControl: true,
+      attributionControl: true,
+      preferCanvas: false // usar SVG para melhor compatibilidade
+    })
+    
+    map.setView([props.initialPosition.lat, props.initialPosition.lng], props.zoom)
+
+    // Adicionar camada de tiles
+    tileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors',
+      maxZoom: 19,
+      minZoom: 1
+    }).addTo(map)
+
+    // Adicionar marcador draggable
+    marker = L.marker([props.initialPosition.lat, props.initialPosition.lng], { 
+      draggable: true,
+      autoPan: true
+    }).addTo(map)
+
+    marker.on('dragend', () => {
+      const p = marker.getLatLng()
+      emit('position-changed', { lat: p.lat, lng: p.lng })
+      updateCircle()
+    })
+
+    // Emite posição inicial
+    emit('position-changed', { lat: props.initialPosition.lat, lng: props.initialPosition.lng })
+
+    // Desenha círculo inicial
     updateCircle()
-  })
+    
+    mapInitialized.value = true
+    
+    // Força re-render do mapa após montagem
+    setTimeout(() => {
+      if (map) map.invalidateSize()
+    }, 100)
+  } catch (err) {
+    console.error('Erro ao configurar mapa:', err)
+  }
+}
 
-  // Emite posição inicial
-  emit('position-changed', { lat: props.initialPosition.lat, lng: props.initialPosition.lng })
-
-  // Desenha círculo inicial se houver raio
-  updateCircle()
+function cleanupMap() {
+  try {
+    if (circle) {
+      if (map) map.removeLayer(circle)
+      circle = null
+    }
+    if (marker) {
+      if (map) map.removeLayer(marker)
+      marker = null
+    }
+    if (tileLayer) {
+      if (map) map.removeLayer(tileLayer)
+      tileLayer = null
+    }
+    if (map) {
+      map.off()
+      map.remove()
+      map = null
+    }
+    mapInitialized.value = false
+  } catch (err) {
+    console.error('Erro ao limpar mapa:', err)
+    map = null
+    marker = null
+    circle = null
+    tileLayer = null
+  }
 }
 
 onMounted(async () => {
-  const L = await ensureLeafletLoaded()
-  setupMap(L)
+  try {
+    const L = await ensureLeafletLoaded()
+    await new Promise(resolve => setTimeout(resolve, 50)) // pequena pausa
+    setupMap(L)
+  } catch (err) {
+    console.error('Erro ao montar mapa:', err)
+  }
 })
 
 onUnmounted(() => {
-  if (map) {
-    if (circle) {
-      map.removeLayer(circle)
-      circle = null
-    }
-    map.remove()
-    map = null
-    marker = null
-  }
+  cleanupMap()
 })
 
 watch(() => props.initialPosition, (pos) => {
-  if (!map || !pos) return
-  map.setView([pos.lat, pos.lng])
-  if (marker) {
-    marker.setLatLng([pos.lat, pos.lng])
-    // IMPORTANTE: Emitir evento quando a posição inicial muda (ex: após busca de CEP)
-    emit('position-changed', { lat: pos.lat, lng: pos.lng })
+  if (!map || !mapInitialized.value || !pos) return
+  try {
+    map.setView([pos.lat, pos.lng], props.zoom)
+    if (marker) {
+      marker.setLatLng([pos.lat, pos.lng])
+      emit('position-changed', { lat: pos.lat, lng: pos.lng })
+    }
+    updateCircle()
+  } catch (err) {
+    console.error('Erro ao atualizar posição do mapa:', err)
   }
-  updateCircle()
 })
 
 watch(() => props.circleRadiusMeters, () => {
@@ -103,29 +201,37 @@ watch(() => props.circleRadiusMeters, () => {
 })
 
 function updateCircle() {
-  if (!map || !window.L) return
-  const L = window.L
-  const center = marker ? marker.getLatLng() : (props.initialPosition ? L.latLng(props.initialPosition.lat, props.initialPosition.lng) : null)
-  if (!center) return
-  const radius = Number(props.circleRadiusMeters || 0)
-  if (radius > 0) {
-    if (!circle) {
-      circle = L.circle(center, {
-        radius,
-        color: '#d4af37',
-        weight: 2,
-        fillColor: '#d4af37',
-        fillOpacity: 0.15,
-      }).addTo(map)
+  try {
+    if (!map || !mapInitialized.value || !window.L) return
+    
+    const L = window.L
+    const center = marker ? marker.getLatLng() : (props.initialPosition ? L.latLng(props.initialPosition.lat, props.initialPosition.lng) : null)
+    
+    if (!center) return
+    
+    const radius = Number(props.circleRadiusMeters || 0)
+    
+    if (radius > 0) {
+      if (!circle) {
+        circle = L.circle(center, {
+          radius,
+          color: '#d4af37',
+          weight: 2,
+          fillColor: '#d4af37',
+          fillOpacity: 0.15,
+        }).addTo(map)
+      } else {
+        circle.setLatLng(center)
+        circle.setRadius(radius)
+      }
     } else {
-      circle.setLatLng(center)
-      circle.setRadius(radius)
+      if (circle) {
+        map.removeLayer(circle)
+        circle = null
+      }
     }
-  } else {
-    if (circle) {
-      map.removeLayer(circle)
-      circle = null
-    }
+  } catch (err) {
+    console.error('Erro ao atualizar círculo:', err)
   }
 }
 </script>
