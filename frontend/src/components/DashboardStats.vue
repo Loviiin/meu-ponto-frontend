@@ -1,11 +1,7 @@
 <template>
-  <div class="dashboard-stats">
-    <!-- Loading State -->
-    <div v-if="loading" class="text-center py-5">
-      <div class="spinner-border text-primary" role="status">
-        <span class="visually-hidden">Carregando...</span>
-      </div>
-    </div>
+  <div class="dashboard-stats" data-cy="dashboard-stats">
+    <!-- Loading State com Skeleton -->
+    <SkeletonLoader v-if="loading" :count="6" />
 
     <!-- Stats Grid -->
     <div v-else-if="stats" class="stats-grid">
@@ -125,6 +121,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import ProfileService from '../services/ProfileService'
+import SkeletonLoader from './SkeletonLoader.vue'
 
 const stats = ref(null)
 const loading = ref(true)

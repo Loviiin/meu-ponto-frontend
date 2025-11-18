@@ -1,6 +1,7 @@
 import api from './axios';
 import ProfileService from './services/ProfileService';
 import { saveUserPermissions, clearUserPermissions } from './utils/permissions';
+import { cacheClear } from './utils/cacheManager';
 
 export async function login(username, password, email) {
   const res = await api.post('/api/token/', { username, password, email });
@@ -43,4 +44,7 @@ export function logout() {
   localStorage.removeItem('token');
   // Remove permissões
   clearUserPermissions();
+  // Limpa cache de API (IMPORTANTE: evita vazamento de dados entre usuários)
+  cacheClear();
+  console.log('✅ Logout completo: Cache e dados limpos');
 }

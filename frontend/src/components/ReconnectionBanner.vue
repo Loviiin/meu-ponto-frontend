@@ -1,6 +1,6 @@
 <template>
   <transition name="fade">
-    <div v-if="showBanner" class="reconnection-banner" :class="{ 'is-connected': isConnected, 'is-disconnected': !isConnected }">
+    <div v-if="showBanner" class="reconnection-banner" :class="{ 'is-connected': isConnected, 'is-disconnected': !isConnected }" data-cy="reconnection-banner">
       <div class="banner-content">
         <div class="banner-icon">
           <i :class="isConnected ? 'bi bi-check-circle-fill' : 'bi bi-exclamation-triangle-fill'"></i>

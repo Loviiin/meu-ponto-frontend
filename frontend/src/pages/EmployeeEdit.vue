@@ -29,33 +29,35 @@
         <form v-else @submit.prevent="handleSubmit" novalidate>
           <!-- Nome -->
           <div class="form-row" :class="fieldClass('nome')">
-            <label>Nome Completo *</label>
+            <label data-cy="label-nome">Nome Completo *</label>
             <input 
               type="text" 
               v-model.trim="form.nome" 
               @blur="touch('nome')" 
               placeholder="Nome completo do funcionário"
               :disabled="submitting"
+              data-cy="input-nome"
             />
             <FieldError :error="errors.nome" />
           </div>
 
           <!-- Email -->
           <div class="form-row" :class="fieldClass('email')">
-            <label>Email *</label>
+            <label data-cy="label-email">Email *</label>
             <input 
               type="email" 
               v-model.trim="form.email" 
               @blur="touch('email')" 
               placeholder="email@empresa.com"
               :disabled="submitting"
+              data-cy="input-email"
             />
             <FieldError :error="errors.email" />
           </div>
 
           <!-- CPF (Admin apenas) -->
           <div v-if="canEditCPF" class="form-row" :class="fieldClass('cpf')">
-            <label>
+            <label data-cy="label-cpf">
               CPF * 
               <i class="bi bi-shield-lock text-warning ms-1" title="Apenas administradores podem editar"></i>
             </label>
@@ -67,6 +69,7 @@
               placeholder="000.000.000-00"
               maxlength="14"
               :disabled="submitting || updatingCPF"
+              data-cy="input-cpf"
             />
             <FieldError :error="errors.cpf" />
             <small class="form-text text-muted">
@@ -77,12 +80,13 @@
 
           <!-- CPF (Apenas visualização) -->
           <div v-else class="form-row">
-            <label>CPF</label>
+            <label data-cy="label-cpf">CPF</label>
             <input 
               type="text" 
               :value="form.cpf || 'Não disponível'" 
               disabled
               class="form-control-plaintext"
+              data-cy="input-cpf-readonly"
             />
             <small class="form-text text-muted">
               <i class="bi bi-lock-fill me-1"></i>
@@ -92,11 +96,12 @@
 
           <!-- Cargo -->
           <div class="form-row" :class="fieldClass('cargoId')">
-            <label>Cargo *</label>
+            <label data-cy="label-cargo">Cargo *</label>
             <select 
               v-model="form.cargoId" 
               @blur="touch('cargoId')"
               :disabled="submitting || loadingCargos"
+              data-cy="select-cargo"
             >
               <option value="">Selecione um cargo</option>
               <option v-for="c in cargos" :key="c.id" :value="c.id">
@@ -107,10 +112,10 @@
           </div>
 
           <div class="actions">
-            <button type="button" class="btn secondary" @click="goBack" :disabled="submitting">
+            <button type="button" class="btn secondary" @click="goBack" :disabled="submitting" data-cy="btn-cancelar">
               Cancelar
             </button>
-            <button type="submit" class="btn primary" :disabled="submitting || loadingCargos">
+            <button type="submit" class="btn primary" :disabled="submitting || loadingCargos" data-cy="btn-salvar">
               <span v-if="!submitting">Salvar Alterações</span>
               <span v-else>Salvando...</span>
             </button>

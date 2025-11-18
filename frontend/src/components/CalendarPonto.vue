@@ -1,7 +1,7 @@
 <template>
-  <div class="calendar-ponto">
+  <div class="calendar-ponto" data-cy="calendar-ponto">
     <div class="calendar-header">
-      <button class="btn btn-icon" @click="previousMonth" :disabled="loading">
+      <button class="btn btn-icon" @click="previousMonth" :disabled="loading" data-cy="btn-mes-anterior">
         <i class="bi bi-chevron-left"></i>
       </button>
       
@@ -12,7 +12,7 @@
         </button>
       </div>
       
-      <button class="btn btn-icon" @click="nextMonth" :disabled="loading">
+      <button class="btn btn-icon" @click="nextMonth" :disabled="loading" data-cy="btn-proximo-mes">
         <i class="bi bi-chevron-right"></i>
       </button>
     </div>

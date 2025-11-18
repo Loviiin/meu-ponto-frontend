@@ -1,4 +1,5 @@
 import api from '../axios'
+import { cachedApiCall, cacheClear } from '../utils/cacheManager'
 
 /**
  * Serviço para gerenciar operações relacionadas ao perfil do usuário
@@ -121,15 +122,20 @@ class ProfileService {
    * 5. Obter Estatísticas do Usuário
    * Endpoint: GET /api/v1/profile/me/stats
    * Retorna estatísticas (pontos, banco de horas, justificativas, tempo na empresa)
+   * Com cache de 5 minutos para evitar requisições repetidas
    * @returns {Promise<Object>} Dashboard de estatísticas transformadas
    */
   async getStats() {
     try {
-      const response = await api.get('/profile/me/stats')
-      const data = response.data
-
-      // Transformar estrutura do backend para o formato esperado pelo frontend
-      return this._transformStatsData(data)
+      // Usar cache com TTL de 5 minutos (300 segundos)
+      return await cachedApiCall(
+        'profile_stats', // Cache key
+        async () => {
+          const response = await api.get('/profile/me/stats')
+          return this._transformStatsData(response.data)
+        },
+        5 * 60 * 1000 // 5 minutos em ms
+      )
     } catch (error) {
       console.error('Erro ao buscar estatísticas:', error)
       throw error
@@ -226,18 +232,28 @@ class ProfileService {
    * 7. Obter Calendário de Ponto Mensal
    * Endpoint: GET /api/v1/profile/me/calendar
    * Retorna calendário com todos os pontos do mês
+   * Com cache de 10 minutos para evitar requisições repetidas
    * @param {number} [mes] - Número do mês (1-12). Padrão: mês atual
    * @param {number} [ano] - Ano (ex: 2025). Padrão: ano atual
    * @returns {Promise<Object>} Calendário mensal com resumo transformado
    */
   async getCalendar(mes, ano) {
     try {
-      const params = {}
-      if (mes) params.mes = mes
-      if (ano) params.ano = ano
+      // Cache key inclui mês e ano
+      const cacheKey = `calendar_${mes}_${ano}`
+      
+      return await cachedApiCall(
+        cacheKey,
+        async () => {
+          const params = {}
+          if (mes) params.mes = mes
+          if (ano) params.ano = ano
 
-      const response = await api.get('/profile/me/calendar', { params })
-      return this._transformCalendarData(response.data)
+          const response = await api.get('/profile/me/calendar', { params })
+          return this._transformCalendarData(response.data)
+        },
+        10 * 60 * 1000 // 10 minutos em ms
+      )
     } catch (error) {
       console.error('Erro ao buscar calendário:', error)
       throw error

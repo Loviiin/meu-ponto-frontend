@@ -23,20 +23,21 @@
 
           <!-- Nome -->
           <div class="form-row" :class="fieldClass('nome')">
-            <label>Nome Completo *</label>
+            <label data-cy="label-nome">Nome Completo *</label>
             <input 
               type="text" 
               v-model.trim="form.nome" 
               @blur="touch('nome')" 
               placeholder="Ex: João da Silva"
               :disabled="submitting"
+              data-cy="input-nome"
             />
             <FieldError :error="errors.nome" />
           </div>
 
           <!-- CPF -->
           <div class="form-row" :class="fieldClass('cpf')">
-            <label>CPF *</label>
+            <label data-cy="label-cpf">CPF *</label>
             <input 
               type="text" 
               v-model="form.cpf" 
@@ -45,32 +46,35 @@
               placeholder="000.000.000-00"
               maxlength="14"
               :disabled="submitting"
+              data-cy="input-cpf"
             />
             <FieldError :error="errors.cpf" />
           </div>
 
           <!-- Email -->
           <div class="form-row" :class="fieldClass('email')">
-            <label>Email *</label>
+            <label data-cy="label-email">Email *</label>
             <input 
               type="email" 
               v-model.trim="form.email" 
               @blur="touch('email')" 
               placeholder="funcionario@empresa.com"
               :disabled="submitting"
+              data-cy="input-email"
             />
             <FieldError :error="errors.email" />
           </div>
 
           <!-- Senha -->
           <div class="form-row" :class="fieldClass('senha')">
-            <label>Senha *</label>
+            <label data-cy="label-senha">Senha *</label>
             <input 
               type="password" 
               v-model="form.senha" 
               @blur="touch('senha')" 
               placeholder="Crie uma senha forte"
               :disabled="submitting"
+              data-cy="input-senha"
             />
             <PasswordStrengthIndicator v-if="form.senha" :senha="form.senha" />
             <FieldError :error="errors.senha" />
@@ -83,12 +87,13 @@
 
           <!-- Cargo -->
           <div class="form-row" :class="fieldClass('cargoId')">
-            <label>Cargo *</label>
+            <label data-cy="label-cargo">Cargo *</label>
             <select 
               v-model="form.cargoId" 
               @change="carregarInfoCargo"
               @blur="touch('cargoId')"
               :disabled="submitting || loadingCargos"
+              data-cy="select-cargo"
             >
               <option value="">Selecione o cargo</option>
               <option v-for="c in cargos" :key="c.id" :value="c.id">
@@ -103,12 +108,13 @@
 
           <!-- Tipo de Contrato -->
           <div class="form-row" :class="fieldClass('tipoContrato')">
-            <label>Tipo de Contrato *</label>
+            <label data-cy="label-tipoContrato">Tipo de Contrato *</label>
             <select 
               v-model="form.tipoContrato" 
               @change="ajustarCargaPorTipo"
               @blur="touch('tipoContrato')"
               :disabled="submitting"
+              data-cy="select-tipoContrato"
             >
               <option value="CLT">CLT (Regime CLT)</option>
               <option value="PJ">PJ (Pessoa Jurídica)</option>
@@ -121,11 +127,12 @@
 
           <!-- Localidade -->
           <div class="form-row" :class="fieldClass('localidadeId')">
-            <label>Localidade *</label>
+            <label data-cy="label-localidade">Localidade *</label>
             <select 
               v-model="form.localidadeId" 
               @blur="touch('localidadeId')"
               :disabled="submitting || loadingLocalidades"
+              data-cy="select-localidade"
             >
               <option value="">Selecione a localidade</option>
               <option v-for="l in localidades" :key="l.id" :value="l.id">
@@ -137,7 +144,7 @@
 
           <!-- Salário -->
           <div class="form-row" :class="fieldClass('salario')">
-            <label>Salário (R$) *</label>
+            <label data-cy="label-salario">Salário (R$) *</label>
             <input 
               type="number" 
               v-model.number="form.salario" 
@@ -146,6 +153,7 @@
               step="0.01"
               min="0"
               :disabled="submitting"
+              data-cy="input-salario"
             />
             <small v-if="cargoSelecionado && cargoSelecionado.salario_minimo" class="info">
               Faixa do cargo: R$ {{ cargoSelecionado.salario_minimo.toFixed(2) }} - R$ {{ cargoSelecionado.salario_maximo.toFixed(2) }}
@@ -155,13 +163,14 @@
 
           <!-- Data de Admissão -->
           <div class="form-row" :class="fieldClass('dataAdmissao')">
-            <label>Data de Admissão *</label>
+            <label data-cy="label-dataAdmissao">Data de Admissão *</label>
             <input 
               type="date" 
               v-model="form.dataAdmissao" 
               @blur="touch('dataAdmissao')" 
               :max="dataHoje"
               :disabled="submitting"
+              data-cy="input-dataAdmissao"
             />
             <FieldError :error="errors.dataAdmissao" />
           </div>
@@ -295,10 +304,10 @@
         </section>
 
         <div class="actions">
-          <button type="button" class="btn secondary" @click="goBack" :disabled="submitting || loadingCargos || loadingLocalidades">
+          <button type="button" class="btn secondary" @click="goBack" :disabled="submitting || loadingCargos || loadingLocalidades" data-cy="btn-cancelar">
             Cancelar
           </button>
-          <button type="submit" class="btn primary" :disabled="submitting || loadingCargos || loadingLocalidades || !validacaoCarga.valido">
+          <button type="submit" class="btn primary" :disabled="submitting || loadingCargos || loadingLocalidades || !validacaoCarga.valido" data-cy="btn-cadastrar">
             <span v-if="!submitting">Cadastrar Funcionário</span>
             <span v-else>Cadastrando...</span>
           </button>

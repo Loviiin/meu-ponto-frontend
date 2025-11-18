@@ -1,7 +1,7 @@
 <template>
   <div class="floating-container">
     <!-- Botão inicial -->
-    <button v-if="!expanded" class="floating-btn" @click="toggleExpand">
+    <button v-if="!expanded" class="floating-btn" @click="toggleExpand" data-cy="floating-punch-btn">
       Bater Ponto!
     </button>
 

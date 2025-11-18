@@ -122,7 +122,7 @@
           <router-link to="/perfil" class="btn btn-outline-light btn-sm" title="Meu Perfil">
             <i class="bi bi-person-circle me-1"></i> Perfil
           </router-link>
-          <button class="btn btn-outline-light btn-sm" title="Sair" @click="logoutUser">
+          <button class="btn btn-outline-light btn-sm" title="Sair" @click="logoutUser" data-cy="logout-btn">
             <i class="bi bi-box-arrow-right me-1"></i> Sair
           </button>
         </div>

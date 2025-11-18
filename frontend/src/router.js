@@ -203,6 +203,7 @@ const router = createRouter({
 
 // Importar funções de permissão
 import { getUserPermissions, hasPerm } from './utils/permissions'
+import { setupRoutePrefetch } from './utils/routePrefetch'
 
 // Guard de autenticação e permissões
 router.beforeEach((to, from, next) => {
@@ -239,5 +240,7 @@ router.afterEach((to) => {
   }
 })
 
+// Setup prefetch de rotas importantes
+setupRoutePrefetch(router)
 
 export default router

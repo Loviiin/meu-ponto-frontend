@@ -16,6 +16,7 @@
               :class="{ 'active': mostrarSaldo }"
               :disabled="loading"
               title="Mostrar/Ocultar Banco de Horas"
+              data-cy="btn-toggleSaldo"
             >
               <i class="bi" :class="mostrarSaldo ? 'bi-eye-fill' : 'bi-eye-slash-fill'"></i>
               <span class="ms-2 d-none d-md-inline">Banco de Horas</span>
@@ -25,6 +26,7 @@
               class="btn btn-new" 
               @click="$router.push('/usuario/new')" 
               :disabled="loading"
+              data-cy="btn-novoFuncionario"
             >
               <i class="bi bi-person-plus-fill me-2"></i>
               Novo Funcionário
@@ -76,26 +78,26 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="usuario in usuarios" :key="usuario.id">
+                <tr v-for="usuario in usuarios" :key="usuario.id" :data-cy="`row-employee-${usuario.id}`">
                   <td data-label="ID">
-                    <span class="badge-id">{{ usuario.id }}</span>
+                    <span class="badge-id" :data-cy="`employee-id-${usuario.id}`">{{ usuario.id }}</span>
                   </td>
                   <td data-label="Nome">
                     <div class="user-info">
                       <i class="bi bi-person-circle me-2"></i>
-                      <strong>{{ usuario.nome }}</strong>
+                      <strong :data-cy="`employee-nome-${usuario.id}`">{{ usuario.nome }}</strong>
                     </div>
                   </td>
                   <td data-label="Email">
-                    <span class="text-email">{{ usuario.email }}</span>
+                    <span class="text-email" :data-cy="`employee-email-${usuario.id}`">{{ usuario.email }}</span>
                   </td>
                   <td data-label="Cargo">
-                    <span class="badge-cargo">
+                    <span class="badge-cargo" :data-cy="`employee-cargo-${usuario.id}`">
                       {{ getCargo(usuario) }}
                     </span>
                   </td>
                   <td v-if="mostrarSaldo && hasPerm('VER_SALDO_FUNCIONARIOS')" data-label="Banco de Horas">
-                    <span class="badge-hours" :class="getSaldoBancoHorasClass(usuario)">
+                    <span class="badge-hours" :class="getSaldoBancoHorasClass(usuario)" :data-cy="`employee-saldo-${usuario.id}`">
                       {{ getSaldoBancoHoras(usuario) }}
                     </span>
                   </td>
@@ -106,6 +108,7 @@
                         class="btn-action btn-view" 
                         title="Visualizar" 
                         @click="viewUsuario(usuario.id)"
+                        :data-cy="`btn-visualizar-${usuario.id}`"
                       >
                         <i class="bi bi-eye-fill"></i>
                       </button>
@@ -114,6 +117,7 @@
                         class="btn-action btn-edit" 
                         title="Editar" 
                         @click="editUsuario(usuario.id)"
+                        :data-cy="`btn-editar-${usuario.id}`"
                       >
                         <i class="bi bi-pencil-square"></i>
                       </button>
@@ -122,6 +126,7 @@
                         class="btn-action btn-report" 
                         title="Relatório" 
                         @click="viewReport(usuario.id)"
+                        :data-cy="`btn-relatorio-${usuario.id}`"
                       >
                         <i class="bi bi-file-earmark-text-fill"></i>
                       </button>
@@ -130,6 +135,7 @@
                         class="btn-action btn-delete" 
                         title="Excluir" 
                         @click="deleteUsuario(usuario.id)"
+                        :data-cy="`btn-deletar-${usuario.id}`"
                       >
                         <i class="bi bi-trash-fill"></i>
                       </button>
