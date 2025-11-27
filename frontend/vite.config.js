@@ -7,10 +7,15 @@ export default defineConfig({
   server: {
     port: 3000
   },
+  resolve: {
+    alias: {
+      vue: 'vue/dist/vue.esm-bundler.js'
+    }
+  },
   build: {
     // Aumenta o limite de warning para 1MB (padrão é 500KB)
     chunkSizeWarningLimit: 1000,
-    
+
     rollupOptions: {
       output: {
         // Configuração de chunking inteligente
@@ -29,7 +34,7 @@ export default defineConfig({
             // Outros vendors em um chunk separado
             return 'vendor'
           }
-          
+
           // Pages em chunks separados para lazy loading
           if (id.includes('/pages/')) {
             const match = id.match(/pages\/(\w+)/)
@@ -37,12 +42,12 @@ export default defineConfig({
               return `pages/${match[1]}`
             }
           }
-          
+
           // Services em chunk separado
           if (id.includes('/services/')) {
             return 'services'
           }
-          
+
           // Utils e helpers
           if (id.includes('/utils/') || id.includes('/utils')) {
             return 'utils'

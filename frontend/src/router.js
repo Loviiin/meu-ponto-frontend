@@ -26,31 +26,54 @@ const CargoPermissoes = () => import('./pages/CargoPermissoes.vue')
 const RelatorioPonto = () => import('./pages/RelatorioPonto.vue')
 const RelatorioGeral = () => import('./pages/RelatorioGeral.vue')
 const EmpresaEdit = () => import('./pages/EmpresaEdit.vue')
+const EmpresaConfig = () => import('./pages/EmpresaConfigPage.vue')
+const ForgotPassword = () => import('./pages/ForgotPasswordPage.vue')
+const ResetPassword = () => import('./pages/ResetPasswordPage.vue')
+const GoogleCallback = () => import('./pages/GoogleCallbackPage.vue')
 
 const routes = [
 
-  { 
+  {
     path: '/login',
-    component: Login ,
+    component: Login,
     meta: { hideNavbar: true, hidePunchButton: true }
   },
 
-  { 
+  {
     path: '/',
-    component: Login ,
+    component: Login,
     meta: { hideNavbar: true, hidePunchButton: true }
   },
 
-  { 
+  {
     path: '/signup',
-    component: SignUp ,
+    component: SignUp,
     meta: { hideNavbar: true, hidePunchButton: true }
   },
 
-  { path: '/home',
+  {
+    path: '/forgot-password',
+    component: ForgotPassword,
+    meta: { hideNavbar: true, hidePunchButton: true }
+  },
+
+  {
+    path: '/reset-password',
+    component: ResetPassword,
+    meta: { hideNavbar: true, hidePunchButton: true }
+  },
+
+  // {
+  //   path: '/auth/google/callback',
+  //   component: GoogleCallback,
+  //   meta: { hideNavbar: true, hidePunchButton: true }
+  // },
+
+  {
+    path: '/home',
     component: Home,
-    meta: { requiresAuth: true } 
-  },  
+    meta: { requiresAuth: true }
+  },
   {
     path: '/usuario/list',
     component: EmployeeList,
@@ -76,7 +99,7 @@ const routes = [
     component: EmpresaList,
     meta: { requiresAuth: true }
   },
-      {
+  {
     path: '/empresa/new',
     component: EmpresaNew,
     meta: { requiresAuth: true }
@@ -114,7 +137,7 @@ const routes = [
     component: Permissoes,
     meta: { requiresAuth: true, permission: 'GERENCIAR_CARGOS' }
   },
-    {
+  {
     path: '/Meus-Pontos',
     component: PontoUserList,
     meta: { requiresAuth: true }
@@ -186,15 +209,21 @@ const routes = [
     component: CalendarioPage,
     meta: { requiresAuth: true }
   },
-  
+
   // Empresa
   {
     path: '/empresa/edit/:id',
     name: 'EmpresaEdit',
     component: EmpresaEdit,
     meta: { requiresAuth: true }
+  },
+  {
+    path: '/empresa/config',
+    name: 'EmpresaConfig',
+    component: EmpresaConfig,
+    meta: { requiresAuth: true, permission: 'EDITAR_EMPRESA' }
   }
-] 
+]
 
 const router = createRouter({
   history: createWebHistory(),
@@ -221,7 +250,7 @@ router.beforeEach((to, from, next) => {
   // Se a rota requer permissão específica
   if (requiredPermission && isAuthenticated) {
     const userPermissions = getUserPermissions()
-    
+
     if (!hasPerm(userPermissions, requiredPermission)) {
       // Redireciona para home com mensagem de erro
       console.warn(`⚠️ Acesso negado: permissão ${requiredPermission} necessária`)
@@ -233,8 +262,9 @@ router.beforeEach((to, from, next) => {
 })
 
 // Toggle login theme class on body based on current route
+// Toggle login theme class on body based on current route
 router.afterEach((to) => {
-  const isAuthPage = to.path === '/login' || to.path === '/' || to.path === '/signup'
+  const isAuthPage = ['/login', '/', '/signup', '/forgot-password', '/reset-password'].includes(to.path) || to.path.startsWith('/reset-password')
   if (typeof document !== 'undefined') {
     document.body.classList.toggle('theme-login', isAuthPage)
   }

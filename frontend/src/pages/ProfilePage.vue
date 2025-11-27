@@ -185,6 +185,10 @@
                     </span>
                   </div>
                 </div>
+
+                <!-- Google Link Section -->
+                <!-- Google Link Section -->
+                <!-- <ProfileGoogleLinkSection :user="profile" class="mt-4" /> -->
               </div>
             </div>
 
@@ -356,6 +360,7 @@ import ProfileService from '../services/ProfileService'
 import { toast } from '../toast'
 import { onlyDigits, formatPhoneBR, validarTelefoneBR, validarSenhaForte, normalizeEmail, validateEmail } from '../utils/validators'
 import PasswordStrengthIndicator from '../components/PasswordStrengthIndicator.vue'
+import ProfileGoogleLinkSection from '../components/ProfileGoogleLinkSection.vue'
 
 const profile = ref(null)
 const stats = ref(null)

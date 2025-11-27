@@ -185,10 +185,22 @@ onUnmounted(() => {
 watch(() => props.initialPosition, (pos) => {
   if (!map || !mapInitialized.value || !pos) return
   try {
-    map.setView([pos.lat, pos.lng], props.zoom)
+    // Verifica se a posição realmente mudou para evitar loops e resets desnecessários
+    const currentCenter = map.getCenter()
+    const dist = map.distance(currentCenter, [pos.lat, pos.lng])
+    
+    // Se a distância for pequena (< 1 metro), ignorar atualização do mapa
+    // Isso evita que o mapa fique "pulando" quando o usuário arrasta o marcador
+    // pois o evento dragend já atualizou o marcador visualmente
+    if (dist < 1) return
+
+    // Mantém o zoom atual do usuário em vez de resetar para props.zoom
+    const currentZoom = map.getZoom()
+    map.setView([pos.lat, pos.lng], currentZoom)
+    
     if (marker) {
       marker.setLatLng([pos.lat, pos.lng])
-      emit('position-changed', { lat: pos.lat, lng: pos.lng })
+      // Não emitir position-changed aqui para evitar loop infinito
     }
     updateCircle()
   } catch (err) {

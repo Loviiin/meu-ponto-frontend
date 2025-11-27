@@ -24,6 +24,10 @@
             <span class="input-icon"><i class="bi bi-lock-fill"></i></span>
           </div>
           
+          <div class="d-flex justify-content-end mb-3">
+            <router-link to="/forgot-password" class="forgot-password-link">Esqueceu a senha?</router-link>
+          </div>
+          
           <!-- Indicador de servidor acordando -->
           <transition name="fade">
             <div v-if="serverWakingUp && !loading" class="server-waking-info">
@@ -67,6 +71,15 @@
               </span>
             </button>
           </div>
+
+          <div class="divider-text my-3">ou</div>
+
+          <!-- <div class="button-wrapper">
+            <button class="btn btn-google" type="button" @click="googleLogin" :disabled="loading || isBlocked">
+              <i class="bi bi-google me-2"></i>
+              Continuar com Google
+            </button>
+          </div> -->
           
           <div class="signup-redirect">
             <span>Não tem conta?</span>
@@ -76,8 +89,6 @@
       </div>
     </div>
   </div>
-
-
 </template>
 
 <style scoped>
@@ -352,6 +363,89 @@ body.light-mode .rate-limit-alert {
   border-color: rgba(220, 53, 69, 0.4);
   color: #721c24;
 }
+
+.forgot-password-link {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.7);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.forgot-password-link:hover {
+  color: var(--color-white);
+  text-decoration: underline;
+}
+
+body.light-mode .forgot-password-link {
+  color: rgba(0, 0, 0, 0.6);
+}
+
+body.light-mode .forgot-password-link:hover {
+  color: #696000;
+}
+
+.divider-text {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.85rem;
+}
+
+.divider-text::before,
+.divider-text::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.divider-text::before {
+  margin-right: .5em;
+}
+
+.divider-text::after {
+  margin-left: .5em;
+}
+
+body.light-mode .divider-text {
+  color: rgba(0, 0, 0, 0.4);
+}
+
+body.light-mode .divider-text::before,
+body.light-mode .divider-text::after {
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+.btn-google {
+  width: 100%;
+  border-radius: 10px;
+  background: white;
+  color: #333;
+  border: none;
+  padding: 10px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-google:hover {
+  background: #f1f1f1;
+  transform: translateY(-1px);
+}
+
+body.light-mode .btn-google {
+  background: #fff;
+  border: 1px solid #ddd;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+body.light-mode .btn-google:hover {
+  background: #f8f9fa;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
 </style>
 
 <script>
@@ -389,17 +483,14 @@ export default {
     }
   },
   watch: {
-    // Observa mudanças no email
     email() {
       this.scheduleServerWakeUp()
     },
-    // Observa mudanças na senha
     password() {
       this.scheduleServerWakeUp()
     }
   },
   beforeUnmount() {
-    // Limpa o timeout quando o componente é destruído
     if (this.wakeUpTimeout) {
       clearTimeout(this.wakeUpTimeout)
     }
@@ -431,47 +522,35 @@ export default {
       }, 1000)
     },
     scheduleServerWakeUp() {
-      // Se o servidor já está acordado ou já está fazendo login, não faz nada
       if (this.serverAwake || this.loading) return
       
-      // Limpa timeout anterior
       if (this.wakeUpTimeout) {
         clearTimeout(this.wakeUpTimeout)
       }
       
-      // Aguarda 800ms após a última digitação para fazer o ping
       this.wakeUpTimeout = setTimeout(() => {
         this.wakeUpServer()
       }, 800)
     },
     
     async wakeUpServer() {
-      // Só faz wake-up se houver pelo menos algum conteúdo digitado
       if (!this.email && !this.password) return
-      
-      // Se já está acordado, não precisa fazer de novo
       if (this.serverAwake) return
       
       this.serverWakingUp = true
       
       try {
-        // Faz um ping leve no servidor usando o endpoint de health check
-        // Usando um timeout menor para não travar a UI
         await api.get('/health', { 
           timeout: 5000,
-          // Ignora erros de autenticação, só queremos acordar o servidor
           validateStatus: () => true 
         })
         
         this.serverAwake = true
         console.log('✅ Servidor acordado e pronto!')
       } catch (error) {
-        // Mesmo com erro, considera que tentou acordar
-        // (o servidor pode não ter endpoint /health, mas já acordou)
         this.serverAwake = true
         console.log('⚡ Ping enviado ao servidor')
       } finally {
-        // Esconde o indicador após 1 segundo
         setTimeout(() => {
           this.serverWakingUp = false
         }, 1000)
@@ -481,7 +560,6 @@ export default {
     async loginUser() {
       this.loading = true
       try {
-        // 1. Fazer login (normalizar email)
         const response = await api.post(
           "/auth/login",
           {
@@ -498,9 +576,8 @@ export default {
 
         const token = response.data.token;
         localStorage.setItem("token", token);
-        localStorage.setItem("access", token); // Para compatibilidade com auth.js
+        localStorage.setItem("access", token);
 
-        // 2. Buscar dados do usuário
         const userResponse = await api.get(
           "/usuarios/me",
           {
@@ -519,43 +596,34 @@ export default {
           console.warn("Contrato não encontrado no payload de /usuarios/me. Verifique o backend ou o vínculo do usuário.");
         }
 
-        // 3. Carregar permissões do usuário
         try {
           const permResponse = await api.get("/profile/me/permissions");
           const permissions = permResponse.data.permissoes || [];
           
-          // Salvar permissões no localStorage
           const permissionNames = permissions.map(p => p.nome);
           localStorage.setItem('user_permissions', JSON.stringify(permissionNames));
           
           console.log('✅ Permissões carregadas:', permissionNames);
         } catch (permError) {
           console.warn('⚠️ Erro ao carregar permissões:', permError);
-          // Continua mesmo sem permissões
         }
 
-        // 4. Redirecionar para home
         console.log('✅ Login bem-sucedido, redirecionando para /home...');
         
-        // Usar nextTick para garantir que o router está pronto
         await this.$nextTick();
-        
-        // Tentar redirecionar
         await this.$router.push('/home');
         console.log('✅ Redirecionamento concluído');
       } catch (error) {
         console.error("❌ Erro no login:", error.response?.data || error.message);
         
-        // Rate Limiting - Status 429
         if (error.response?.status === 429) {
           const data = error.response.data
           const errorMsg = data.error || data.erro || 'Muitas tentativas de login. Aguarde alguns minutos.'
           
-          // Extrair minutos do erro se possível
           const minutesMatch = errorMsg.match(/(\d+)\s+minuto/i)
           const retryAfterMinutes = minutesMatch ? parseInt(minutesMatch[1]) : 15
           
-          this.startCountdown(retryAfterMinutes * 60) // Converter minutos para segundos
+          this.startCountdown(retryAfterMinutes * 60)
           
           alert(`🚫 Limite de tentativas excedido!\n\n${errorMsg}\n\nPor favor, aguarde ${retryAfterMinutes} minutos antes de tentar novamente.`)
           return
@@ -572,6 +640,27 @@ export default {
     },
     goToSignUp() {
       this.$router.push('/signup');
+    },
+    goToForgotPassword() {
+      this.$router.push('/forgot-password');
+    },
+    async googleLogin() {
+      try {
+        this.loading = true
+        const response = await api.get('/auth/google/login')
+        
+        if (response.data.url) {
+          window.location.href = response.data.url
+        } else {
+          // Fallback se o backend redirecionar direto (o que não deve acontecer com AJAX)
+          const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8083/api/v1';
+          window.location.href = `${apiUrl}/auth/google/login`;
+        }
+      } catch (error) {
+        console.error('Erro ao iniciar login Google:', error)
+        this.loading = false
+        alert("Não foi possível iniciar o login com Google.")
+      }
     }
   }
 }
