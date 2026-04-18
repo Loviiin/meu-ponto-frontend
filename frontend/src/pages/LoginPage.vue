@@ -575,9 +575,24 @@ export default {
       }
     },
 
-    async finishLogin(token) {
+    async finishLogin(token, sessionData = null) {
       localStorage.setItem('token', token)
       localStorage.setItem('access', token)
+
+      if (sessionData) {
+        if (sessionData.usuario_id != null) localStorage.setItem('user_id', String(sessionData.usuario_id))
+        if (sessionData.cargo_id != null) localStorage.setItem('cargo_id', String(sessionData.cargo_id))
+        if (sessionData.empresa_id != null) localStorage.setItem('empresa_id', String(sessionData.empresa_id))
+
+        const permissionNames = Array.isArray(sessionData.permissoes) ? sessionData.permissoes : []
+        localStorage.setItem('user_permissions', JSON.stringify(permissionNames))
+
+        console.log('✅ Sessão demo carregada:', permissionNames)
+        await this.$nextTick()
+        await this.$router.push('/home')
+        console.log('✅ Redirecionamento concluído')
+        return
+      }
 
       const userResponse = await api.get('/usuarios/me', {
         headers: { Authorization: `Bearer ${token}` }
@@ -640,7 +655,7 @@ export default {
           throw new Error('Token não retornado pelo endpoint de demo.')
         }
 
-        await this.finishLogin(token)
+        await this.finishLogin(token, response.data)
       } catch (error) {
         console.error('❌ Erro no login demo:', error.response?.data || error.message)
 
