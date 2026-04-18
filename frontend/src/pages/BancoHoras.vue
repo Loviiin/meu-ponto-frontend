@@ -654,12 +654,26 @@ async function toggleDemo() {
 .glass-card .table td,
 .glass-card .table th {
   border-color: rgba(255, 255, 255, 0.09);
+  color: rgba(255, 255, 255, 0.94);
 }
 
 .group-row td {
   background: rgba(255, 255, 255, 0.05) !important;
   color: rgba(255, 255, 255, 0.96);
   font-weight: 700;
+}
+
+.glass-card .table tbody td,
+.glass-card .table tbody th {
+  color: rgba(255, 255, 255, 0.94);
+}
+
+.glass-card .table tbody td.text-success {
+  color: #7ee2a8 !important;
+}
+
+.glass-card .table tbody td.text-danger {
+  color: #ff9a9a !important;
 }
 
 .group-count {
@@ -778,6 +792,19 @@ body.light-mode .glass-card .table th,
 body.light-mode .glass-card .form-control,
 body.light-mode .glass-card .form-select {
   color: #2f2f2f;
+}
+
+body.light-mode .glass-card .table tbody td,
+body.light-mode .glass-card .table tbody th {
+  color: #2f2f2f;
+}
+
+body.light-mode .glass-card .table tbody td.text-success {
+  color: #198754 !important;
+}
+
+body.light-mode .glass-card .table tbody td.text-danger {
+  color: #dc3545 !important;
 }
 
 body.light-mode .glass-card .form-control,
