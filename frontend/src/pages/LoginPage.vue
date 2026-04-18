@@ -498,7 +498,25 @@ export default {
       clearInterval(this.countdownInterval)
     }
   },
+  mounted() {
+    const { email, password } = this.$route?.query || {}
+    if (typeof email === 'string' && email) {
+      this.email = email
+    }
+    if (typeof password === 'string' && password) {
+      this.password = password
+    }
+
+    if (this.shouldAutoLoginDemo()) {
+      this.demoLogin()
+    }
+  },
   methods: {
+    shouldAutoLoginDemo() {
+      const demoFlag = this.$route?.query?.demo
+      return demoFlag === '1' || demoFlag === 'true'
+    },
+
     formatTime(seconds) {
       const mins = Math.floor(seconds / 60)
       const secs = seconds % 60
@@ -556,6 +574,86 @@ export default {
         }, 1000)
       }
     },
+
+    async finishLogin(token) {
+      localStorage.setItem('token', token)
+      localStorage.setItem('access', token)
+
+      const userResponse = await api.get('/usuarios/me', {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+
+      const userData = userResponse.data
+      const contrato = userData?.contrato
+      if (contrato) {
+        if (contrato.cargo_id != null) localStorage.setItem('cargo_id', String(contrato.cargo_id))
+        if (contrato.empresa_id != null) localStorage.setItem('empresa_id', String(contrato.empresa_id))
+      } else {
+        localStorage.removeItem('cargo_id')
+        localStorage.removeItem('empresa_id')
+        console.warn('Contrato não encontrado no payload de /usuarios/me. Verifique o backend ou o vínculo do usuário.')
+      }
+
+      try {
+        const permResponse = await api.get('/profile/me/permissions')
+        const permissions = permResponse.data.permissoes || []
+
+        const permissionNames = permissions.map(p => p.nome)
+        localStorage.setItem('user_permissions', JSON.stringify(permissionNames))
+
+        console.log('✅ Permissões carregadas:', permissionNames)
+      } catch (permError) {
+        console.warn('⚠️ Erro ao carregar permissões:', permError)
+      }
+
+      console.log('✅ Login bem-sucedido, redirecionando para /home...')
+
+      await this.$nextTick()
+      await this.$router.push('/home')
+      console.log('✅ Redirecionamento concluído')
+    },
+
+    async demoLogin() {
+      this.loading = true
+
+      try {
+        localStorage.removeItem('token')
+        localStorage.removeItem('access')
+        localStorage.removeItem('user')
+        localStorage.removeItem('cargo_id')
+        localStorage.removeItem('empresa_id')
+        localStorage.removeItem('user_permissions')
+
+        const response = await api.post(
+          '/auth/demo',
+          {},
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              Accept: 'application/json'
+            }
+          }
+        )
+
+        const token = response.data.token
+        if (!token) {
+          throw new Error('Token não retornado pelo endpoint de demo.')
+        }
+
+        await this.finishLogin(token)
+      } catch (error) {
+        console.error('❌ Erro no login demo:', error.response?.data || error.message)
+
+        const errorMessage = error.response?.data?.message
+          || error.response?.data?.error
+          || error.response?.data?.erro
+          || 'Não foi possível entrar na conta demo.'
+
+        alert(errorMessage)
+      } finally {
+        this.loading = false
+      }
+    },
     
     async loginUser() {
       this.loading = true
@@ -575,44 +673,7 @@ export default {
         );
 
         const token = response.data.token;
-        localStorage.setItem("token", token);
-        localStorage.setItem("access", token);
-
-        const userResponse = await api.get(
-          "/usuarios/me",
-          {
-            headers: { Authorization: `Bearer ${token}` }
-          }
-        );
-
-        const userData = userResponse.data;
-        const contrato = userData?.contrato;
-        if (contrato) {
-          if (contrato.cargo_id != null) localStorage.setItem("cargo_id", String(contrato.cargo_id));
-          if (contrato.empresa_id != null) localStorage.setItem("empresa_id", String(contrato.empresa_id));
-        } else {
-          localStorage.removeItem("cargo_id");
-          localStorage.removeItem("empresa_id");
-          console.warn("Contrato não encontrado no payload de /usuarios/me. Verifique o backend ou o vínculo do usuário.");
-        }
-
-        try {
-          const permResponse = await api.get("/profile/me/permissions");
-          const permissions = permResponse.data.permissoes || [];
-          
-          const permissionNames = permissions.map(p => p.nome);
-          localStorage.setItem('user_permissions', JSON.stringify(permissionNames));
-          
-          console.log('✅ Permissões carregadas:', permissionNames);
-        } catch (permError) {
-          console.warn('⚠️ Erro ao carregar permissões:', permError);
-        }
-
-        console.log('✅ Login bem-sucedido, redirecionando para /home...');
-        
-        await this.$nextTick();
-        await this.$router.push('/home');
-        console.log('✅ Redirecionamento concluído');
+        await this.finishLogin(token)
       } catch (error) {
         console.error("❌ Erro no login:", error.response?.data || error.message);
         
