@@ -30,6 +30,7 @@ const EmpresaConfig = () => import('./pages/EmpresaConfigPage.vue')
 const ForgotPassword = () => import('./pages/ForgotPasswordPage.vue')
 const ResetPassword = () => import('./pages/ResetPasswordPage.vue')
 const GoogleCallback = () => import('./pages/GoogleCallbackPage.vue')
+const DemoEntry = () => import('./pages/DemoEntryPage.vue')
 
 const routes = [
 
@@ -60,6 +61,12 @@ const routes = [
   {
     path: '/reset-password',
     component: ResetPassword,
+    meta: { hideNavbar: true, hidePunchButton: true }
+  },
+
+  {
+    path: '/demo',
+    component: DemoEntry,
     meta: { hideNavbar: true, hidePunchButton: true }
   },
 
